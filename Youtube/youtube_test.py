@@ -6,10 +6,10 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 analyser = SentimentIntensityAnalyzer()
 
-api_key = 'AIzaSyA2Q_ASXYOtMaQj4outLXJUcoc5dCv_Zhs'
+api_key = 'AIzaSyBR2kc8R5EzD1rnOjyXZfEL1FOGLKojsg4'
 yt = YouTubeDataAPI(api_key)
 
-sonic_search = yt.search(q = "Sonic The Headgehog")
+sonic_search = yt.search(q = "Sonic The Headgehog", max_results=5, parser=None)
 
 df_sonic = pd.DataFrame(sonic_search)
 df_sonic.head(5)
@@ -24,7 +24,7 @@ df_comments = pd.DataFrame(comments)
 df_graph_data = pd.DataFrame(columns = ['comment_id', 'commenter_channel_id', 'channel_country', 'text', 'date', 'neg', 'neu', 'pos', 'compound'])
 
 channel_id = df_comments.iloc[0].commenter_channel_id
-channel_data = yt.get_channel_metadata(channel_id, part=['id', 'snippet', 'contentDetails'])
+channel_data = yt.get_channel_metadata(channel_id)
 
 # for index, row in df_comments.iterrows():
 #     channel_id = df_comments.iloc[0].commenter_channel_id

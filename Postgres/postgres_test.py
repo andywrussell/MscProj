@@ -28,7 +28,7 @@ try:
     # Print PostgreSQL Connection properties
     #print(connection.get_dsn_parameters(), "\n")
     
-    select_query = "SELECT * FROM public.tweets_part2 WHERE msg LIKE '%#SuicideSquad%' or msg LIKE '%#suicidesquad%'"
+    select_query = "SELECT * FROM public.tweets_part2 WHERE msg LIKE '%#SuicideSquad%' or msg LIKE '%#suicidesquad%' or msg LIKE 'Suicide Squad'"
     tweets_df = sqlio.read_sql_query(select_query, connection)
     
     sentiment_analyzer_scores(tweets_df.iloc[0].msg)
