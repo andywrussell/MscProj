@@ -10,7 +10,7 @@ api_key = 'AIzaSyBR2kc8R5EzD1rnOjyXZfEL1FOGLKojsg4'
 yt = YouTubeDataAPI(api_key)
 
 sonic_search = yt.search(q = "Sonic The Headgehog", max_results=5, parser=None)
-
+spy
 df_sonic = pd.DataFrame(sonic_search)
 df_sonic.head(5)
 
