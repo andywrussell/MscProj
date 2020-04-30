@@ -7,6 +7,7 @@ Created on Wed Apr 29 14:30:50 2020
 """
 
 import imdb
+from tqdm import tqdm
 import pandas as pd
 import sys
 # insert at 1, 0 is the script path (or '' in REPL)
@@ -47,8 +48,41 @@ def get_imdbIds():
             WHERE "movieId" = %s;"""     
             insert_params = (movie_id, movie_url, row["movieId"])
             database_helper.run_query(insert_sql, insert_params)
+            
+def get_metaData():
+    #get movie meta data
+    with tqdm(total=len(movies_df)) as pbar:
+        for index, row in movies_df.iterrows(): 
+            if (row['imdbId']):
+                movie = ia.get_movie(str(row['imdbId']))
+                year = movie['year']
+                if (movie.get('genres')):     
+                    genres = ','.join(movie.get('genres'))  
+                rating = movie.get('rating')
+                votes = movie.get('votes')
+                certificates = None
+                if (movie.get('certificates')):     
+                    certificates = ','.join(movie.get('certificates'))
+                
+                #update database
+                insert_sql = """
+                UPDATE movies 
+                SET "year" = %s, "genres" = %s, "rating" = %s, "votes" = %s, "certificates" = %s
+                WHERE "movieId" = %s;"""     
+                insert_params = (year, genres, rating, votes, certificates, row["movieId"])
+                database_helper.run_query(insert_sql, insert_params)
+            
+            pbar.update(1)
         
-get_imdbIds();
+#get_imdbIds()
+get_metaData()
+# test = movies_df.iloc[60]
+# movie = ia.get_movie(str(test['imdbId']))  
+# year = movie['year']
+# genres = ','.join(movie['genres'])
+# rating = movie['rating']
+# votes = movie['votes']
+# certificates = ','.join(movie['certificates'])
 
         
     

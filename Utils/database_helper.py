@@ -27,7 +27,7 @@ def run_query(sql, params):
             if(connection):
                 # cursor.close()
                 connection.close()
-                print("PostgreSQL connection is closed")
+                #print("PostgreSQL connection is closed")
                 
 def get_data(sql, q_params = None):
     try: 
