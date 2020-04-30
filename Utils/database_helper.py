@@ -46,5 +46,33 @@ def get_data(sql, q_params = None):
             if(connection):
                 # cursor.close()
                 connection.close()
-                print("PostgreSQL connection is closed")
+                #print("PostgreSQL connection is closed")
+                
+def select_query(table, params = None, where_operator = "AND"):
+    sql = "SELECT * FROM public." + table
+    if (params):
+        sql += " WHERE "
+        for key in params:
+            sql += '"{0}" = %({0})s'.format(key)
+            if (key != list(params.keys())[-1]):
+                sql += " {0} ".format(where_operator)
+                
+    return get_data(sql, params)
 
+def insert_data(table, params):
+    sql = "INSERT INTO " + table + "("
+    for key in params:
+        sql += '"{0}"'.format(key)
+        if (key != list(params.keys())[-1]):
+          sql += ","
+        
+    sql += ") VALUES(" 
+    for key in params:
+      sql += "%s"
+      if (key != list(params.keys())[-1]):
+          sql += ","
+    
+    sql += ")"
+    
+    run_query(sql, tuple(params.values()))
+            

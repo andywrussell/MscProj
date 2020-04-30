@@ -20,6 +20,7 @@ ia = imdb.IMDb()
 #get all movies from db
 get_movies_sql = "SELECT * FROM public.movies"
 movies_df = database_helper.get_data(get_movies_sql)
+cast_test = None
 
 def get_imdbIds():
     #find movies on imdb
@@ -73,16 +74,60 @@ def get_metaData():
                 database_helper.run_query(insert_sql, insert_params)
             
             pbar.update(1)
+            
+def get_directors():
+    #get movie meta data
+    with tqdm(total=len(movies_df)) as pbar:
+        for index, row in movies_df.iterrows(): 
+            if (row['imdbId']):
+                movie = ia.get_movie(str(row['imdbId']))
+                directors = movie.get('director')
+                if (directors != None) :
+                    for director in directors:
+                        #first check if the person exists
+                        imdb_id = director.personID  
+                        person_df = database_helper.select_query("people", {'imdbId' : imdb_id})
+                        if (person_df.empty):
+                            database_helper.insert_data("people", {"imdbId": imdb_id, "name": director["name"]})                        
+                    
+                        #add movie director link
+                        database_helper.insert_data("directors", {"p_imdbId" : imdb_id, "m_imdbId" : row['imdbId']})
+                
+            pbar.update(1)
+            
+def get_actors():
+    with tqdm(total=len(movies_df)) as pbar:
+        for index, row in movies_df.iterrows(): 
+            if (row['imdbId']):
+                movie = ia.get_movie(str(row['imdbId']))
+                cast_list = movie.get('cast')
+                if (cast_list != None) :
+                    for cast_member in cast_list:
+                        character_name = ""
+                        if (isinstance(cast_member.currentRole, list)):
+                            character_name = ','.join([x['name'] for x in cast_member.currentRole])
+                        else:
+                            try:
+                                character_name = cast_member.currentRole['name']
+                            except:   
+                                 character_name = "Unknown"
+                        
+                        #first check if the person exists
+                        imdb_id = cast_member.personID  
+                        person_df = database_helper.select_query("people", {'imdbId' : imdb_id})
+                        if (person_df.empty):
+                            database_helper.insert_data("people", {"imdbId": imdb_id, "name": cast_member["name"]})                        
+                    
+                        #add movie director link
+                        database_helper.insert_data("actors", {"p_imdbId" : imdb_id, "m_imdbId" : row['imdbId'], "role": character_name})
+                
+            pbar.update(1)
+    
         
 #get_imdbIds()
-get_metaData()
-# test = movies_df.iloc[60]
-# movie = ia.get_movie(str(test['imdbId']))  
-# year = movie['year']
-# genres = ','.join(movie['genres'])
-# rating = movie['rating']
-# votes = movie['votes']
-# certificates = ','.join(movie['certificates'])
+#get_metaData()
+#get_directors()
+get_actors()
 
         
     
