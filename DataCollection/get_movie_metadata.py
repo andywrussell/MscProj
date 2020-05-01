@@ -123,11 +123,31 @@ def get_actors():
                 
             pbar.update(1)
     
+def get_writers():
+    #get movie meta data
+    with tqdm(total=len(movies_df)) as pbar:
+        for index, row in movies_df.iterrows(): 
+            if (row['imdbId']):
+                movie = ia.get_movie(str(row['imdbId']))
+                writers = movie.get('writer')
+                if (writers != None) :
+                    for writer in writers:
+                        #first check if the person exists
+                        imdb_id = writer.personID  
+                        person_df = database_helper.select_query("people", {'imdbId' : imdb_id})
+                        if (person_df.empty):
+                            database_helper.insert_data("people", {"imdbId": imdb_id, "name": writer["name"]})                        
+                    
+                        #add movie director link
+                        database_helper.insert_data("writers", {"p_imdbId" : imdb_id, "m_imdbId" : row['imdbId']})
+                
+            pbar.update(1)
         
 #get_imdbIds()
 #get_metaData()
 #get_directors()
-get_actors()
+#get_actors()
+#get_writers()
 
         
     
