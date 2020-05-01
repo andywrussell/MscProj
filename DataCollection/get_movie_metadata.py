@@ -156,6 +156,21 @@ def get_keywords():
                     
                 database_helper.update_data("movies", update_params = {"keywords" : keywords}, select_params = {"movieId" : row["movieId"]})
             pbar.update(1)
+            
+def get_synopsis():
+    with tqdm(total=len(movies_df)) as pbar:
+        for index, row in movies_df.iterrows(): 
+            if (row['imdbId']):
+                movie = ia.get_movie(str(row['imdbId']), info='synopsis')
+                try:
+                    synopsis = movie['synopsis']
+                except:
+                    synopsis = None
+                
+                #insert movie synopsis
+                database_helper.insert_data("synopsis", {"movieId" : row["movieId"], "summary" : synopsis})
+            
+            pbar.update(1)
 
         
 #get_imdbIds()
@@ -164,12 +179,13 @@ def get_keywords():
 #get_actors()
 #get_writers()
 #get_keywords()
+get_synopsis()
             
-movie_id = '7286456'
-test_1 = ia.get_movie(movie_id, info='synopsis')
-synopsis = test_1['synopsis']
+# movie_id = '7286456'
+# test_1 = ia.get_movie(movie_id, info='synopsis')
+# synopsis = test_1['synopsis']
 
-print(synopsis)
+# print(synopsis)
 
         
     
