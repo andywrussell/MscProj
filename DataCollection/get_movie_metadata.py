@@ -142,12 +142,34 @@ def get_writers():
                         database_helper.insert_data("writers", {"p_imdbId" : imdb_id, "m_imdbId" : row['imdbId']})
                 
             pbar.update(1)
+            
+def get_keywords():
+    #get movie meta data
+    with tqdm(total=len(movies_df)) as pbar:
+        for index, row in movies_df.iterrows(): 
+            if (row['imdbId']):
+                movie = ia.get_movie(str(row['imdbId']), info='keywords')
+                try:
+                    keywords = ",".join(movie['keywords'])
+                except:
+                    keywords = None
+                    
+                database_helper.update_data("movies", update_params = {"keywords" : keywords}, select_params = {"movieId" : row["movieId"]})
+            pbar.update(1)
+
         
 #get_imdbIds()
 #get_metaData()
 #get_directors()
 #get_actors()
 #get_writers()
+#get_keywords()
+            
+movie_id = '7286456'
+test_1 = ia.get_movie(movie_id, info='synopsis')
+synopsis = test_1['synopsis']
+
+print(synopsis)
 
         
     

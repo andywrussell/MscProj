@@ -76,3 +76,17 @@ def insert_data(table, params):
     
     run_query(sql, tuple(params.values()))
             
+def update_data(table, update_params, select_params, select_operator = "AND"):
+    sql = "UPDATE " + table + " SET "
+    for key in update_params:
+        sql += '"{0}" = %s'.format(key)
+        if (key != list(update_params.keys())[-1]):
+          sql += ","
+          
+    if (select_params):
+        sql += " WHERE "
+        for key in select_params:
+            sql += '"{0}" = %s'.format(key)
+            if (key != list(select_params.keys())[-1]):   
+                sql += " {0} ".format(select_operator)
+    run_query(sql, tuple(list(update_params.values()) + list(select_params.values())))
