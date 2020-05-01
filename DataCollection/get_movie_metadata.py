@@ -179,11 +179,14 @@ def get_synopsis():
 #get_actors()
 #get_writers()
 #get_keywords()
-get_synopsis()
+#get_synopsis()
             
-# movie_id = '7286456'
-# test_1 = ia.get_movie(movie_id, info='synopsis')
-# synopsis = test_1['synopsis']
+movie_id = '7286456'
+test_1 = ia.get_movie(movie_id, info='video clips')
+vids = test_1["video clips and trailers"]
+youtube_vids = list(filter(lambda x: "youtube" in x[0].lower() or "youtube" in x[1].lower(), vids))
+
+print(youtube_vids)
 
 # print(synopsis)
 
