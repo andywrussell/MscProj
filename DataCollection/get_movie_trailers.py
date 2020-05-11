@@ -20,6 +20,9 @@ yt = YouTubeHelper().yt
 movies_df = database_helper.select_query("movies")
 
 def get_youtube_trailers():
+    """
+    Use this to collect movie trailers from yotube (INCOMPLETE)
+    """
     with tqdm(total=len(movies_df)) as pbar:
         for index, row in movies_df.iterrows(): 
             title = re.sub(r"\s*\(.*\)\s*","", row["title"])
@@ -42,6 +45,9 @@ def get_youtube_trailers():
             pbar.update(1)
 
 def load_trailers_from_csv():
+    """
+    Load manually collected movie trailers into datbase
+    """
     file_path = "../../ProjectData/trailers.csv"
     trailers_df = pd.read_csv(file_path)
     with tqdm(total=len(trailers_df)) as pbar:
@@ -57,6 +63,9 @@ def load_trailers_from_csv():
             pbar.update(1)
 
 def get_trailer_metadata():
+    """
+    Use youtubeId to collect trailer metadata
+    """
     trailers_df = database_helper.select_query("trailers")
     with tqdm(total=len(trailers_df)) as pbar:
         for index, row in trailers_df.iterrows():
@@ -79,7 +88,7 @@ def get_trailer_metadata():
             pbar.update(1)
     
 #test = yt.get_video_metadata('XvHSlHhh1gk')
-get_trailer_metadata()
+#get_trailer_metadata()
 #get_youtube_trailers()
 #load_trailers_from_csv()
             

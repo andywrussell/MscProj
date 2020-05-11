@@ -9,6 +9,12 @@ import pandas.io.sql as sqlio
 import psycopg2
 
 def run_query(sql, params):
+    """
+    Create a connection to the database and execute query
+    
+    :param sql: string contating sql query
+    :param params: tuple containing query parameters
+    """
     try: 
         connection = psycopg2.connect(user="postgres",
                                       password="4ndr3wP0ST",
@@ -30,6 +36,13 @@ def run_query(sql, params):
                 #print("PostgreSQL connection is closed")
                 
 def get_data(sql, q_params = None):
+    """
+    Fetch data from the database and return as pandas dataframe
+    
+    :param sql: string contating sql query
+    :param q_params: dictionary of query parameters
+    :return pandas dataframe of query results
+    """
     try: 
         connection = psycopg2.connect(user="postgres",
                                       password="4ndr3wP0ST",
@@ -49,6 +62,14 @@ def get_data(sql, q_params = None):
                 #print("PostgreSQL connection is closed")
                 
 def select_query(table, params = None, where_operator = "AND"):
+    """
+    Method to select data from any table
+    
+    :param table: string name of table
+    :param params: dictionary of select parameter
+    :param where_operator: string to join parameters e.g "AND", "OR"
+    :return pandas dataframe of query results
+    """
     sql = "SELECT * FROM public." + table
     if (params):
         sql += " WHERE "
@@ -60,6 +81,12 @@ def select_query(table, params = None, where_operator = "AND"):
     return get_data(sql, params)
 
 def insert_data(table, params):
+    """
+    Method to insert data into any table
+    
+    :param table: string name of table
+    :param params: dictionary of insert values
+    """
     sql = "INSERT INTO " + table + "("
     for key in params:
         sql += '"{0}"'.format(key)
@@ -77,6 +104,15 @@ def insert_data(table, params):
     run_query(sql, tuple(params.values()))
             
 def update_data(table, update_params, select_params, select_operator = "AND"):
+    """
+    Method to update data in any table
+    
+    :param table: string name of table
+    :param update_params: dictionary containing the parameters to be updated
+    :param select_params: dictionayry containing the paramers for selecting the updated row
+    :param select_operator: string to join parameters e.g "AND", "OR"
+    """
+    
     sql = "UPDATE " + table + " SET "
     for key in update_params:
         sql += '"{0}" = %s'.format(key)
