@@ -15,14 +15,16 @@ sys.path.insert(1, '/home/andy/Documents/MscProject/MscProj/Utils')
 
 import database_helper
 
+#initialize imdb helper
 ia = imdb.IMDb()
 
 #get all movies from db
-get_movies_sql = "SELECT * FROM public.movies"
-movies_df = database_helper.get_data(get_movies_sql)
-cast_test = None
+movies_df = database_helper.select_query("movies")
 
 def get_imdbIds():
+    """
+    Use movie title to get the imdb id from IMDb api
+    """
     #find movies on imdb
     for index, row in movies_df.iterrows(): 
         search_results = ia.search_movie(row['title'])
@@ -43,14 +45,12 @@ def get_imdbIds():
             movie_id = ia.get_imdbID(movie)
             
             #update database
-            insert_sql = """
-            UPDATE movies 
-            SET "imdbId" = %s, "url" = %s
-            WHERE "movieId" = %s;"""     
-            insert_params = (movie_id, movie_url, row["movieId"])
-            database_helper.run_query(insert_sql, insert_params)
+            database_helper.update_data("movies", update_params = { "imdbId" : movie_id, "url" : movie_url}, select_params = { "movieId", row["movieId"]})
             
 def get_metaData():
+    """
+    Use imdbId to retreive metadata from IMDb for each movie in movies_df
+    """
     #get movie meta data
     with tqdm(total=len(movies_df)) as pbar:
         for index, row in movies_df.iterrows(): 
@@ -66,16 +66,22 @@ def get_metaData():
                     certificates = ','.join(movie.get('certificates'))
                 
                 #update database
-                insert_sql = """
-                UPDATE movies 
-                SET "year" = %s, "genres" = %s, "rating" = %s, "votes" = %s, "certificates" = %s
-                WHERE "movieId" = %s;"""     
-                insert_params = (year, genres, rating, votes, certificates, row["movieId"])
-                database_helper.run_query(insert_sql, insert_params)
+                update_params = {
+                        "year" : year,
+                        "genres" : genres,
+                        "rating" : rating,
+                        "votes" : votes,
+                        "certificates" : certificates
+                    }
+                select_params = { "movieId" : row["movieId"] }
+                database_helper.update_data("movies", update_params = update_params, select_params = select_params)
             
             pbar.update(1)
             
 def get_directors():
+    """
+    Use imdb to collect movie directors
+    """
     #get movie meta data
     with tqdm(total=len(movies_df)) as pbar:
         for index, row in movies_df.iterrows(): 
@@ -96,6 +102,7 @@ def get_directors():
             pbar.update(1)
             
 def get_actors():
+    "Use imdb to collect movie actors"
     with tqdm(total=len(movies_df)) as pbar:
         for index, row in movies_df.iterrows(): 
             if (row['imdbId']):
@@ -124,7 +131,9 @@ def get_actors():
             pbar.update(1)
     
 def get_writers():
-    #get movie meta data
+    """
+    Use imdb to collect movie writers
+    """
     with tqdm(total=len(movies_df)) as pbar:
         for index, row in movies_df.iterrows(): 
             if (row['imdbId']):
@@ -144,7 +153,9 @@ def get_writers():
             pbar.update(1)
             
 def get_keywords():
-    #get movie meta data
+    """
+    Use imdb to collect plot keywords
+    """
     with tqdm(total=len(movies_df)) as pbar:
         for index, row in movies_df.iterrows(): 
             if (row['imdbId']):
@@ -158,6 +169,9 @@ def get_keywords():
             pbar.update(1)
             
 def get_synopsis():
+    """
+    Use imdb to collect long from synopsis
+    """
     with tqdm(total=len(movies_df)) as pbar:
         for index, row in movies_df.iterrows(): 
             if (row['imdbId']):
@@ -181,14 +195,5 @@ def get_synopsis():
 #get_keywords()
 #get_synopsis()
             
-movie_id = '7286456'
-test_1 = ia.get_movie(movie_id, info='video clips')
-vids = test_1["video clips and trailers"]
-youtube_vids = list(filter(lambda x: "youtube" in x[0].lower() or "youtube" in x[1].lower(), vids))
-
-print(youtube_vids)
-
-# print(synopsis)
-
         
     
