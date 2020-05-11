@@ -16,7 +16,7 @@ import database_helper
 from youtube_helper import YouTubeHelper
 
 
-#yt = YouTubeHelper().yt
+yt = YouTubeHelper().yt
 movies_df = database_helper.select_query("movies")
 
 def get_youtube_trailers():
@@ -56,6 +56,30 @@ def load_trailers_from_csv():
             database_helper.insert_data("trailers", insert_pararms)    
             pbar.update(1)
 
-
+def get_trailer_metadata():
+    trailers_df = database_helper.select_query("trailers")
+    with tqdm(total=len(trailers_df)) as pbar:
+        for index, row in trailers_df.iterrows():
+            trailer_data = yt.get_video_metadata(row['youtubeId'])
+            update_params = {
+                'title' : trailer_data['video_title'],
+                'channelTitle' : trailer_data['channel_title'],
+                'channelId' : trailer_data['channel_id'],
+                'categoryId' : trailer_data['video_category'],
+                'commentCount' : trailer_data['video_comment_count'],
+                'description' : trailer_data['video_description'],
+                'likeCount' : trailer_data['video_like_count'],
+                'dislikeCount' : trailer_data['video_dislike_count'],
+                'viewCount' : trailer_data['video_view_count'],
+                'publishDate' : trailer_data['video_publish_date'],
+                'tags' : trailer_data['video_tags']
+            }
+            select_params = {"movieId" : row["movieId"]}
+            database_helper.update_data("trailers", update_params = update_params, select_params = select_params)
+            pbar.update(1)
+    
+#test = yt.get_video_metadata('XvHSlHhh1gk')
+get_trailer_metadata()
 #get_youtube_trailers()
 #load_trailers_from_csv()
+            
