@@ -126,3 +126,6 @@ def update_data(table, update_params, select_params, select_operator = "AND"):
             if (key != list(select_params.keys())[-1]):   
                 sql += " {0} ".format(select_operator)
     run_query(sql, tuple(list(update_params.values()) + list(select_params.values())))
+
+
+        

@@ -19,7 +19,16 @@ import database_helper
 ia = imdb.IMDb()
 
 #get all movies from db
-movies_df = database_helper.select_query("movies")
+#movies_df = database_helper.select_query("movies")
+#movies_df = database_helper.select_query("movies", { "movieId" : 72 })
+#movies_df = database_helper.select_query("movies", { "movieId" : 128 })
+#movies_df = database_helper.select_query("movies", { "movieId" : 122 })
+# movies_df = database_helper.select_query("movies", { "movieId" : 85 })
+#movies_df = database_helper.select_query("movies", { "movieId" : 233 })
+#movies_df = database_helper.select_query("movies", { "movieId" : 63 })
+#movies_df = database_helper.select_query("movies", { "movieId" : 137 })
+#movies_df = database_helper.select_query("movies", { "movieId" : 143 })
+movies_df = database_helper.select_query("movies", { "movieId" : 262 })
 
 def get_imdbIds():
     """
@@ -185,15 +194,22 @@ def get_synopsis():
                 database_helper.insert_data("synopsis", {"movieId" : row["movieId"], "summary" : synopsis})
             
             pbar.update(1)
+            
+def get_releaseDates():
+    """
+    Use imdb to collect long from synopsis
+    """
+    with tqdm(total=len(movies_df)) as pbar:
+        for index, row in movies_df.iterrows(): 
 
         
 #get_imdbIds()
 #get_metaData()
-#get_directors()
-#get_actors()
-#get_writers()
-#get_keywords()
-#get_synopsis()
+get_directors()
+get_actors()
+get_writers()
+get_keywords()
+get_synopsis()
             
         
     
