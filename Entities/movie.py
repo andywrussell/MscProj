@@ -17,6 +17,7 @@ sys.path.insert(1, '/home/andy/Documents/MscProject/MscProj/Utils')
 import database_helper
 from person import Actor, Director, Writer
 from trailers import Trailer
+from weekend_box_office import WeekendBoxOffice
 
 class Movie:
     def __init__(self, db_row):
@@ -36,6 +37,8 @@ class Movie:
         self.get_directors()
         self.get_writers()
         self.get_trailers()
+        self.get_synopsis()
+        self.get_box_office()
         
         
     def get_cast(self):
@@ -68,6 +71,9 @@ class Movie:
         return
         
     def get_synopsis(self):
+        synopsis_df = database_helper.select_query("synopsis", {"movieId" : self.movieId })
+        if (not synopsis_df.empty):
+            self.synopsis = synopsis_df.iloc[0]
         #get synopsis
         return
         
@@ -76,6 +82,11 @@ class Movie:
         return
         
     def get_box_office(self):
+        box_office_df = database_helper.select_query("weekend_box_office", {"movieId" : self.movieId })
+        self.box_office = []
+        for index, row in box_office_df.iterrows(): 
+            box_office = WeekendBoxOffice(row)
+            self.box_office.append(box_office)   
         return
     
     def toJSON(self):
