@@ -44,6 +44,7 @@ class Movie:
     def get_cast(self):
         actors_df = database_helper.select_query("actors", {"m_imdbId" : self.imdbId})
         self.actors = []
+        self.actors_df = actors_df
         for index, row in actors_df.iterrows(): 
             actor = Actor(row)
             self.actors.append(actor)
@@ -51,6 +52,7 @@ class Movie:
     def get_directors(self):
         directors_df = database_helper.select_query("directors", {"m_imdbId" : self.imdbId})
         self.directors = []
+        self.directors_df = directors_df
         for index, row in directors_df.iterrows(): 
             director = Director(row)
             self.directors.append(director)
@@ -58,6 +60,7 @@ class Movie:
     def get_writers(self):
         writers_df = database_helper.select_query("writers", {"m_imdbId" : self.imdbId})
         self.writers = []
+        self.writers_df = writers_df
         for index, row in writers_df.iterrows(): 
             writer = Writer(row)
             self.writers.append(writer)
@@ -65,6 +68,7 @@ class Movie:
     def get_trailers(self):
         trailers_df = database_helper.select_query("trailers", { "movieId" : self.movieId })
         self.trailers = []
+        self.trailers_df = trailers_df
         for index, row in trailers_df.iterrows(): 
             trailer = Trailer(row)
             self.trailers.append(trailer)    
@@ -72,8 +76,10 @@ class Movie:
         
     def get_synopsis(self):
         synopsis_df = database_helper.select_query("synopsis", {"movieId" : self.movieId })
+        self.synopsis_df = synopsis_df
+        self.synopsis = ''
         if (not synopsis_df.empty):
-            self.synopsis = synopsis_df.iloc[0]
+            self.synopsis = synopsis_df.iloc[0].summary
         #get synopsis
         return
         
@@ -84,6 +90,7 @@ class Movie:
     def get_box_office(self):
         box_office_df = database_helper.select_query("weekend_box_office", {"movieId" : self.movieId })
         self.box_office = []
+        self.box_office_df = box_office_df
         for index, row in box_office_df.iterrows(): 
             box_office = WeekendBoxOffice(row)
             self.box_office.append(box_office)   

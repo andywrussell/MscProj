@@ -14,6 +14,7 @@ import sys
 sys.path.insert(1, '/home/andy/Documents/MscProject/MscProj/Utils')
 
 import database_helper
+from datetime import datetime
 
 #initialize imdb helper
 ia = imdb.IMDb()
@@ -28,7 +29,8 @@ ia = imdb.IMDb()
 #movies_df = database_helper.select_query("movies", { "movieId" : 63 })
 #movies_df = database_helper.select_query("movies", { "movieId" : 137 })
 #movies_df = database_helper.select_query("movies", { "movieId" : 143 })
-movies_df = database_helper.select_query("movies", { "movieId" : 262 })
+#movies_df = database_helper.select_query("movies", { "movieId" : 262 })
+movies_df = database_helper.select_query("movies", {"enabled" : "1"})
 
 def get_imdbIds():
     """
@@ -103,7 +105,7 @@ def get_directors():
                         imdb_id = director.personID  
                         person_df = database_helper.select_query("people", {'imdbId' : imdb_id})
                         if (person_df.empty):
-                            database_helper.insert_data("people", {"imdbId": imdb_id, "name": director["name"]})                        
+                            database_helper.insert_data("people", {"imdbId": imdb_id, "fullName": director["name"]})                        
                     
                         #add movie director link
                         database_helper.insert_data("directors", {"p_imdbId" : imdb_id, "m_imdbId" : row['imdbId']})
@@ -132,7 +134,7 @@ def get_actors():
                         imdb_id = cast_member.personID  
                         person_df = database_helper.select_query("people", {'imdbId' : imdb_id})
                         if (person_df.empty):
-                            database_helper.insert_data("people", {"imdbId": imdb_id, "name": cast_member["name"]})                        
+                            database_helper.insert_data("people", {"imdbId": imdb_id, "fullName": cast_member["name"]})                        
                     
                         #add movie director link
                         database_helper.insert_data("actors", {"p_imdbId" : imdb_id, "m_imdbId" : row['imdbId'], "role": character_name})
@@ -154,7 +156,7 @@ def get_writers():
                         imdb_id = writer.personID  
                         person_df = database_helper.select_query("people", {'imdbId' : imdb_id})
                         if (person_df.empty):
-                            database_helper.insert_data("people", {"imdbId": imdb_id, "name": writer["name"]})                        
+                            database_helper.insert_data("people", {"imdbId": imdb_id, "fullName": writer["name"]})                        
                     
                         #add movie director link
                         database_helper.insert_data("writers", {"p_imdbId" : imdb_id, "m_imdbId" : row['imdbId']})
@@ -187,29 +189,44 @@ def get_synopsis():
                 movie = ia.get_movie(str(row['imdbId']), info='synopsis')
                 try:
                     synopsis = movie['synopsis']
+                    database_helper.insert_data("synopsis", {"movieId" : row["movieId"], "summary" : synopsis})    
                 except:
-                    synopsis = None
+                    print(row['title'] + ' (' + row['imdbId'] + ')')
                 
-                #insert movie synopsis
-                database_helper.insert_data("synopsis", {"movieId" : row["movieId"], "summary" : synopsis})
-            
             pbar.update(1)
             
-def get_releaseDates():
+def get_release_dates():
     """
     Use imdb to collect long from synopsis
     """
     with tqdm(total=len(movies_df)) as pbar:
-        for index, row in movies_df.iterrows(): 
-
-        
+        for index, row in movies_df.iterrows():
+            movie = ia.get_movie(str(row['imdbId']), info='release dates')
+            release_dates = movie['release dates']
+            uk  = [i for i in movie['release dates'] if 'UK' in i and not '(' in i]
+            if (len(uk) > 0):
+                date_string = uk[0].split('::')[1]
+                date = datetime.strptime(date_string, '%d %B %Y')
+                database_helper.update_data("movies", update_params = { "ukReleaseDate" : date }, select_params = {"movieId" : row["movieId"]})
+            else: 
+                print("No UK release for ", row.title)
+                
+            pbar.update(1)
 #get_imdbIds()
 #get_metaData()
-get_directors()
-get_actors()
-get_writers()
-get_keywords()
+#get_directors()
+#get_actors()
+#get_writers()
+#get_keywords()
 get_synopsis()
+#get_release_dates()
+# movie = ia.get_movie('7590074', info='release dates')
+# movie['release dates']
+# uk  = [i for i in movie['release dates'] if 'UK' in i and not '(' in i]
+# premiere = [i for i in movie['release dates'] if 'premiere' in i]
+
+#test = ia.get_movie('3281548', info='synopsis')
             
-        
+#test = ia.get_movie(str(movies_df.iloc[0]['imdbId']), info='synopsis')
+#synopsis = test['synopsis']    
     
