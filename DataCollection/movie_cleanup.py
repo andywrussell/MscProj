@@ -19,32 +19,61 @@ import database_helper
 #initialize imdb 
 ia = imdb.IMDb()
 
-#"Kobiety Mafii 2"
-kobiety_mafii = database_helper.select_query("movies", { "movieId" : 262 })
-kobiety_mafii = kobiety_mafii.iloc[0]
+#greta
+greta = database_helper.select_query("movies", { "movieId" : 234 })
+greta = greta.iloc[0]
 
-kobiety_mafii_res = ia.get_movie('8858420')
-year = kobiety_mafii_res['year']
-if (kobiety_mafii_res.get('genres')):     
-    genres = ','.join(kobiety_mafii_res.get('genres'))  
-rating = kobiety_mafii_res.get('rating')
-votes = kobiety_mafii_res.get('votes')
+greta_res = ia.get_movie('2639336')
+year = greta_res['year']
+if (greta_res.get('genres')):     
+    genres = ','.join(greta_res.get('genres'))  
+rating = greta_res.get('rating')
+votes = greta_res.get('votes')
 certificates = None
-if (kobiety_mafii_res.get('certificates')):     
-    certificates = ','.join(kobiety_mafii_res.get('certificates'))
+if (greta_res.get('certificates')):     
+    certificates = ','.join(greta_res.get('certificates'))
                 
 #update database
 update_params = {
-    "imdbId": '8858420',
-    "url" : 'https://www.imdb.com/title/tt8858420/',
+    "imdbId": '2639336',
+    "url" : 'https://www.imdb.com/title/tt2639336/',
     "year" : year,
     "genres" : genres,
     "rating" : rating,
     "votes" : votes,
     "certificates" : certificates
     }
-select_params = { "movieId" : int(kobiety_mafii["movieId"]) }
+select_params = { "movieId" : int(greta["movieId"]) }
 database_helper.update_data("movies", update_params = update_params, select_params = select_params)
+
+
+
+#"Kobiety Mafii 2"
+# kobiety_mafii = database_helper.select_query("movies", { "movieId" : 262 })
+# kobiety_mafii = kobiety_mafii.iloc[0]
+
+# kobiety_mafii_res = ia.get_movie('8858420')
+# year = kobiety_mafii_res['year']
+# if (kobiety_mafii_res.get('genres')):     
+#     genres = ','.join(kobiety_mafii_res.get('genres'))  
+# rating = kobiety_mafii_res.get('rating')
+# votes = kobiety_mafii_res.get('votes')
+# certificates = None
+# if (kobiety_mafii_res.get('certificates')):     
+#     certificates = ','.join(kobiety_mafii_res.get('certificates'))
+                
+# #update database
+# update_params = {
+#     "imdbId": '8858420',
+#     "url" : 'https://www.imdb.com/title/tt8858420/',
+#     "year" : year,
+#     "genres" : genres,
+#     "rating" : rating,
+#     "votes" : votes,
+#     "certificates" : certificates
+#     }
+# select_params = { "movieId" : int(kobiety_mafii["movieId"]) }
+# database_helper.update_data("movies", update_params = update_params, select_params = select_params)
 
 
 #fix out of the blue 

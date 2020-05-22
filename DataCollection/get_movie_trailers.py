@@ -83,12 +83,24 @@ def get_trailer_metadata():
                 'publishDate' : trailer_data['video_publish_date'],
                 'tags' : trailer_data['video_tags']
             }
-            select_params = {"movieId" : row["movieId"]}
+            select_params = {"youtubeId" : row["youtubeId"]}
             database_helper.update_data("trailers", update_params = update_params, select_params = select_params)
             pbar.update(1)
     
+def get_hashtags_from_trailers():
+   trailers_df = database_helper.select_query("trailers")
+   with tqdm(total=len(trailers_df)) as pbar:
+       for index, row in trailers_df.iterrows():
+           if ('#' in row.description):
+               hashtags = re.findall(r"#(\w+)", row.description)
+               print(row.title)
+               print(hashtags)
+           pbar.update(1)
 #test = yt.get_video_metadata('XvHSlHhh1gk')
 #get_trailer_metadata()
 #get_youtube_trailers()
 #load_trailers_from_csv()
+#get_hashtags_from_trailers()
+get_trailer_metadata()
+
             

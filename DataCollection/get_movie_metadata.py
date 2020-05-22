@@ -30,7 +30,9 @@ ia = imdb.IMDb()
 #movies_df = database_helper.select_query("movies", { "movieId" : 137 })
 #movies_df = database_helper.select_query("movies", { "movieId" : 143 })
 #movies_df = database_helper.select_query("movies", { "movieId" : 262 })
-movies_df = database_helper.select_query("movies", {"enabled" : "1"})
+#movies_df = database_helper.select_query("movies", {"enabled" : "1"})
+movies_df = database_helper.select_query("movies", { "movieId" : 234 })
+
 
 def get_imdbIds():
     """
@@ -214,12 +216,12 @@ def get_release_dates():
             pbar.update(1)
 #get_imdbIds()
 #get_metaData()
-#get_directors()
-#get_actors()
-#get_writers()
-#get_keywords()
+get_directors()
+get_actors()
+get_writers()
+get_keywords()
 get_synopsis()
-#get_release_dates()
+get_release_dates()
 # movie = ia.get_movie('7590074', info='release dates')
 # movie['release dates']
 # uk  = [i for i in movie['release dates'] if 'UK' in i and not '(' in i]
