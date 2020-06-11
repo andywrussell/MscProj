@@ -9,7 +9,9 @@ Created on Mon May 11 14:12:31 2020
 import json
 import jsonpickle
 from json import JSONEncoder
-
+from decimal import Decimal
+import matplotlib.pyplot as plt
+import pandas as pd
 import sys
 import re
 sys.path.insert(1, '/home/andy/Documents/MscProject/MscProj/Utils')
@@ -102,3 +104,18 @@ class Movie:
         return jsonpickle.encode(self, unpicklable=False)
         #return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
     
+    def plot_weekend_revenues(self):
+        self.box_office_df['weekendGross_thou'] = self.box_office_df['weekendGross'].replace('[\£,]', '', regex=True).astype(float) / 1000
+        self.box_office_df['weekendStart'] = pd.to_datetime(self.box_office_df['weekendStart']) 
+        self.box_office_df.set_index('weekendStart')['weekendGross_thou'].plot()
+        plt.xticks(self.box_office_df['weekendStart'])
+        plt.xlabel("Weekend Starting")
+        plt.ylabel("Weekend Gross (£0000)")
+        plt.title(self.title + " Weekend Takings")
+        plt.show()
+        plt.clf()
+        plt.cla()
+        plt.close()
+        return
+        
+        

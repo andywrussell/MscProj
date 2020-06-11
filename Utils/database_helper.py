@@ -98,7 +98,7 @@ def search_tweets(search_terms = [], where_operator = "OR"):
     print(sql)
     return get_data(sql)
     
-    
+
 
 def insert_data(table, params):
     """
