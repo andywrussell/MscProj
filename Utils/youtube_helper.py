@@ -8,7 +8,7 @@ Created on Fri May  1 14:49:05 2020
 from youtube_api import YouTubeDataAPI
 
 class YouTubeHelper():
-    api_key = 'AIzaSyDUcMdSXBKStPxKxxrj2BN-962EQ5X_IbU'
+    api_key = 'AIzaSyB47ZBBrFZ-17oIXxLWdsQgPIsXRQ1bjNo'
     
     def __init__(self):
         self.yt = YouTubeDataAPI(self.api_key) 

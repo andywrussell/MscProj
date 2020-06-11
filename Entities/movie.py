@@ -33,6 +33,8 @@ class Movie:
         self.votes = db_row.votes
         self.certificates = db_row.certificates.split(',') if db_row.certificates != None else []
         self.keywords = db_row.keywords.split(',') if db_row.keywords != None else []
+        self.hashtags = db_row.hashtags.split(',') if db_row.hashtags != None else []
+        self.twitterHandle = db_row.twitterHandle
         self.get_cast()
         self.get_directors()
         self.get_writers()

@@ -20,7 +20,11 @@ from youtube_helper import YouTubeHelper
 
 
 yt = YouTubeHelper().yt
-trailers_df = database_helper.select_query("trailers",)
+trailers_df = database_helper.select_query("trailers")
+
+#filter out this list of selected trailers
+filter_ids = [95,103,81,93,89,36,239,71,30,41,14,80,70,350,59,65,64,110,124,368,372,123]
+filtered_trailers = trailers_df[~trailers_df.id.isin(filter_ids)]
 
 def custom_parser(json):
     snippet = json['snippet']['topLevelComment']['snippet']
@@ -120,8 +124,8 @@ def custom_parser(json):
     return comment
 
 def get_trailer_comments():
-    with tqdm(total=len(trailers_df)) as pbar:
-        for index, row in trailers_df.iterrows(): 
+    with tqdm(total=len(filtered_trailers)) as pbar:
+        for index, row in filtered_trailers.iterrows(): 
             tralier_comments = yt.get_video_comments(row['youtubeId'], parser = custom_parser, part=['snippet'])
             for comment in tralier_comments:
                 insert_params = {

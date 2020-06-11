@@ -17,7 +17,7 @@ def run_query(sql, params):
     """
     try: 
         connection = psycopg2.connect(user="postgres",
-                                      password="4ndr3wP0ST",
+                                      password="4ndr3wP0ST!",
                                       host="127.0.0.1",
                                       port="5432",
                                       database="geotweets")
@@ -45,7 +45,7 @@ def get_data(sql, q_params = None):
     """
     try: 
         connection = psycopg2.connect(user="postgres",
-                                      password="4ndr3wP0ST",
+                                      password="4ndr3wP0ST!",
                                       host="127.0.0.1",
                                       port="5432",
                                       database="geotweets")
@@ -79,6 +79,26 @@ def select_query(table, params = None, where_operator = "AND"):
                 sql += " {0} ".format(where_operator)
                 
     return get_data(sql, params)
+
+def search_tweets(search_terms = [], where_operator = "OR"):
+    """
+    Method to select data from any table
+    
+    :param table: string name of table
+    :param params: dictionary of select parameter
+    :param where_operator: string to join parameters e.g "AND", "OR"
+    :return pandas dataframe of query results
+    """
+    sql = "SELECT * FROM public.tweets2019 WHERE"
+    for idx, val in enumerate(search_terms):
+        sql += """ lower("msg") like '{0}' """.format(val)
+        if (idx != len(search_terms)-1):
+            sql += " {0} ".format(where_operator)
+      
+    print(sql)
+    return get_data(sql)
+    
+    
 
 def insert_data(table, params):
     """
@@ -128,4 +148,4 @@ def update_data(table, update_params, select_params, select_operator = "AND"):
     run_query(sql, tuple(list(update_params.values()) + list(select_params.values())))
 
 
-        
+      

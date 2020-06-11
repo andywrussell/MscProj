@@ -100,7 +100,7 @@ def get_hashtags_from_trailers():
 #get_trailer_metadata()
 #get_youtube_trailers()
 #load_trailers_from_csv()
-#get_hashtags_from_trailers()
-get_trailer_metadata()
+get_hashtags_from_trailers()
+#get_trailer_metadata()
 
             
