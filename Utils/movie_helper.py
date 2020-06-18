@@ -59,5 +59,18 @@ def get_top_earning(max_movies = 20):
              WHERE "enabled" = '1'
              ORDER BY "totalRevenue" DESC LIMIT {0}""".format(max_movies)
     top_df = database_helper.get_data(sql)
-    return gen_movies(top_df)    
+    return gen_movies(top_df) 
+
+def count_tweets(movieId):
+    sql = """
+          SELECT "movieid", COUNT(*) 
+          FROM movie_tweets2019 
+          WHERE "movieid" = {0}
+          GROUP BY "movieid"
+          """.format(movieId)        
+    tweet_count = database_helper.get_data(sql)
+    return tweet_count
+
+
+    
 
