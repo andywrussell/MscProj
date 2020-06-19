@@ -23,6 +23,8 @@ from weekend_box_office import WeekendBoxOffice
 import geopandas as gpd
 from geopandas.tools import sjoin
 import matplotlib.dates as mdates
+import scipy.signal
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 
 class Movie:
@@ -181,11 +183,42 @@ class Movie:
         date_freq = tweets.groupby('date').size().reset_index(name='count') 
         date_freq.sort_values('date')
         date_freq['date'] = pd.to_datetime(date_freq['date'], errors='coerce')
-        date_freq.set_index('date')['count'].plot()
-        #plt.plot(date_freq['date'], date_freq['count'])
+        indexes, _ = scipy.signal.find_peaks(date_freq['count'], height=7, distance=2.1)
+        #date_freq.set_index('date')['count'].plot(markevery=indexes.tolist())
+        plt.plot(date_freq['date'], date_freq['count'], marker='D',markerfacecolor='r', markevery=indexes.tolist())
         
+        print('Peaks are: %s' % (indexes))
         #plt.xticks(date_freq['date'])
         plt.xlabel("Date")
         plt.ylabel("Tweet Count")
         plt.title(self.title + " Tweets over time")
+        plt.show()
+        
+    def plot_tweet_sentiment_over_time(self, avg = False):
+        analyser = SentimentIntensityAnalyzer()
+        tweets =  database_helper.select_geo_tweets(self.movieId)
+        tweet_sentiment = []
+        for index, row in tweets.iterrows(): 
+            sentiment = analyser.polarity_scores(row['msg'])
+            tweet_sentiment.append(sentiment['compound'])
+            
+        tweets['compound_sentiment'] = tweet_sentiment
+        tweets['date'] = tweets['created_at'].dt.date
+        date_sentiment = tweets.groupby(['date'], as_index = False).sum()
+        date_sentiment.sort_values('date')
+        date_sentiment['date'] = pd.to_datetime(date_sentiment['date'], errors='coerce')
+        date_sentiment['count'] = tweets.groupby('date').size().reset_index(name='count')['count']
+        date_sentiment["compound_norm"] = date_sentiment['compound_sentiment'] / date_sentiment['count']
+        
+        y_col = 'compound_norm' if avg else 'compound_sentiment'
+        
+        indexes, _ = scipy.signal.find_peaks(date_sentiment[y_col], height=7, distance=2.1)
+        #date_freq.set_index('date')['count'].plot(markevery=indexes.tolist())
+        plt.plot(date_sentiment['date'], date_sentiment[y_col], marker='D',markerfacecolor='r', markevery=indexes.tolist())
+        
+        print('Peaks are: %s' % (indexes))
+        #plt.xticks(date_freq['date'])
+        plt.xlabel("Date")
+        plt.ylabel("Tweet Sentiment")
+        plt.title(self.title + " Tweet sentiment over time")
         plt.show()

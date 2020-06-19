@@ -22,6 +22,11 @@ import geopandas as gpd
 from geopandas.tools import sjoin
 import seaborn as sns
 import matplotlib.dates as mdates
+import numpy as np
+from colour import Color
+import scipy.signal
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+
 
 
 movies = movie_helper.get_movies()
@@ -119,23 +124,107 @@ def map_test():
 #def get_revenue_for_top_20():
     
 #uk = ps.pdio.read_files("../../ProjectData/Data/GB/european_region_region.shp")
-movie = movies[1]
-releaseDate = movie.ukReleaseDate
-endWeekend = movie.box_office_df.iloc[movie.box_office_df['weeksOnRelease'].idxmax()].weekendEnd
-fig, ax = plt.subplots()
-ax.axvspan(*mdates.datestr2num([str(releaseDate), str(endWeekend)]), color='skyblue', alpha=0.5)
-tweets =  database_helper.select_geo_tweets(movie.movieId)
-tweets['date'] = tweets['created_at'].dt.date
-date_freq = tweets.groupby('date').size().reset_index(name='count') 
-date_freq.sort_values('date')
-date_freq['date'] = pd.to_datetime(date_freq['date'], errors='coerce')
-date_freq.set_index('date')['count'].plot()
-#plt.plot(date_freq['date'], date_freq['count'])
+# movie = movies[0]
+# tweets = database_helper.select_geo_tweets(movie.movieId)
+# zero =  mdates.date2num(tweets['created_at'].min())
+# times = [t - zero for t in mdates.date2num(tweets['created_at'])]
+# diffs = np.array([times[i]-times[i-1] for i in range(1,len(times))])
+# xcoords = diffs[:-1]
+# ycoords = diffs[1:]
+# plt.plot(xcoords, ycoords, 'b.')
+# plt.show()
 
+
+#get tweets TESTING TIME MAP
+# movie = movies[0]
+# tweets = database_helper.select_geo_tweets(movie.movieId)
+# tweets = tweets.sort_values(by=['created_at'])
+# times = tweets['created_at']
+# times_tot_mins = 24*60 - (60*np.array([t.hour for t in times]) + np.array([t.minute for t in times]))
+# seps=np.array([(times[i]-times[i-1]).total_seconds() for i in range(1,len(times))])
+# seps[seps==0]=1 # convert zero second separations to 1-second separations
+
+# sep_array=np.zeros((len(seps)-1,2)) # 1st column: x-coords, 2nd column: y-coords
+# sep_array[:,0]=seps[:-1]
+# sep_array[:,1]=seps[1:]
+
+# Ncolors=24*60 
+
+# ## set up color list
+# red=Color("red")
+# blue=Color("blue")
+# color_list = list(red.range_to(blue, Ncolors)) # range of colors evenly speced on the spectrum between red and blue. Each element is a colour object
+# color_list = [c.hex for c in color_list] # give hex version
+
+# fig=plt.figure()
+# ax =fig.add_subplot(111)
+
+# plt.rc('text',usetex=False)
+# plt.rc('font',family='serif')
+# 	
+# colormap = plt.cm.get_cmap('rainbow')  # see color maps at http://matplotlib.org/users/colormaps.html
+
+# order=np.argsort(times_tot_mins[1:-1]) # so that the red dots are on top
+# #	order=np.arange(1,len(times_tot_mins)-2) # dots are unsorted
+
+# sc= ax.scatter(sep_array[:,0][order],sep_array[:,1][order],c=times_tot_mins[1:-1][order],vmin=0,vmax=24*60,s=25,cmap=colormap,marker='o',edgecolors='none')
+# # taken from http://stackoverflow.com/questions/6063876/matplotlib-colorbar-for-scatter
+# 	
+# color_bar=fig.colorbar(sc,ticks=[0,24*15,24*30,24*45,24*60],orientation='horizontal',shrink=0.5)
+# color_bar.ax.set_xticklabels(['Midnight','18:00','Noon','6:00','Midnight'])
+# color_bar.ax.invert_xaxis()
+# color_bar.ax.tick_params(labelsize=16)
+# 	
+# ax.set_yscale('log') # logarithmic axes
+# ax.set_xscale('log')
+
+# plt.minorticks_off()
+# pure_ticks = np.array([1e-3,1,10,60*10,2*3600,1*24*3600, 7*24*3600]) # where the tick marks will be placed, in units of seconds.
+# labels = ['1 msec','1 sec','10 sec','10 min','2 hr','1 day','1 week']  # tick labels
+# 	
+# max_val = np.max([np.max(sep_array[:,0]), np.max(sep_array[:,1])])
+# 	
+# ticks = np.hstack((pure_ticks, max_val))
+
+# min_val = np.min([np.min(sep_array[:,0]), np.min(sep_array[:,1])])
+# 	
+# plt.xticks(ticks,labels,fontsize=16)
+# plt.yticks(ticks,labels,fontsize=16)
+# 	
+# plt.xlabel('Time Before Tweet',fontsize=18)
+# plt.ylabel('Time After Tweet',fontsize=18)
+
+# plt.xlim((min_val, max_val))
+# plt.ylim((min_val, max_val))
+# 	
+# ax.set_aspect('equal')
+# plt.tight_layout()
+
+# plt.show()
+
+analyser = SentimentIntensityAnalyzer()
+movie = movies[0]
+tweets =  database_helper.select_geo_tweets(movie.movieId)
+tweet_sentiment = []
+for index, row in tweets.iterrows(): 
+    sentiment = analyser.polarity_scores(row['msg'])
+    tweet_sentiment.append(sentiment['compound'])
+    
+tweets['compound_sentiment'] = tweet_sentiment
+tweets['date'] = tweets['created_at'].dt.date
+date_sentiment = tweets.groupby(['date'], as_index = False).sum()
+date_sentiment['count'] = tweets.groupby('date').size().reset_index(name='count')['count']
+date_sentiment.sort_values('date')
+date_sentiment['date'] = pd.to_datetime(date_sentiment['date'], errors='coerce')
+indexes, _ = scipy.signal.find_peaks(date_sentiment['compound_sentiment'], height=7, distance=2.1)
+date_sentiment["compound_norm"] = date_sentiment['compound_sentiment'] / date_sentiment['count']
+#date_freq.set_index('date')['count'].plot(markevery=indexes.tolist())
+plt.plot(date_sentiment['date'], date_sentiment['compound_norm'], marker='D',markerfacecolor='r', markevery=indexes.tolist())
+
+print('Peaks are: %s' % (indexes))
 #plt.xticks(date_freq['date'])
 plt.xlabel("Date")
-plt.ylabel("Tweet Count")
-plt.title(movie.title + " Tweets over time")
+plt.ylabel("Tweet Sentiment")
+plt.title(movie.title + " Tweet sentiment over time")
 plt.show()
-
 

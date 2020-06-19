@@ -17,7 +17,8 @@ from movie import Movie
 import database_helper
 
 def get_movies():
-    movies_df = database_helper.select_query("movies", { "enabled" : "1" })
+    #movies_df = database_helper.select_query("movies", { "enabled" : "1" })
+    movies_df = database_helper.select_query("movies", {"investigate" : "1"})
     movies_df = movies_df.sort_values(by=['movieId'])  
     return gen_movies(movies_df)
 
