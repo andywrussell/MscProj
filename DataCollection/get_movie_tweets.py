@@ -16,6 +16,7 @@ sys.path.insert(1, '/home/andy/Documents/MscProject/MscProj/Utils')
 from movie import Movie
 import database_helper
 import movie_helper
+import tweet_helper
 
 
 # movies_df = database_helper.select_query("movies", { "enabled" : "1" })
@@ -55,7 +56,6 @@ import movie_helper
 #movies = movie_helper.get_top_earning()
 movies = movie_helper.get_movies()
 
-
 def get_movie_tweets():
     with tqdm(total=len(movies)) as pbar:
         #get by handle
@@ -86,10 +86,30 @@ def get_movie_tweets():
             pbar.update(1)   
          
   
-#get_movie_tweets()
 
-for movie in movies:
-    count_df = movie_helper.count_tweets(movie.movieId)
-    count = count_df.iloc[0]['count'] if not count_df.empty else 0
-    print(movie.title + " (" + str(movie.movieId) +"): " + str(count))
+        
+def update_tweet_sentiments():
+    with tqdm(total=len(movies)) as pbar:
+        #get by handle
+        for movie in movies:
+            sentiment_df = tweet_helper.get_tweet_sentiments_scores(movie.movieId)
+            for index, row in sentiment_df.iterrows(): 
+                #update database
+                update_params = {
+                        "negative_scr" : row["negative_scr"],
+                        "positive_scr" : row["positive_scr"],
+                        "neutral_scr" : row["neutral_scr"],
+                        "compound_scr" :  row["compound_scr"],
+                        "senti_class" : row["senti_class"]
+                    }
+                select_params = { "id" : row["id"] }
+                database_helper.update_data("movie_tweets2019", update_params = update_params, select_params = select_params)
+            pbar.update(1)  
+
+update_tweet_sentiments()    
+
+# for movie in movies:
+#     count_df = movie_helper.count_tweets(movie.movieId)
+#     count = count_df.iloc[0]['count'] if not count_df.empty else 0
+#     print(movie.title + " (" + str(movie.movieId) +"): " + str(count))
     

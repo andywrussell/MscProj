@@ -57,10 +57,17 @@ def set_total_revenue_for_movies():
             
 def get_top_earning(max_movies = 20):
     sql = """SELECT * FROM public.movies 
-             WHERE "enabled" = '1'
+             WHERE "investigate" = '1'
              ORDER BY "totalRevenue" DESC LIMIT {0}""".format(max_movies)
     top_df = database_helper.get_data(sql)
     return gen_movies(top_df) 
+
+def get_lowest_earning(max_movies = 20):
+    sql = """SELECT * FROM public.movies 
+             WHERE "investigate" = '1'
+             ORDER BY "totalRevenue" ASC LIMIT {0}""".format(max_movies)
+    bottom_df = database_helper.get_data(sql)
+    return gen_movies(bottom_df) 
 
 def count_tweets(movieId):
     sql = """

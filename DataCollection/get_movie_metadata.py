@@ -14,13 +14,14 @@ import sys
 sys.path.insert(1, '/home/andy/Documents/MscProject/MscProj/Utils')
 
 import database_helper
+import mojo_helper
 from datetime import datetime
 
 #initialize imdb helper
 ia = imdb.IMDb()
 
 #get all movies from db
-#movies_df = database_helper.select_query("movies")
+movies_df = database_helper.select_query("movies", {"enabled" : '1'})
 #movies_df = database_helper.select_query("movies", { "movieId" : 72 })
 #movies_df = database_helper.select_query("movies", { "movieId" : 128 })
 #movies_df = database_helper.select_query("movies", { "movieId" : 122 })
@@ -31,7 +32,7 @@ ia = imdb.IMDb()
 #movies_df = database_helper.select_query("movies", { "movieId" : 143 })
 #movies_df = database_helper.select_query("movies", { "movieId" : 262 })
 #movies_df = database_helper.select_query("movies", {"enabled" : "1"})
-movies_df = database_helper.select_query("movies", { "movieId" : 234 })
+#movies_df = database_helper.select_query("movies", { "movieId" : 234 })
 
 
 def get_imdbIds():
@@ -214,14 +215,49 @@ def get_release_dates():
                 print("No UK release for ", row.title)
                 
             pbar.update(1)
+            
+def get_cast_notes():
+    "Use imdb to collect movie actors"
+    with tqdm(total=len(movies_df)) as pbar:
+        for index, row in movies_df.iterrows(): 
+            if (row['imdbId']):
+                movie = ia.get_movie(str(row['imdbId']))
+                cast_list = movie.get('cast')
+                if (cast_list != None) :
+                    for cast_member in cast_list:                        
+                        imdb_id = cast_member.personID
+                        updates = { 'notes' : cast_member.notes }
+                        selects = {"p_imdbId" : imdb_id, "m_imdbId" : row['imdbId'] }
+                        database_helper.update_data("actors", update_params = updates, select_params = selects)
+                
+            pbar.update(1)
+            
+def get_mojo_data():
+    with tqdm(total=len(movies_df)) as pbar:
+        for index, row in movies_df.iterrows(): 
+            if (row['imdbId']):
+                stats = mojo_helper.get_mojo_stats(row['imdbId'])
+                updates = { "budget_usd" : stats["Budget"],
+                           "uk_gross_usd" : stats["UK"],
+                           "domestic_gross_usd" : stats["Domestic"],
+                           "worldwide_gross_usd" : stats["Worldwide"],
+                           "international_gross_usd" : stats["International"]
+                           }
+                selects = {"movieId" : row["movieId"]}
+                database_helper.update_data("movies", update_params = updates, select_params = selects)
+            pbar.update(1)
+            
+ 
+get_mojo_data()
+#get_cast_notes()
 #get_imdbIds()
 #get_metaData()
-get_directors()
-get_actors()
-get_writers()
-get_keywords()
-get_synopsis()
-get_release_dates()
+#get_directors()
+#get_actors()
+#get_writers()
+#get_keywords()
+#get_synopsis()
+#get_release_dates()
 # movie = ia.get_movie('7590074', info='release dates')
 # movie['release dates']
 # uk  = [i for i in movie['release dates'] if 'UK' in i and not '(' in i]

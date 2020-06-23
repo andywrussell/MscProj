@@ -191,39 +191,18 @@ def bulk_insert_df(table, df, cols):
     #jump to start of stream
     output.seek(0)
     contents = output.getvalue()
-    cur = connection.cursor()
+
     #null values become ''
-    cur.copy_from(output, table, columns=cols, null="")    
+    cursor.copy_from(output, table, columns=cols, null="")    
     connection.commit()
-    cur.close()
+    cursor.close()
     connection.close()
-    # try:
-    #     address = 'postgresql://postgres:4ndr3wP0ST!@127.0.0.1:5432/geotweets'
-    #     engine = create_engine(address)
-    #     connection = engine.raw_connection()
-    #     cursor = connection.cursor()
-        
-    #     #stream the data using 'to_csv' and StringIO(); then use sql's 'copy_from' function
-    #     output = io.StringIO()
-    #     #ignore the index
-    #     df.to_csv(output, sep='\t', header=False, index=False)
-    #     #jump to start of stream
-    #     output.seek(0)
-    #     contents = output.getvalue()
-    #     cur = connection.cursor()
-    #     #null values become ''
-    #     cur.copy_from(output, table, null="")    
-    #     connection.commit()
-    #     cur.close()
-    # except (Exception) as error :
-    #     print("Error when bulk inserting datframe to " + table)
-    # finally:
-    #     if (cur):
-    #         cur.close()
+    
+
     
 def select_geo_tweets(movieId):
     sql = """
-        SELECT geombng, movieid, msg, wgslat, wgslng, created_at
+        SELECT geombng, movieid, msg, wgslat, wgslng, created_at, id
         FROM movie_tweets2019
         WHERE "movieid" = {0}
     """.format(movieId)

@@ -30,7 +30,7 @@ class Actor(Person):
         self.actorId = db_row.id
         self.movie_imdbId = db_row.m_imdbId
         self.role = db_row.role
-        
+        self.credited = not db_row.notes == '(uncredited)'
         #get person entry 
         person_df = database_helper.select_query("people", { "imdbId" : db_row.p_imdbId })
         Person.__init__(self, person_df.iloc[0])

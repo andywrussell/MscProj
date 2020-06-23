@@ -6,6 +6,7 @@ Created on Thu Jun 11 09:15:02 2020
 @author: andy
 """
 
+import imdb
 from tqdm import tqdm
 import pandas as pd
 import sys
@@ -26,14 +27,18 @@ import numpy as np
 from colour import Color
 import scipy.signal
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from nameparser import HumanName
 
 
 
-movies = movie_helper.get_movies()
+top_20 = movie_helper.get_top_earning()
+bottom_20 = movie_helper.get_lowest_earning()
+
+#movies = movie_helper.get_movies()
 
 #movies = movie_helper.get_top_earning()
 
-def gen_top_20_hist():
+def get_revenue_bar_plot(movies, title = 'Top 20 Movies'):
     titles = []
     revenue = []
     for movie in movies:
@@ -47,7 +52,7 @@ def gen_top_20_hist():
     plt.barh(titles, revenue, color='green')
     plt.ylabel('Movie Title')
     plt.xlabel('Total Revenue (£mil)')
-    plt.title('Top 20 Movies')
+    plt.title(title)
     plt.yticks(x_pos, titles)
     plt.show()
         
@@ -73,6 +78,8 @@ def gen_top_20_tweet_count():
 def map_test():
     place = "United Kingdom"
     graph = ox.graph_from_place(place)
+    
+
     
 # movie = movies[0]
 # regional_pop = { 'Scotland Euro Region' :  5463300,  
@@ -176,10 +183,10 @@ def map_test():
 # color_bar.ax.tick_params(labelsize=16)
 # 	
 # ax.set_yscale('log') # logarithmic axes
+# pure_ticks = np.array([1e-3,1,10,60*10,2*3600,1*24*3600, 7*24*3600])
 # ax.set_xscale('log')
 
-# plt.minorticks_off()
-# pure_ticks = np.array([1e-3,1,10,60*10,2*3600,1*24*3600, 7*24*3600]) # where the tick marks will be placed, in units of seconds.
+# plt.minorticks_off() # where the tick marks will be placed, in units of seconds.
 # labels = ['1 msec','1 sec','10 sec','10 min','2 hr','1 day','1 week']  # tick labels
 # 	
 # max_val = np.max([np.max(sep_array[:,0]), np.max(sep_array[:,1])])
@@ -202,29 +209,10 @@ def map_test():
 
 # plt.show()
 
-analyser = SentimentIntensityAnalyzer()
-movie = movies[0]
-tweets =  database_helper.select_geo_tweets(movie.movieId)
-tweet_sentiment = []
-for index, row in tweets.iterrows(): 
-    sentiment = analyser.polarity_scores(row['msg'])
-    tweet_sentiment.append(sentiment['compound'])
-    
-tweets['compound_sentiment'] = tweet_sentiment
-tweets['date'] = tweets['created_at'].dt.date
-date_sentiment = tweets.groupby(['date'], as_index = False).sum()
-date_sentiment['count'] = tweets.groupby('date').size().reset_index(name='count')['count']
-date_sentiment.sort_values('date')
-date_sentiment['date'] = pd.to_datetime(date_sentiment['date'], errors='coerce')
-indexes, _ = scipy.signal.find_peaks(date_sentiment['compound_sentiment'], height=7, distance=2.1)
-date_sentiment["compound_norm"] = date_sentiment['compound_sentiment'] / date_sentiment['count']
-#date_freq.set_index('date')['count'].plot(markevery=indexes.tolist())
-plt.plot(date_sentiment['date'], date_sentiment['compound_norm'], marker='D',markerfacecolor='r', markevery=indexes.tolist())
-
-print('Peaks are: %s' % (indexes))
-#plt.xticks(date_freq['date'])
-plt.xlabel("Date")
-plt.ylabel("Tweet Sentiment")
-plt.title(movie.title + " Tweet sentiment over time")
-plt.show()
-
+my_movie = top_20[0]
+ia = imdb.IMDb()
+movie = ia.get_movie(my_movie.imdbId)
+cast_list = movie.get('cast')
+for cast in cast_list:
+    if not cast.notes == ('(uncredited)'):
+        print(cast.currentRole)
