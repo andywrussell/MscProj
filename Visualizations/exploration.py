@@ -30,9 +30,9 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from nameparser import HumanName
 
 
-
-top_20 = movie_helper.get_top_earning()
-bottom_20 = movie_helper.get_lowest_earning()
+movies_df = movie_helper.get_movies_df()
+#top_20 = movie_helper.get_top_earning()
+#bottom_20 = movie_helper.get_lowest_earning()
 
 #movies = movie_helper.get_movies()
 
@@ -80,27 +80,33 @@ def map_test():
     graph = ox.graph_from_place(place)
     
 
+def plot_budget_vs_revenue():
+    movies_df["worldwide_gross_usd"] = movies_df['worldwide_gross_usd'].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["budget_usd"] = movies_df['budget_usd'].replace('[\£,]', '', regex=True).astype(float) / 1000000
     
-# movie = movies[0]
-# regional_pop = { 'Scotland Euro Region' :  5463300,  
-#         'East Midlands Euro Region' : 4835928, 
-#         'London Euro Region' : 8961989, 
-#         'North West Euro Region' : 7341196, 
-#         'West Midlands Euro Region' : 5934037,
-#         'Yorkshire and the Humber Euro Region' : 5502967,
-#         'South East Euro Region' : 9180135, 
-#         'North East Euro Region' : 2669941,
-#         'Wales Euro Region' : 3152879, 
-#         'Eastern Euro Region' : 6236072,
-#         'South West Euro Region' : 5624696} 
-  
-# title = "{0} tweets per region".format(movie.title)
-# map_col = 'counts'
-# gb = gpd.read_file("../../ProjectData/Data/GB/european_region_region.shp")
-# tweets =  database_helper.select_geo_tweets(movie.movieId)
-# gb_tweets = sjoin(tweets, gb, how='inner')
-# gb = gb.to_crs("EPSG:4326")
-# f, ax = plt.subplots(1, figsize=(9, 9))
+    x_lower_lim = movies_df["budget_usd"].min()
+    x_upper_lim = movies_df["budget_usd"].max()
+    
+    y_lower_lim = movies_df["worldwide_gross_usd"].min()
+    y_upper_lim = movies_df["worldwide_gross_usd"].max()
+    
+    ax = sns.relplot(x="budget_usd", y="worldwide_gross_usd", data=movies_df)
+    ax.set(ylim=(y_lower_lim, y_upper_lim))
+    ax.set(xlim=(x_lower_lim, x_upper_lim))
+    plt.show()
+    
+    
+def plot_budget_vs_profit():
+    movies_df["worldwide_gross_usd"] = movies_df['worldwide_gross_usd'].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["budget_usd"] = movies_df['budget_usd'].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["gross_usd"] = movies_df["worldwide_gross_usd"] - movies_df["budget_usd"]
+    
+    ax = sns.relplot(x="budget_usd", y="gross_usd", data=movies_df)
+    plt.show()
+    
+#plot_budget_vs_revenue()
+plot_budget_vs_profit()
+    
 
 # gb.plot(ax=ax)
 # sns.kdeplot(gb_tweets['wgslng'], gb_tweets['wgslat'], 
@@ -208,11 +214,3 @@ def map_test():
 # plt.tight_layout()
 
 # plt.show()
-
-my_movie = top_20[0]
-ia = imdb.IMDb()
-movie = ia.get_movie(my_movie.imdbId)
-cast_list = movie.get('cast')
-for cast in cast_list:
-    if not cast.notes == ('(uncredited)'):
-        print(cast.currentRole)

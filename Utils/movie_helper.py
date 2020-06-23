@@ -16,6 +16,11 @@ sys.path.insert(1, '/home/andy/Documents/MscProject/MscProj/Utils')
 from movie import Movie
 import database_helper
 
+def get_movies_df():
+    movies_df = database_helper.select_query("movies", {"investigate" : "1"})
+    movies_df = movies_df.sort_values(by=['movieId'])   
+    return movies_df
+
 def get_movies():
     #movies_df = database_helper.select_query("movies", { "enabled" : "1" })
     movies_df = database_helper.select_query("movies", {"investigate" : "1"})
@@ -79,6 +84,28 @@ def count_tweets(movieId):
     tweet_count = database_helper.get_data(sql)
     return tweet_count
 
+def categorize_by_gross_profit():
+    movies_df = get_movies_df()
+    
+    #calculate gross profit based on budget and worldwide gross
+    movies_df["worldwide_gross_usd_norm"] = movies_df['worldwide_gross_usd'].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["budget_usd_norm"] = movies_df['budget_usd'].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["gross_profit_usd_norm"] = movies_df["worldwide_gross_usd_norm"] - movies_df["budget_usd_norm"]
+    movies_df["gross_profit_usd"] = movies_df["worldwide_gross_usd"].replace('[\£,]', '', regex=True).astype(float) - movies_df["budget_usd"].replace('[\£,]', '', regex=True).astype(float)
+    
+    custom_bucket_array =[-50, 0, 50, 150, 300, 2500]
+    bucket_labels = ['< $0 (Flop)', '$0 < $50m', '$50m < $150m', '$150m < $300m', ' > $300m (BlockBuster)' ]
+    
+    movies_df['class'] = pd.cut(movies_df['gross_profit_usd_norm'], custom_bucket_array,labels= bucket_labels)
+    
+    for index, row in movies_df.iterrows(): 
+            updates = { "gross_profit_usd" : row["gross_profit_usd"],
+                    "profit_class" : row["class"]
+                    }
+            selects = {"movieId" : row["movieId"]}
+            database_helper.update_data("movies", update_params = updates, select_params = selects)
+    
+    return movies_df
 
     
 

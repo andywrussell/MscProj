@@ -47,6 +47,11 @@ class Movie:
         self.twitterHandle = db_row.twitterHandle
         self.totalRevenue = db_row.totalRevenue
         self.ukReleaseDate = db_row.ukReleaseDate
+        self.budget_usd = db_row.budget_usd
+        self.uk_gross_usd = db_row.uk_gross_usd
+        self.domestic_gross_usd = db_row.domestic_gross_usd
+        self.worldwide_gross_usd = db_row.worldwide_gross_usd
+        self.international_gross_usd = db_row.international_gross_usd
         self.get_cast()
         self.get_directors()
         self.get_writers()
