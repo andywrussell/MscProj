@@ -85,8 +85,6 @@ def get_movie_tweets():
         
             pbar.update(1)   
          
-  
-
         
 def update_tweet_sentiments():
     with tqdm(total=len(movies)) as pbar:
@@ -105,8 +103,10 @@ def update_tweet_sentiments():
                 select_params = { "id" : row["id"] }
                 database_helper.update_data("movie_tweets2019", update_params = update_params, select_params = select_params)
             pbar.update(1)  
+            
 
-update_tweet_sentiments()    
+
+#update_tweet_sentiments()    
 
 # for movie in movies:
 #     count_df = movie_helper.count_tweets(movie.movieId)

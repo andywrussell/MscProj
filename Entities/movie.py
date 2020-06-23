@@ -16,6 +16,7 @@ import sys
 import re
 sys.path.insert(1, '/home/andy/Documents/MscProject/MscProj/Utils')
 
+import tweet_helper
 import database_helper
 from person import Actor, Director, Writer
 from trailers import Trailer
@@ -25,6 +26,7 @@ from geopandas.tools import sjoin
 import matplotlib.dates as mdates
 import scipy.signal
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+import seaborn as sns
 
 
 class Movie:
@@ -222,3 +224,33 @@ class Movie:
         plt.ylabel("Tweet Sentiment")
         plt.title(self.title + " Tweet sentiment over time")
         plt.show()
+
+    def plot_tweets_by_class(self):
+        tweets = database_helper.select_geo_tweets(self.movieId)
+        class_freq = tweets.groupby('senti_class').size().reset_index(name='counts')
+        fig = plt.figure()
+        ax = fig.add_axes([0,0,1,1])
+        ax.bar(class_freq["senti_class"], class_freq["counts"])
+        ax.set_xlabel("Sentiment Class")
+        ax.set_ylabel("Tweet COunt")
+        ax.set_title(self.title + " Tweet sentiment")
+        plt.show()
+        
+    def plot_tweets_by_class_and_region(self):
+        sns.set(style="whitegrid")
+        region_tweets = tweet_helper.get_tweet_regions(self.movieId)
+        title = self.title + " Tweets per region"
+        grouped_tweets = region_tweets.groupby(["region", "senti_class"]).size().reset_index(name = "counts")
+        g = sns.catplot(x="region", y="counts", hue="senti_class", data=grouped_tweets, height=6, kind="bar", palette="muted", legend_out=False)
+        fig = g.fig
+        g.set_ylabels("Tweet Counts")
+        g.set_xlabels("Region")
+        g.set_xticklabels(rotation=40, ha="right")
+        fig.subplots_adjust(top=0.9)
+        fig.suptitle(title, fontsize=16)
+        print(title)
+       # plt.title(title)
+        plt.show()
+        
+        
+        

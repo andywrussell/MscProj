@@ -202,7 +202,7 @@ def bulk_insert_df(table, df, cols):
     
 def select_geo_tweets(movieId):
     sql = """
-        SELECT geombng, movieid, msg, wgslat, wgslng, created_at, id
+        SELECT geombng, movieid, msg, wgslat, wgslng, created_at, id, senti_class
         FROM movie_tweets2019
         WHERE "movieid" = {0}
     """.format(movieId)
