@@ -18,6 +18,7 @@ sys.path.insert(1, '/home/andy/Documents/MscProject/MscProj/Utils')
 from movie import Movie
 import database_helper
 import movie_helper
+import tweet_helper
 import osmnx as ox
 import geopandas as gpd
 from geopandas.tools import sjoin
@@ -104,9 +105,72 @@ def plot_budget_vs_profit():
     ax = sns.relplot(x="budget_usd", y="gross_usd", data=movies_df)
     plt.show()
     
-#plot_budget_vs_revenue()
-plot_budget_vs_profit()
+def plot_profit_classes():
+    sns.set(style="whitegrid")
+    grouped_movies = movies_df.groupby(["profit_class"]).size().reset_index(name = "counts")
+    order_lst = ['< $0 (Flop)', '$0 < $50m', '$50m < $150m', '$150m < $300m', ' > $300m (BlockBuster)' ]
+    ax = sns.barplot(x="profit_class", y="counts", data=grouped_movies, order=order_lst)
+    ax.set(xlabel='Gross Profit (USD)', ylabel='Movie Count')
+    plt.title("Movie Profit Classes")
+    plt.xticks(rotation=40)
+    plt.show()
     
+def plot_financial_box(column, title, xlabel):
+    temp_col_name = column + "_norm"
+    movies_df[temp_col_name] = movies_df[column].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    ax = sns.boxplot(x=temp_col_name, data=movies_df)
+    ax.set_title(title)
+    ax.set_xlabel(xlabel)
+    plt.show()
+    
+def plot_financial_distribution(column, title, xlabel):
+    temp_col_name = column + "_norm"
+    data = movies_df[column].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    ax = sns.distplot(data)
+    ax.set_title(title)
+    ax.set_xlabel(xlabel)
+    plt.show()
+    
+def plot_most_profitable_tweets():
+    movies_df["profit_mil"] = movies_df["gross_profit_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    most_profit_row = movies_df[movies_df["profit_mil"] == movies_df["profit_mil"].max()]
+    most_profit = movie_helper.get_movie_by_id(int(most_profit_row["movieId"]))
+    most_profit.plot_tweets_over_time()
+    
+def plot_lest_profitable_tweets():
+    movies_df["profit_mil"] = movies_df["gross_profit_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    least_profit_row = movies_df[movies_df["profit_mil"] == movies_df["profit_mil"].min()]
+    #least_profit = movie_helper.get_movie_by_id(int(least_profit_row["movieId"]))
+    least_profit = movie_helper.get_movie_by_id()
+    least_profit.plot_tweets_over_time()
+    
+def plot_tweets_vs_finance(column, title, xlabel, ylabel):
+    movies_df["temp_col"] = movies_df[column].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["tweet_count"] = movies_df["movieId"].apply(lambda x: movie_helper.count_tweets(int(x))['count'])
+    
+    ax = sns.relplot(x="temp_col", y="tweet_count", data=movies_df)
+
+    ax.set(xlabel=xlabel, ylabel=ylabel)
+    plt.title(title)
+    plt.show()
+    
+  
+def plot_top_5_by_tweet_count():
+    fig = plt.figure()
+    ax = fig.add_axes([0,0,1,1])
+    movies_df["tweet_count"] = movies_df["movieId"].apply(lambda x: movie_helper.count_tweets(int(x))['count'])
+    sorted_df = movies_df.sort_values(by="tweet_count", ascending=False).head()
+    ax.bar(sorted_df["title"], sorted_df["tweet_count"])
+    ax.set_ylabel("Tweet Count")
+    ax.set_title("Top 5 by tweet counts")
+    plt.xticks(rotation=40)
+    plt.show()
+    
+    
+#plot_budget_vs_revenue()
+#plot_budget_vs_profit()
+#plot_profit_classes()
+
 
 # gb.plot(ax=ax)
 # sns.kdeplot(gb_tweets['wgslng'], gb_tweets['wgslat'], 
@@ -214,3 +278,6 @@ plot_budget_vs_profit()
 # plt.tight_layout()
 
 # plt.show()
+
+
+

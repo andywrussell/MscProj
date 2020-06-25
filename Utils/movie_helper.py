@@ -37,9 +37,9 @@ def gen_movies(movies_df):
     return movies
 
 def get_movie_by_id(movieId): 
-    movies_df = database_helper.select_query("movies", { "movieId" : movieId })
-    if (not df.empty):
-        return Movie(df.iloc[0])
+    movies_df = database_helper.select_query("movies", { "movieId" : int(movieId) })
+    if (not movies_df.empty):
+        return Movie(movies_df.iloc[0])
     
     return None
 

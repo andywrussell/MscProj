@@ -44,6 +44,7 @@ def classify_sentiment(sentiment):
 
 def get_tweet_regions(movieId):
     tweets =  database_helper.select_geo_tweets(movieId)
+    tweets.dropna(subset=["geombng"], inplace=True)
     gb = gpd.read_file("../../ProjectData/Data/GB/european_region_region.shp")
     gb_tweets = sjoin(tweets, gb, how='inner')
     gb_tweets["region"] = gb_tweets["NAME"].str.replace("Euro Region", "").str.strip()
