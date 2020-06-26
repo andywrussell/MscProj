@@ -15,6 +15,8 @@ sys.path.insert(1, '/home/andy/Documents/MscProject/MscProj/Utils')
 
 from movie import Movie
 import database_helper
+import tweet_helper
+
 
 def get_movies_df():
     movies_df = database_helper.select_query("movies", {"investigate" : "1"})
@@ -175,6 +177,11 @@ def get_genre_tweet_sentiments():
         output_df = output_df.append(class_freq)
         
     return output_df
+
+
+            
+        
+            
             
             
     

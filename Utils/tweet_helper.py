@@ -49,5 +49,22 @@ def get_tweet_regions(movieId):
     gb_tweets = sjoin(tweets, gb, how='inner')
     gb_tweets["region"] = gb_tweets["NAME"].str.replace("Euro Region", "").str.strip()
     return gb_tweets
+
+
+def get_genre_region_tweets(genre):
+    
+    gb = gpd.read_file("../../ProjectData/Data/GB/european_region_region.shp")
+    output_df = pd.DataFrame(columns=['senti_class', 'counts', 'genre'])
+
+    genre_movies = database_helper.select_movies_by_genre(genre)
+    
+    region_tweets = get_tweet_regions(genre_movies.iloc[0]['movieId'])
+    
+    for index, row in genre_movies.iterrows():
+        if index > 0:
+            my_region_tweets = get_tweet_regions(row["movieId"])
+            region_tweets = region_tweets.append(my_region_tweets)
+        
+    return region_tweets
     
     

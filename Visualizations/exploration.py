@@ -233,6 +233,42 @@ def plot_genre_sentiment_stacked(normalize = True):
     data = grouped_tweets.pivot(index="genre", columns=stack_col, values=plot_col)
     data.plot.bar(stacked=True) 
     
+def plot_genre_map(genre, normalize = False):
+    #NB TIDY THIS UP
+    regional_pop = { 'Scotland Euro Region' :  5463300,  
+            'East Midlands Euro Region' : 4835928, 
+            'London Euro Region' : 8961989, 
+            'North West Euro Region' : 7341196, 
+            'West Midlands Euro Region' : 5934037,
+            'Yorkshire and the Humber Euro Region' : 5502967,
+            'South East Euro Region' : 9180135, 
+            'North East Euro Region' : 2669941,
+            'Wales Euro Region' : 3152879, 
+            'Eastern Euro Region' : 6236072,
+            'South West Euro Region' : 5624696}  
+    
+    title = "{0} tweets per region".format(genre)
+    map_col = 'counts'
+    
+    genre_tweets = tweet_helper.get_genre_region_tweets("Action")
+    tweet_freq = genre_tweets.groupby('NAME').size().reset_index(name='counts')
+    
+    if normalize:
+        tweet_freq['population'] = tweet_freq['NAME'].map(regional_pop)
+        tweet_freq["norm_count"] = tweet_freq['counts'] / tweet_freq['population']
+        tweet_freq["norm_count"] = (tweet_freq['counts'] / tweet_freq['population']) * 1000000
+        map_col = 'norm_count'
+    
+    gb = gpd.read_file("../../ProjectData/Data/GB/european_region_region.shp")
+    map_freq = gb.merge(tweet_freq, left_on='NAME', right_on='NAME')
+    
+    fig, ax = plt.subplots(1, 1)
+    ax.axis('off')
+    ax.set_title(title)
+    fig.set_dpi(100)
+    map_freq.plot(column=map_col, ax=ax, legend=True, cmap='OrRd')
+    
+    
 #plot_budget_vs_revenue()
 #plot_budget_vs_profit()
 #plot_profit_classes()
