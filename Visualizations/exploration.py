@@ -166,6 +166,72 @@ def plot_top_5_by_tweet_count():
     plt.xticks(rotation=40)
     plt.show()
     
+def plot_genre_counts():
+    genres_df = movie_helper.get_movie_genre_counts()
+    
+    fig = plt.figure()
+    ax = fig.add_axes([0,0,1,1])
+    
+    ax.bar(genres_df["genre"], genres_df["count"])
+    ax.set_ylabel("Movie Count")
+    ax.set_xlabel("Genre")
+    ax.set_title("Genres")
+    plt.xticks(rotation=40)
+    plt.show()
+    
+def plot_top_10_genres():
+    genres_df = movie_helper.get_movie_genre_counts()
+    genres_df = genres_df.sort_values(by="count", ascending=False).head(n=10)
+    
+    fig = plt.figure()
+    ax = fig.add_axes([0,0,1,1])
+    
+    ax.bar(genres_df["genre"], genres_df["count"])
+    ax.set_ylabel("Movie Count")
+    ax.set_xlabel("Genre")
+    ax.set_title("Genres")
+    plt.xticks(rotation=40)
+    plt.show()
+    
+def plot_genre_tweet_counts():
+    genres_df = movie_helper.get_genre_tweet_counts()
+
+    fig = plt.figure()
+    ax = fig.add_axes([0,0,1,1])
+    
+    ax.bar(genres_df["genre"], genres_df["count"])
+    ax.set_ylabel("Tweet Count")
+    ax.set_xlabel("Genre")
+    ax.set_title("Genres")
+    plt.xticks(rotation=40)
+    plt.show()
+    
+def plot_genre_sentiment():
+    genre_sentiment_class_counts = movie_helper.get_genre_tweet_sentiments()
+    g = sns.catplot(x="genre", y="counts", hue="senti_class", data=genre_sentiment_class_counts, height=6, kind="bar", palette="muted", legend_out=False)
+    fig = g.fig
+    g.set_ylabels("Tweet Counts")
+    g.set_xlabels("Genre")
+    g.set_xticklabels(rotation=40, ha="right")
+    fig.subplots_adjust(top=0.9)
+    fig.suptitle("Genre Tweet Sentiment", fontsize=16)
+    plt.show()
+    
+def plot_genre_sentiment_stacked(normalize = True):
+    grouped_tweets = movie_helper.get_genre_tweet_sentiments()
+    
+    plot_col = "counts"
+    stack_col = "senti_class"
+    if normalize:
+        grouped_sum = grouped_tweets.groupby(['genre']).sum().reset_index()
+        grouped_sum.rename(columns={'counts' : 'total'}, inplace=True)
+        grouped_tweets = grouped_tweets.join(grouped_sum.set_index("genre"), on="genre", how="inner", lsuffix="_left", rsuffix="_right_")
+        grouped_tweets["percentage"] = grouped_tweets["counts"] / grouped_tweets["total"] 
+        plot_col = "percentage"
+        stack_col = "senti_class_left"
+    
+    data = grouped_tweets.pivot(index="genre", columns=stack_col, values=plot_col)
+    data.plot.bar(stacked=True) 
     
 #plot_budget_vs_revenue()
 #plot_budget_vs_profit()

@@ -209,5 +209,17 @@ def select_geo_tweets(movieId):
     df = get_geo_data(sql, 'geombng')
     return df
 
+def select_movies_by_genre(genre, investigate_only=True):
+    sql = """
+        SELECT *
+        FROM movies
+        WHERE genres ilike '%{0}%'
+    """.format(genre)
+    
+    if investigate_only:
+        sql += " AND investigate = '1'"
+        
+    return get_data(sql)
+
 
       

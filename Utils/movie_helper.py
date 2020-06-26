@@ -107,5 +107,77 @@ def categorize_by_gross_profit():
     
     return movies_df
 
+def get_movie_genres():
+    movies_df = get_movies_df()
+    movies_df["genres_list"] = movies_df["genres"].apply(lambda x: x.split(',') if x != None else [])
+    genre_list = movies_df["genres_list"].to_list()
+    
+    genre_list = list(set([item for sublist in genre_list for item in sublist]))
+    
+    return genre_list
+
+
+def get_movie_genre_counts():
+    movies_df = get_movies_df()
+    genre_list = get_movie_genres()
+    
+    genre_df = pd.DataFrame(columns=["genre", "count"])
+    
+    counts = []
+    for genre in genre_list:
+        row_s = movies_df.apply(lambda x: True if genre in x["genres"] else False, axis=1)
+        counts.append(len(row_s[row_s == True].index))
+     
+    genre_df["genre"] = genre_list
+    genre_df["count"] = counts
+    
+    return genre_df
+
+def get_genre_tweet_counts():
+    genre_list = get_movie_genres()
+    counts = []
+    
+    for genre in genre_list:
+        #get all movies in this genre
+        genre_movies = database_helper.select_movies_by_genre(genre)
+
+        tweet_count = 0
+        for index, row in genre_movies.iterrows():
+            tweet_count += int(count_tweets(row["movieId"])['count'])
+
+            
+        counts.append(tweet_count)
+        
+    genre_df = pd.DataFrame(columns=["genre", "count"])
+    genre_df["genre"] = genre_list
+    genre_df["count"] = counts
+    
+    return genre_df
+
+def get_genre_tweet_sentiments():
+    genre_list = get_movie_genres()
+    
+    output_df = pd.DataFrame(columns=['senti_class', 'counts', 'genre'])
+    for genre in genre_list:
+        genre_movies = database_helper.select_movies_by_genre(genre)
+        
+        #do the first movie 
+        first_tweets = database_helper.select_geo_tweets(genre_movies.iloc[0]['movieId'])
+        class_freq = first_tweets.groupby('senti_class').size().reset_index(name='counts')
+        
+        for index, row in genre_movies.iterrows():
+            if index > 0:
+                tweets = database_helper.select_geo_tweets(row["movieId"])
+                my_class_freq = tweets.groupby('senti_class').size().reset_index(name='counts')
+                class_freq['counts'] += my_class_freq['counts']
+    
+        class_freq['genre'] = genre
+        output_df = output_df.append(class_freq)
+        
+    return output_df
+            
+            
+    
+    
     
 
