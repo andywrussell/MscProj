@@ -178,12 +178,37 @@ def get_genre_tweet_sentiments():
         
     return output_df
 
-
-            
+def get_genre_revenues():
+    genre_list = get_movie_genres()
+                
+    genre_revenues = []
+    for genre in genre_list:
+        genre_movies = database_helper.select_movies_by_genre(genre)  
+        genre_movies["profit_mil"] = genre_movies["gross_profit_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+        genre_total = genre_movies["profit_mil"].sum()
         
-            
-            
-            
+        genre_revenues.append(genre_total)
+        
+    output_df = pd.DataFrame(columns=["genre", "profit_mil"])
+    output_df["genre"] = genre_list
+    output_df["profit_mil"] = genre_revenues
+    
+    return output_df
+        
+        
+def get_genre_movie_class_counts():
+    genre_list = get_movie_genres()
+      
+    output_df = pd.DataFrame(columns=["profit_class", "genre", "counts"])
+      
+    for genre in genre_list: 
+        genre_movies = database_helper.select_movies_by_genre(genre) 
+        class_freq = genre_movies.groupby('profit_class').size().reset_index(name="counts")
+        class_freq["genre"] = genre
+        
+        output_df = output_df.append(class_freq)
+        
+    return output_df
     
     
     

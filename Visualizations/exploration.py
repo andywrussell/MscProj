@@ -268,6 +268,57 @@ def plot_genre_map(genre, normalize = False):
     fig.set_dpi(100)
     map_freq.plot(column=map_col, ax=ax, legend=True, cmap='OrRd')
     
+def plot_genre_profits():
+    profits_df = movie_helper.get_genre_revenues()
+    
+    fig = plt.figure()
+    ax = fig.add_axes([0,0,1,1])
+    
+    ax.bar(profits_df["genre"], profits_df["profit_mil"])
+    ax.set_ylabel("Gross Profit $mil")
+    ax.set_xlabel("Genre")
+    ax.set_title("Genres Profits")
+    plt.xticks(rotation=40)
+    plt.show()
+    
+def plot_genre_movie_counts():
+    genre_sentiment_movie_counts = movie_helper.get_genre_movie_class_counts()
+    g = sns.catplot(x="genre", y="counts", hue="profit_class", data=genre_sentiment_movie_counts, height=6, kind="bar", palette="muted", legend_out=False)
+    fig = g.fig
+    g.set_ylabels("Movie Counts")
+    g.set_xlabels("Genre")
+    g.set_xticklabels(rotation=40, ha="right")
+    fig.subplots_adjust(top=0.9)
+    fig.suptitle("Movie Profit Class", fontsize=16)
+    plt.show()
+    
+def test_kernel(movieId):
+    #http://darribas.org/gds_scipy16/ipynb_md/06_points.html
+    gb = gpd.read_file("../../ProjectData/Data/GB/european_region_region.shp")
+        
+    fig, ax = plt.subplots(1,figsize=(9,9))
+    #remove any tweets without geometry info
+    tweets =  database_helper.select_geo_tweets(movieId)
+    tweets.dropna(subset=["geombng"], inplace=True)
+    gb_tweets = sjoin(tweets, gb, how='inner')
+    gb_tweets["lat"] = gb_tweets["geombng"].y
+    gb_tweets["lng"] = gb_tweets["geombng"].x
+    
+    gb.plot(ax=ax)
+    
+    sns.kdeplot(gb_tweets['lng'], gb_tweets['lat'], 
+                shade=True, shade_lowest=False, cmap='OrRd',
+                 ax=ax)
+
+
+    
+    ax.set_axis_off()
+    plt.axis('equal')
+    plt.show()
+    plt.clf()
+    plt.cla()
+    plt.close()
+        
     
 #plot_budget_vs_revenue()
 #plot_budget_vs_profit()

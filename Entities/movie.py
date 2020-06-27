@@ -187,6 +187,34 @@ class Movie:
         fig.set_dpi(100)
         map_freq.plot(column=map_col, ax=ax, legend=True, cmap='OrRd')
         
+    def plot_tweets_kde_map(self):
+        #http://darribas.org/gds_scipy16/ipynb_md/06_points.html
+        gb = gpd.read_file("../../ProjectData/Data/GB/european_region_region.shp")
+            
+        fig, ax = plt.subplots(1,figsize=(9,9))
+        #remove any tweets without geometry info
+        tweets =  database_helper.select_geo_tweets(self.movieId)
+        tweets.dropna(subset=["geombng"], inplace=True)
+        gb_tweets = sjoin(tweets, gb, how='inner')
+        gb_tweets["lat"] = gb_tweets["geombng"].y
+        gb_tweets["lng"] = gb_tweets["geombng"].x
+        
+        gb.plot(ax=ax)
+        
+        sns.kdeplot(gb_tweets['lng'], gb_tweets['lat'], 
+                    shade=True, shade_lowest=False, cmap='viridis',
+                     ax=ax)
+    
+    
+        
+        ax.set_axis_off()
+        plt.axis('equal')
+        plt.title(self.title + " Tweet Density")
+        plt.show()
+        plt.clf()
+        plt.cla()
+        plt.close()
+        
     def plot_tweets_over_time(self):
         releaseDate = self.ukReleaseDate
         endWeekend = self.box_office_df.iloc[self.box_office_df['weeksOnRelease'].idxmax()].weekendEnd
