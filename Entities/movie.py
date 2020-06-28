@@ -29,6 +29,9 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import seaborn as sns
 import numpy as np
 from colour import Color
+from datetime import datetime
+from datetime import timedelta
+
 
 
 class Movie:
@@ -152,7 +155,29 @@ class Movie:
         plt.cla()
         plt.close()
         
-    def plot_geotweets(self, normalize = True):
+    def get_geotweets_by_dates(self, start_date = None, end_date = None):
+        
+        if start_date == None:
+            #try two weeks prior to release
+            release_date = self.ukReleaseDate
+            start_date = datetime.combine((release_date - timedelta(days=14)), datetime.min.time())
+            
+        if end_date == None: 
+            end_weekend = self.box_office_df.iloc[self.box_office_df['weeksOnRelease'].idxmax()].weekendEnd
+            end_date = datetime.combine((end_weekend + timedelta(days=14)), datetime.max.time())
+        
+        
+        tweets = database_helper.select_geo_tweets(self.movieId)
+        tweets = tweets[(tweets.created_at >= start_date) & (tweets.created_at <= end_date)]
+        
+        return tweets
+    
+    def get_geotweet_count_by_dates(self, start_date = None, end_date = None):
+        tweets = self.get_geotweets_by_dates(start_date, end_date)
+        
+        return len(tweets)
+        
+    def plot_geotweets(self, normalize = True, cinema_run = False):
         #NB TIDY THIS UP
         regional_pop = { 'Scotland Euro Region' :  5463300,  
                 'East Midlands Euro Region' : 4835928, 
@@ -170,8 +195,14 @@ class Movie:
         map_col = 'counts'
         gb = gpd.read_file("../../ProjectData/Data/GB/european_region_region.shp")
         
+        tweets = self.get_geotweets_by_dates() if cinema_run else database_helper.select_geo_tweets(self.movieId)
+        
         #remove any tweets without geometry info
-        tweets =  database_helper.select_geo_tweets(self.movieId)
+        #tweets =  database_helper.select_geo_tweets(self.movieId)
+        
+        #if cinema_run: 
+         #   tweets = get_geotweets_by_dates
+        
         tweets.dropna(subset=["geombng"], inplace=True)
         gb_tweets = sjoin(tweets, gb, how='inner')
         tweet_freq = gb_tweets.groupby('NAME').size().reset_index(name='counts')
@@ -187,13 +218,14 @@ class Movie:
         fig.set_dpi(100)
         map_freq.plot(column=map_col, ax=ax, legend=True, cmap='OrRd')
         
-    def plot_tweets_kde_map(self):
+    def plot_tweets_kde_map(self, cinema_run = False):
         #http://darribas.org/gds_scipy16/ipynb_md/06_points.html
         gb = gpd.read_file("../../ProjectData/Data/GB/european_region_region.shp")
             
         fig, ax = plt.subplots(1,figsize=(9,9))
         #remove any tweets without geometry info
-        tweets =  database_helper.select_geo_tweets(self.movieId)
+        tweets = self.get_geotweets_by_dates() if cinema_run else database_helper.select_geo_tweets(self.movieId)
+        
         tweets.dropna(subset=["geombng"], inplace=True)
         gb_tweets = sjoin(tweets, gb, how='inner')
         gb_tweets["lat"] = gb_tweets["geombng"].y
@@ -215,12 +247,14 @@ class Movie:
         plt.cla()
         plt.close()
         
-    def plot_tweets_over_time(self):
+    def plot_tweets_over_time(self, cinema_run = False):
         releaseDate = self.ukReleaseDate
         endWeekend = self.box_office_df.iloc[self.box_office_df['weeksOnRelease'].idxmax()].weekendEnd
         fig, ax = plt.subplots()
         ax.axvspan(*mdates.datestr2num([str(releaseDate), str(endWeekend)]), color='skyblue', alpha=0.5)
-        tweets =  database_helper.select_geo_tweets(self.movieId)
+        
+        tweets = self.get_geotweets_by_dates() if cinema_run else database_helper.select_geo_tweets(self.movieId)
+
         tweets['date'] = tweets['created_at'].dt.date
         date_freq = tweets.groupby('date').size().reset_index(name='count') 
         date_freq.sort_values('date')
@@ -234,6 +268,7 @@ class Movie:
         plt.xlabel("Date")
         plt.ylabel("Tweet Count")
         plt.title(self.title + " Tweets over time")
+        plt.xticks(rotation=40)
         plt.show()
         
     def plot_tweet_sentiment_over_time(self, avg = False):
@@ -263,10 +298,11 @@ class Movie:
         plt.xlabel("Date")
         plt.ylabel("Tweet Sentiment")
         plt.title(self.title + " Tweet sentiment over time")
+        plt.xticks(rotation=40)
         plt.show()
 
-    def plot_tweets_by_class(self):
-        tweets = database_helper.select_geo_tweets(self.movieId)
+    def plot_tweets_by_class(self, cinema_run = False):
+        tweets = self.get_geotweets_by_dates() if cinema_run else database_helper.select_geo_tweets(self.movieId)
         class_freq = tweets.groupby('senti_class').size().reset_index(name='counts')
         fig = plt.figure()
         ax = fig.add_axes([0,0,1,1])
@@ -276,7 +312,7 @@ class Movie:
         ax.set_title(self.title + " Tweet sentiment")
         plt.show()
         
-    def plot_tweets_by_class_and_region(self):
+    def plot_tweets_by_class_and_region(self, cinema_run = False):
         sns.set(style="whitegrid")
         region_tweets = tweet_helper.get_tweet_regions(self.movieId)
         title = self.title + " Tweets per region"

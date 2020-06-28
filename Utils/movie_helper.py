@@ -47,8 +47,8 @@ def get_movie_by_id(movieId):
 
 def get_movie_by_title(title):
     movies_df = database_helper.select_query("movies", { "title" : title })
-    if (not df.empty):
-        return Movie(df.iloc[0])
+    if (not movies_df.empty):
+        return Movie(movies_df.iloc[0])
     
     return None
     
@@ -108,6 +108,33 @@ def categorize_by_gross_profit():
             database_helper.update_data("movies", update_params = updates, select_params = selects)
     
     return movies_df
+
+def calculate_percentage_profit():
+    movies_df = get_movies_df()
+    movies_df["gross_profit_norm"] = movies_df["gross_profit_usd"].replace('[\£,]', '', regex=True).astype(float)
+    movies_df["budget_norm"] = movies_df["budget_usd"].replace('[\£,]', '', regex=True).astype(float)
+    movies_df["return_percentage"] = (movies_df["gross_profit_norm"] / movies_df["budget_norm"]) * 100
+    
+    for index, row in movies_df.iterrows(): 
+        updates = { "return_percentage" : row["return_percentage"] }
+        selects = {"movieId" : row["movieId"]}
+        database_helper.update_data("movies", update_params = updates, select_params = selects)
+    
+    return movies_df
+
+def calculate_uk_percentage_gross():
+    movies_df = get_movies_df()
+    movies_df["worldwide_norm"] = movies_df["worldwide_gross_usd"].replace('[\£,]', '', regex=True).astype(float)
+    movies_df["uk_takings_norm"] = movies_df["uk_gross_usd"].replace('[\£,]', '', regex=True).astype(float)
+    movies_df["uk_percentage"] = (movies_df["uk_takings_norm"] / movies_df["worldwide_norm"]) * 100
+    
+    for index, row in movies_df.iterrows(): 
+        updates = { "uk_percentage" : row["uk_percentage"] }
+        selects = {"movieId" : row["movieId"]}
+        database_helper.update_data("movies", update_params = updates, select_params = selects)
+    
+    return movies_df
+    
 
 def get_movie_genres():
     movies_df = get_movies_df()

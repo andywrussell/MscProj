@@ -123,6 +123,36 @@ def plot_financial_box(column, title, xlabel):
     ax.set_xlabel(xlabel)
     plt.show()
     
+def plot_top10_uk(percentage=False):
+    column = "uk_percentage"
+    
+    sorted_movies = movies_df.sort_values(by=column, ascending=False).head(n=10)
+
+    fig = plt.figure()
+    ax = fig.add_axes([0,0,1,1])
+    
+    ax.bar(sorted_movies["title"], sorted_movies["uk_percentage"])
+    ax.set_ylabel("Uk percentage")
+    ax.set_xlabel("Movie TItle")
+    ax.set_title("Percentage Of Takings in UK")
+    plt.xticks(rotation=40)
+    plt.show()
+    
+def plot_top10_roi(percentage=False):
+    column = "return_percentage"
+    
+    sorted_movies = movies_df.sort_values(by=column, ascending=False).head(n=10)
+
+    fig = plt.figure()
+    ax = fig.add_axes([0,0,1,1])
+    
+    ax.bar(sorted_movies["title"], sorted_movies[column])
+    ax.set_ylabel("Return percentage")
+    ax.set_xlabel("Movie TItle")
+    ax.set_title("Return On Investment")
+    plt.xticks(rotation=40)
+    plt.show()    
+    
 def plot_financial_distribution(column, title, xlabel):
     temp_col_name = column + "_norm"
     data = movies_df[column].replace('[\£,]', '', regex=True).astype(float) / 1000000
@@ -144,21 +174,63 @@ def plot_lest_profitable_tweets():
     least_profit = movie_helper.get_movie_by_id()
     least_profit.plot_tweets_over_time()
     
-def plot_tweets_vs_finance(column, title, xlabel, ylabel):
+def plot_tweets_vs_finance(column, title, xlabel, ylabel, movie_run=False):
     movies_df["temp_col"] = movies_df[column].replace('[\£,]', '', regex=True).astype(float) / 1000000
-    movies_df["tweet_count"] = movies_df["movieId"].apply(lambda x: movie_helper.count_tweets(int(x))['count'])
     
-    ax = sns.relplot(x="temp_col", y="tweet_count", data=movies_df)
+    if movie_run:
+        #do a loop?
+        movies = movie_helper.gen_movies(movies_df)
+        
+        tweet_counts = []
+        for movie in movies:
+            tweet_counts.append(movie.get_geotweet_count_by_dates())
+
+        movies_df["tweet_count"] = tweet_counts            
+    else:
+        movies_df["tweet_count"] = movies_df["movieId"].apply(lambda x: movie_helper.count_tweets(int(x))['count'])
+    
+    ax = sns.regplot(x="temp_col", y="tweet_count", data=movies_df)
 
     ax.set(xlabel=xlabel, ylabel=ylabel)
     plt.title(title)
     plt.show()
     
+    
+def plot_tweets_vs_ratio(column, title, xlabel, ylabel, movie_run=False):
+    if movie_run:
+        #do a loop?
+        movies = movie_helper.gen_movies(movies_df)
+        
+        tweet_counts = []
+        for movie in movies:
+            tweet_counts.append(movie.get_geotweet_count_by_dates())
+
+        movies_df["tweet_count"] = tweet_counts            
+    else:
+        movies_df["tweet_count"] = movies_df["movieId"].apply(lambda x: movie_helper.count_tweets(int(x))['count'])
+    
+    ax = sns.regplot(x=column, y="tweet_count", data=movies_df)
+
+    ax.set(xlabel=xlabel, ylabel=ylabel)
+    plt.title(title)
+    plt.show()
   
-def plot_top_5_by_tweet_count():
+def plot_top_5_by_tweet_count(movie_run = True):
     fig = plt.figure()
     ax = fig.add_axes([0,0,1,1])
-    movies_df["tweet_count"] = movies_df["movieId"].apply(lambda x: movie_helper.count_tweets(int(x))['count'])
+    
+    if movie_run:
+        #do a loop?
+        movies = movie_helper.gen_movies(movies_df)
+        
+        tweet_counts = []
+        for movie in movies:
+            tweet_counts.append(movie.get_geotweet_count_by_dates())
+
+        movies_df["tweet_count"] = tweet_counts            
+    else:
+        movies_df["tweet_count"] = movies_df["movieId"].apply(lambda x: movie_helper.count_tweets(int(x))['count'])
+        
     sorted_df = movies_df.sort_values(by="tweet_count", ascending=False).head()
     ax.bar(sorted_df["title"], sorted_df["tweet_count"])
     ax.set_ylabel("Tweet Count")
@@ -292,33 +364,7 @@ def plot_genre_movie_counts():
     fig.suptitle("Movie Profit Class", fontsize=16)
     plt.show()
     
-def test_kernel(movieId):
-    #http://darribas.org/gds_scipy16/ipynb_md/06_points.html
-    gb = gpd.read_file("../../ProjectData/Data/GB/european_region_region.shp")
-        
-    fig, ax = plt.subplots(1,figsize=(9,9))
-    #remove any tweets without geometry info
-    tweets =  database_helper.select_geo_tweets(movieId)
-    tweets.dropna(subset=["geombng"], inplace=True)
-    gb_tweets = sjoin(tweets, gb, how='inner')
-    gb_tweets["lat"] = gb_tweets["geombng"].y
-    gb_tweets["lng"] = gb_tweets["geombng"].x
-    
-    gb.plot(ax=ax)
-    
-    sns.kdeplot(gb_tweets['lng'], gb_tweets['lat'], 
-                shade=True, shade_lowest=False, cmap='OrRd',
-                 ax=ax)
 
-
-    
-    ax.set_axis_off()
-    plt.axis('equal')
-    plt.show()
-    plt.clf()
-    plt.cla()
-    plt.close()
-        
     
 #plot_budget_vs_revenue()
 #plot_budget_vs_profit()

@@ -34,12 +34,14 @@ movies = movie_helper.get_movies()
 #movie = movies[0]
 
 synopsis_list = []
+keyword_list = []
 #synopsis_list.append(movie.synopsis)
-stop_list = ['Mr', 'Mrs', 'Miss']
+stop_list = ['Mr', 'Mrs', 'Miss', 'reference', 'relationship', 'title', 'character']
 nlp= spacy.load("en_core_web_lg")
 
 for movie in movies:
     synopsis_list.append(movie.synopsis)
+    keyword_list.append(" ".join(movie.keywords))
     temp = [actor.role for actor in movie.actors if actor.credited]
     flat_list = [item for sublist in temp for item in sublist]
     stop_list.extend(flat_list)
@@ -76,7 +78,7 @@ nlp.add_pipe(remove_stopwords, name="stopwords", last=True)
 
 doc_list = []
 # Iterates through each article in the corpus.
-for doc in tqdm(synopsis_list):
+for doc in tqdm(keyword_list):
     # Passes that article through the pipeline and adds to a new list.
     pr = nlp(doc)
     doc_list.append(pr)
@@ -84,6 +86,7 @@ for doc in tqdm(synopsis_list):
 
 # Creates, which is a mapping of word IDs to words.
 words = corpora.Dictionary(doc_list)
+#words2 = corpora.Dictionary(keyword_list)
 
 # Turns each document into a bag of words.
 corpus = [words.doc2bow(doc) for doc in doc_list]
