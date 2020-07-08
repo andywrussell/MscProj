@@ -123,6 +123,26 @@ def plot_financial_box(column, title, xlabel):
     ax.set_xlabel(xlabel)
     plt.show()
     
+def plot_float_box(column, title, xlabel):
+    ax = sns.boxplot(x=column, data=movies_df)
+    ax.set_title(title)
+    ax.set_xlabel(xlabel)
+    plt.show()
+    
+def plot_financial_box_dist(column, title, xlabel):
+    temp_col_name = column + "_norm"
+    movies_df[temp_col_name] = movies_df[column].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    figure, axes = plt.subplots(1, 2)
+    ax1 = sns.boxplot(x=temp_col_name, data=movies_df)
+    ax1.set_title(title)
+    ax1.set_xlabel(xlabel)
+    
+    ax2 = sns.distplot(movies_df[temp_col_name])
+    ax2.set_title(title)
+    ax2.set_xlabel(xlabel)
+    plt.show()
+    
+    
 def plot_top10_uk(percentage=False):
     column = "uk_percentage"
     
@@ -137,6 +157,22 @@ def plot_top10_uk(percentage=False):
     ax.set_title("Percentage Of Takings in UK")
     plt.xticks(rotation=40)
     plt.show()
+    
+def plot_top10_profit():
+    column = "gross_profit_usd"
+    movies_df['profit_norm'] = movies_df["gross_profit_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    sorted_movies = movies_df.sort_values(by="profit_norm", ascending=False).head(n=10)
+
+    fig = plt.figure()
+    ax = fig.add_axes([0,0,1,1])
+    
+    ax.bar(sorted_movies["title"], sorted_movies["profit_norm"])
+    ax.set_ylabel("Gross Profit $mil")
+    ax.set_xlabel("Movie TItle")
+    ax.set_title("Worldwide Gross Profit")
+    plt.xticks(rotation=40)
+    plt.show()
+    
     
 def plot_top10_roi(percentage=False):
     column = "return_percentage"
@@ -156,6 +192,13 @@ def plot_top10_roi(percentage=False):
 def plot_financial_distribution(column, title, xlabel):
     temp_col_name = column + "_norm"
     data = movies_df[column].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    ax = sns.distplot(data)
+    ax.set_title(title)
+    ax.set_xlabel(xlabel)
+    plt.show()
+    
+def plot_float_distribution(column, title, xlabel):
+    data = movies_df[column]
     ax = sns.distplot(data)
     ax.set_title(title)
     ax.set_xlabel(xlabel)
@@ -240,6 +283,7 @@ def plot_top_5_by_tweet_count(movie_run = True):
     
 def plot_genre_counts():
     genres_df = movie_helper.get_movie_genre_counts()
+    genres_df = genres_df.sort_values(by="count", ascending=False)
     
     fig = plt.figure()
     ax = fig.add_axes([0,0,1,1])
@@ -247,7 +291,7 @@ def plot_genre_counts():
     ax.bar(genres_df["genre"], genres_df["count"])
     ax.set_ylabel("Movie Count")
     ax.set_xlabel("Genre")
-    ax.set_title("Genres")
+    ax.set_title("Genre Movie Counts")
     plt.xticks(rotation=40)
     plt.show()
     
@@ -267,6 +311,7 @@ def plot_top_10_genres():
     
 def plot_genre_tweet_counts():
     genres_df = movie_helper.get_genre_tweet_counts()
+    genres_df = genres_df.sort_values(by="count", ascending=False)
 
     fig = plt.figure()
     ax = fig.add_axes([0,0,1,1])
@@ -274,7 +319,7 @@ def plot_genre_tweet_counts():
     ax.bar(genres_df["genre"], genres_df["count"])
     ax.set_ylabel("Tweet Count")
     ax.set_xlabel("Genre")
-    ax.set_title("Genres")
+    ax.set_title("Genre Tweet Counts")
     plt.xticks(rotation=40)
     plt.show()
     
@@ -322,7 +367,7 @@ def plot_genre_map(genre, normalize = False):
     title = "{0} tweets per region".format(genre)
     map_col = 'counts'
     
-    genre_tweets = tweet_helper.get_genre_region_tweets("Action")
+    genre_tweets = tweet_helper.get_genre_region_tweets(genre)
     tweet_freq = genre_tweets.groupby('NAME').size().reset_index(name='counts')
     
     if normalize:

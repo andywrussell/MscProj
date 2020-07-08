@@ -16,6 +16,8 @@ sys.path.insert(1, '/home/andy/Documents/MscProject/MscProj/Utils')
 from movie import Movie
 import database_helper
 import tweet_helper
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 
 def get_movies_df():
@@ -122,6 +124,36 @@ def calculate_percentage_profit():
     
     return movies_df
 
+
+def categorize_by_return_percentage():
+    movies_df = get_movies_df()
+    
+    custom_bucket_array =[-100, 0, 100, 400, 1000, 2000]
+    bucket_labels = ['< %0 (Flop)', '%0-100%', '%100-%400', '%400-%1000', '> %1000 (BlockBuster)']
+    movies_df['class'] = pd.cut(movies_df['return_percentage'], custom_bucket_array,labels= bucket_labels)
+    
+    for index, row in movies_df.iterrows(): 
+            updates = { "return_class" : row["class"] }
+            selects = {"movieId" : row["movieId"]}
+            database_helper.update_data("movies", update_params = updates, select_params = selects)
+    
+    return movies_df
+
+def categorize_by_uk_percentage():
+    movies_df = get_movies_df()
+    
+    custom_bucket_array =[0, 2, 4, 6, 12, 20]
+    bucket_labels = ['0% - 2%', '2% - 4%', '4% - 6%', '6% - 12%', '> 12%']
+    movies_df['class'] = pd.cut(movies_df['uk_percentage'], custom_bucket_array,labels= bucket_labels)
+    
+    for index, row in movies_df.iterrows(): 
+            updates = { "uk_percentage_class" : row["class"] }
+            selects = {"movieId" : row["movieId"]}
+            database_helper.update_data("movies", update_params = updates, select_params = selects)
+    
+    return movies_df
+
+  
 def calculate_uk_percentage_gross():
     movies_df = get_movies_df()
     movies_df["worldwide_norm"] = movies_df["worldwide_gross_usd"].replace('[\£,]', '', regex=True).astype(float)

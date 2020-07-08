@@ -220,6 +220,4 @@ def select_movies_by_genre(genre, investigate_only=True):
         sql += " AND investigate = '1'"
         
     return get_data(sql)
-
-
       
