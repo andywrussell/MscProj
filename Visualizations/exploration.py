@@ -58,23 +58,31 @@ def get_revenue_bar_plot(movies, title = 'Top 20 Movies'):
     plt.show()
         
 def gen_top_20_tweet_count():
-    titles = []
-    tweets = []
-    for movie in movies:
-        titles.append(movie.title)
-        count_df = movie_helper.count_tweets(movie.movieId)
-        count = count_df.iloc[0]['count']
-        tweets.append(count)
+    movies_df = movie_helper.get_movies_df()
+    movies_df["tweet_count"] = movies_df.apply(lambda row: movie_helper.count_tweets(row['movieId'])['count'], axis = 1)
     
-    titles = titles[::-1]
-    tweets = tweets[::-1]
-    x_pos = [i for i, _ in enumerate(titles)]
-    plt.barh(titles, tweets, color='green')
+    movies_df = movies_df.sort_values(by='tweet_count', ascending=False).head(20)
+
+    plt.barh(movies_df["title"], movies_df["tweet_count"], color='green')
     plt.ylabel('Movie Title')
     plt.xlabel('Tweet Count')
     plt.title('Top 20 Movies')
-    plt.yticks(x_pos, titles)
+  #  plt.yticks(x_pos, titles)
     plt.show()
+    
+def gen_bottom_20_tweet_count():
+    movies_df = movie_helper.get_movies_df()
+    movies_df["tweet_count"] = movies_df.apply(lambda row: movie_helper.count_tweets(row['movieId'])['count'], axis = 1)
+    
+    movies_df = movies_df.sort_values(by='tweet_count').head(20)
+
+    plt.barh(movies_df["title"], movies_df["tweet_count"], color='green')
+    plt.ylabel('Movie Title')
+    plt.xlabel('Tweet Count')
+    plt.title('Bottom 20 Movies')
+ #   plt.yticks(x_pos, titles)
+    plt.show()
+    
     
 def map_test():
     place = "United Kingdom"
@@ -114,6 +122,26 @@ def plot_profit_classes():
     plt.title("Movie Profit Classes")
     plt.xticks(rotation=40)
     plt.show()
+    
+def plot_return_classes():
+    sns.set(style="whitegrid")
+    grouped_movies = movies_df.groupby(["return_class"]).size().reset_index(name = "counts")
+    order_lst = ['< %0 (Flop)', '%0-100%', '%100-%400', '%400-%1000', '> %1000 (BlockBuster)']
+    ax = sns.barplot(x="return_class", y="counts", data=grouped_movies, order=order_lst)
+    ax.set(xlabel='Percentage Return', ylabel='Movie Count')
+    plt.title("Movie Return Classes")
+    plt.xticks(rotation=40)
+    plt.show()    
+    
+def plot_uk_classes():
+    sns.set(style="whitegrid")
+    grouped_movies = movies_df.groupby(["uk_percentage_class"]).size().reset_index(name = "counts")
+    order_lst = ['0% - 2%', '2% - 4%', '4% - 6%', '6% - 12%', '> 12%']
+    ax = sns.barplot(x="uk_percentage_class", y="counts", data=grouped_movies, order=order_lst)
+    ax.set(xlabel='Percentage of UK Profits', ylabel='Movie Count')
+    plt.title("UK Takings Classes")
+    plt.xticks(rotation=40)
+    plt.show()        
     
 def plot_financial_box(column, title, xlabel):
     temp_col_name = column + "_norm"

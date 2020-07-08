@@ -38,6 +38,14 @@ def define_success():
     exploration.plot_float_box("uk_percentage", "Percentage Takings in UK", "Percentage of Takings in UK")
     exploration.plot_float_distribution("uk_percentage", "Percentage Takings in UK", "Percentage of Takings in UK")
     
-    #do classification 
+    #plot classes 
+    exploration.plot_profit_classes()
+    exploration.plot_return_classes()
+    exploration.plot_uk_classes()
     
     #get bar distributions
+    
+def twitter_exploration():
+    
+    exploration.gen_top_20_tweet_count()
+    exploration.gen_bottom_20_tweet_count()
