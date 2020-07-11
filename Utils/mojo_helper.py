@@ -12,6 +12,7 @@ from bs4 import BeautifulSoup as bs # data scraping
 import matplotlib.pyplot as plt # Data visualisation 
 import datetime # Check week number
 import re
+from datetime import datetime
 
 
 def get_movie_page(imdbId):
@@ -107,3 +108,50 @@ def get_mojo_stats(imdbId):
         stats["Budget"] = None
           
     return stats
+
+def get_uk_box_office_df(imdbId):
+    uk_html = get_uk_page(imdbId)
+    uk_soup = bs(uk_html, 'html.parser')
+    div = uk_soup.select('.imdb-scroll-table-inner')[0]
+    tables = div.find_all('table')
+    
+    box_office_df = pd.read_html(str(tables[0]))[0]
+    box_office_df["start_date"] = box_office_df.apply(lambda row: get_start_date(row['Date']), axis = 1)
+    box_office_df["end_date"] = box_office_df.apply(lambda row: get_start_date(row['Date']), axis = 1)
+    
+    prev_start = box_office_df.iloc[0]["start_date"]
+    prev_end = box_office_df.iloc[0]["end_date"]
+    fix_remaining = False
+    
+    for index, row in box_office_df.iterrows(): 
+        if index > 0:
+            curr_start = row["start_date"]
+            curr_end = row["end_date"]
+        
+            if (prev_start.month == 12 and curr_start.month < 12) or fix_remaining:
+                new_start = row["start_date"].replace(year=2020)
+                box_office_df.loc[index, "start_date"] = new_start
+                fix_remaining = True
+                
+            if (prev_end.month == 12 and curr_end.month < 12) or fix_remaining:
+                new_end = row["end_date"].replace(year=2020)
+                box_office_df.loc[index, "end_date"] = new_end
+                fix_remaining = True
+                
+            prev_start = row["start_date"]
+            prev_end = row["end_date"]
+                
+            
+    
+    return box_office_df
+    
+def get_start_date(date_str):
+    dates = date_str.split('-')
+    dates[0] = "{0} 2019".format(dates[0])
+    return datetime.strptime(dates[0], '%b %d %Y').date()
+
+def get_end_date(date_str):
+    dates = date_str.split('-')
+    month = dates[0].split(' ')[0]
+    dates[1] = "{0} {1} 2019".format(month, dates[1])
+    return datetime.strptime(dates[1], '%b %d %Y').date() 

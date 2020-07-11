@@ -18,6 +18,7 @@ import database_helper
 import tweet_helper
 import seaborn as sns
 import matplotlib.pyplot as plt
+import numpy as np
 
 
 def get_movies_df():
@@ -64,27 +65,43 @@ def set_total_revenue_for_movies():
             database_helper.update_data("movies", update_params = update_params, select_params = select_params)
             pbar.update(1)
             
-def get_top_earning(max_movies = 20):
+def get_top_by_column(column, max_movies = 20):
     sql = """SELECT * FROM public.movies 
              WHERE "investigate" = '1'
-             ORDER BY "totalRevenue" DESC LIMIT {0}""".format(max_movies)
-    top_df = database_helper.get_data(sql)
+             ORDER BY "{0}" DESC LIMIT {1}""".format(column, max_movies)
+
+    return database_helper.get_data(sql)
+
+def get_top_movies_by_column(column, max_movies = 20):
+    top_df = get_top_by_column(column, max_movies)
     return gen_movies(top_df) 
 
-def get_lowest_earning(max_movies = 20):
+def get_lowest_by_column(column, max_movies = 20):
     sql = """SELECT * FROM public.movies 
              WHERE "investigate" = '1'
-             ORDER BY "totalRevenue" ASC LIMIT {0}""".format(max_movies)
-    bottom_df = database_helper.get_data(sql)
-    return gen_movies(bottom_df) 
+             ORDER BY "{0}" ASC LIMIT {1}""".format(column, max_movies)
+             
+    return database_helper.get_data(sql)  
 
-def count_tweets(movieId):
+def get_lowest_movies_by_column(column, max_movies = 20):
+    bottom_df = get_lowest_by_column(column, max_movies)
+    return gen_movies(bottom_df)    
+
+def count_tweets(movieId, start_date = None, end_date = None):
     sql = """
           SELECT "movieid", COUNT(*) 
           FROM movie_tweets2019 
-          WHERE "movieid" = {0}
-          GROUP BY "movieid"
-          """.format(movieId)        
+          WHERE "movieid" = {0}""".format(movieId)   
+          
+    if not start_date == None:
+        sql += """ AND "created_at" >= {0}""".format(start_date)
+        
+    if not end_date == None:
+        sql += """ AND "created_at" <= {0}""".format(end_date)
+          
+    sql += """ GROUP BY "movieid"""""
+
+        
     tweet_count = database_helper.get_data(sql)
     return tweet_count
 
@@ -268,7 +285,41 @@ def get_genre_movie_class_counts():
         output_df = output_df.append(class_freq)
         
     return output_df
+
+
+def get_correlation_matrix():
+    #based on https://seaborn.pydata.org/examples/many_pairwise_correlations.html
+    movies_df = get_movies_df()
+    
+    #get tweet counts for each movies 
+    movies_df["tweet_count"] = movies_df.apply(lambda row: count_tweets(row.movieId)['count'], axis = 1)
     
     
+    correlation_subset = movies_df[['budget_usd', 'uk_gross_usd', 'domestic_gross_usd', 'worldwide_gross_usd', 'international_gross_usd', 'gross_profit_usd', 'return_percentage', 'uk_percentage', 'tweet_count']]
+    
+    #covert money to float ($mil)
+    correlation_subset["budget_usd"] = correlation_subset["budget_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    correlation_subset["uk_gross_usd"] = correlation_subset["domestic_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    correlation_subset["domestic_gross_usd"] = correlation_subset["domestic_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    correlation_subset["worldwide_gross_usd"] = correlation_subset["worldwide_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    correlation_subset["international_gross_usd"] = correlation_subset["international_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    correlation_subset["gross_profit_usd"] = correlation_subset["gross_profit_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    
+
+    #computer the correlation 
+    corr = correlation_subset.corr()
+    
+    # Generate a mask for the upper triangle
+    mask = np.triu(np.ones_like(corr, dtype=np.bool))
+    
+    # Set up the matplotlib figure
+    f, ax = plt.subplots(figsize=(11, 9))
+    
+    # Generate a custom diverging colormap
+    cmap = sns.diverging_palette(220, 10, as_cmap=True)
+    
+    # Draw the heatmap with the mask and correct aspect ratio
+    sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0, 
+                square=True, linewidths=.5, cbar_kws={"shrink": .5}) 
     
 

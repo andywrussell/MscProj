@@ -13,6 +13,7 @@ import sys
 # insert at 1, 0 is the script path (or '' in REPL)
 sys.path.insert(1, '/home/andy/Documents/MscProject/MscProj/Utils')
 
+import movie_helper
 import database_helper
 import mojo_helper
 from datetime import datetime
@@ -21,7 +22,9 @@ from datetime import datetime
 ia = imdb.IMDb()
 
 #get all movies from db
-movies_df = database_helper.select_query("movies", {"enabled" : '1'})
+movies_df = movie_helper.get_movies_df()
+#movies_df = movie_helper.get_movies_df()
+#movies_df = database_helper.select_query("movies", {"enabled" : '1'})
 #movies_df = database_helper.select_query("movies", { "movieId" : 72 })
 #movies_df = database_helper.select_query("movies", { "movieId" : 128 })
 #movies_df = database_helper.select_query("movies", { "movieId" : 122 })
@@ -247,8 +250,19 @@ def get_mojo_data():
                 database_helper.update_data("movies", update_params = updates, select_params = selects)
             pbar.update(1)
             
+            
+def get_mojo_box_office():
+    with tqdm(total=len(movies_df)) as pbar:
+        for index, row in movies_df.iterrows(): 
+            test = mojo_helper.get_uk_box_office_df(row['imdbId'])
+            
+            #fix dates
+            
+            
+            pbar.update(1)
  
-get_mojo_data()
+get_mojo_box_office()
+#get_mojo_data()
 #get_cast_notes()
 #get_imdbIds()
 #get_metaData()

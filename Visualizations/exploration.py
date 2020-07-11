@@ -245,7 +245,7 @@ def plot_lest_profitable_tweets():
     least_profit = movie_helper.get_movie_by_id()
     least_profit.plot_tweets_over_time()
     
-def plot_tweets_vs_finance(column, title, xlabel, ylabel, movie_run=False):
+def plot_tweets_vs_finance(column, title, xlabel, ylabel, movie_run=False, logx=False, logy=False):
     movies_df["temp_col"] = movies_df[column].replace('[\£,]', '', regex=True).astype(float) / 1000000
     
     if movie_run:
@@ -262,12 +262,18 @@ def plot_tweets_vs_finance(column, title, xlabel, ylabel, movie_run=False):
     
     ax = sns.regplot(x="temp_col", y="tweet_count", data=movies_df)
 
+    if logx:
+        ax.set_xscale('log')
+        
+    if logy:
+        ax.set_yscale('log')
+
     ax.set(xlabel=xlabel, ylabel=ylabel)
     plt.title(title)
     plt.show()
     
     
-def plot_tweets_vs_ratio(column, title, xlabel, ylabel, movie_run=False):
+def plot_tweets_vs_ratio(column, title, xlabel, ylabel, movie_run=False, logx=False, logy=False):
     if movie_run:
         #do a loop?
         movies = movie_helper.gen_movies(movies_df)
@@ -275,12 +281,18 @@ def plot_tweets_vs_ratio(column, title, xlabel, ylabel, movie_run=False):
         tweet_counts = []
         for movie in movies:
             tweet_counts.append(movie.get_geotweet_count_by_dates())
-
+            
         movies_df["tweet_count"] = tweet_counts            
     else:
         movies_df["tweet_count"] = movies_df["movieId"].apply(lambda x: movie_helper.count_tweets(int(x))['count'])
     
     ax = sns.regplot(x=column, y="tweet_count", data=movies_df)
+
+    if logx:
+        ax.set_xscale('log')
+        
+    if logy:
+        ax.set_yscale('log')
 
     ax.set(xlabel=xlabel, ylabel=ylabel)
     plt.title(title)
@@ -436,6 +448,32 @@ def plot_genre_movie_counts():
     fig.subplots_adjust(top=0.9)
     fig.suptitle("Movie Profit Class", fontsize=16)
     plt.show()
+    
+                    
+def correlatte_movie_stats():
+    #https://towardsdatascience.com/better-heatmaps-and-correlation-matrix-plots-in-python-41445d0f2bec
+    movies_df = movie_helper.get_movies_df()
+    
+    movies_df["tweet_count"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId)['count'], axis = 1)
+    movies_df["budget_usd"] = movies_df["budget_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["uk_gross_usd"] = movies_df["domestic_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["domestic_gross_usd"] = movies_df["domestic_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["worldwide_gross_usd"] = movies_df["worldwide_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["international_gross_usd"] = movies_df["international_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["gross_profit_usd"] = movies_df["gross_profit_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    
+    columns = ['budget_usd', 'uk_gross_usd', 'domestic_gross_usd', 'worldwide_gross_usd', 'international_gross_usd', 'gross_profit_usd', 'return_percentage', 'uk_percentage', 'tweet_count']
+
+    # Basic correlogram
+    sns.pairplot(movies_df[columns])
+    plt.show()
+    
+    correlation_mat = movies_df[columns].corr()
+    sns.heatmap(correlation_mat, annot = True)
+    plt.show()
+
+    
+
     
 
     
