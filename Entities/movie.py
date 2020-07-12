@@ -395,12 +395,16 @@ class Movie:
         data = grouped_tweets.pivot(index="region", columns="senti_class", values=plot_col)
         data.plot.bar(stacked=True)      
                 
-    def plot_time_map(self, movie_run = False):
+        
+    #def plot_time_maps_per_week(self):
+        #for index, row in self.mojo_box_office_df.iterrows():
+            
+    
+    
+    def plot_time_map(self, movie_run = False, start_date = None, end_date = None):
         #adapted from https://districtdatalabs.silvrback.com/time-maps-visualizing-discrete-events-across-many-timescales
         
-        start_date = None
-        end_date = None
-        
+
         if movie_run:    
             start_date = datetime.combine((self.ukReleaseDate - timedelta(days=14)), datetime.min.time())
             end_date = datetime.combine((self.first_run_end - timedelta(days=14)), datetime.min.time())

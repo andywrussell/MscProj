@@ -117,7 +117,7 @@ def get_uk_box_office_df(imdbId):
     
     box_office_df = pd.read_html(str(tables[0]))[0]
     box_office_df["start_date"] = box_office_df.apply(lambda row: get_start_date(row['Date']), axis = 1)
-    box_office_df["end_date"] = box_office_df.apply(lambda row: get_start_date(row['Date']), axis = 1)
+    box_office_df["end_date"] = box_office_df.apply(lambda row: get_end_date(row['Date']), axis = 1)
 
     
     prev_start = box_office_df.iloc[0]["start_date"]
@@ -171,7 +171,12 @@ def get_start_date(date_str):
 def get_end_date(date_str):
     dates = date_str.split('-')
     month = dates[0].split(' ')[0]
-    dates[1] = "{0} {1} 2019".format(month, dates[1])
+    
+    if try_convert_int(dates[1]) == -1:
+        dates[1] = "{0} 2019".format(dates[1])
+    else:
+        dates[1] = "{0} {1} 2019".format(month, dates[1])
+        
     return datetime.strptime(dates[1], '%b %d %Y').date() 
 
 def try_convert_float(val):
