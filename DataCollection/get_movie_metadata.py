@@ -254,14 +254,32 @@ def get_mojo_data():
 def get_mojo_box_office():
     with tqdm(total=len(movies_df)) as pbar:
         for index, row in movies_df.iterrows(): 
-            test = mojo_helper.get_uk_box_office_df(row['imdbId'])
+            weekend_df = mojo_helper.get_uk_box_office_df(row['imdbId'])
             
             #fix dates
+            weekend_df["movieId"] = row["movieId"]
+            print(row["imdbId"])
+            database_helper.bulk_insert_df("weekend_box_office_mojo", weekend_df, weekend_df.columns.values.tolist())
+            pbar.update(1)
             
+def get_mojo_run_info():
+    run_info_df = movie_helper.get_movie_run_info()
+    
+    with tqdm(total=len(run_info_df)) as pbar:
+        for index, row in run_info_df.iterrows(): 
+            updates =   {"end_weekend" : row['end_weekend'], 
+                   "total_weekends" : row['total_weekends'], 
+                   "total_release_weeks" : row['total_release_weeks'], 
+                   "first_run_end" : row['first_run_end'],
+                   "first_run_weeks" : row['first_run_weeks']}
+            
+            selects = {"movieId" : row["movieId"]}
+            database_helper.update_data("movies", update_params = updates, select_params = selects)
             
             pbar.update(1)
  
-get_mojo_box_office()
+get_mojo_run_info()
+#get_mojo_box_office()
 #get_mojo_data()
 #get_cast_notes()
 #get_imdbIds()

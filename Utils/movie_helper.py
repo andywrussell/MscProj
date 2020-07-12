@@ -19,7 +19,8 @@ import tweet_helper
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
-
+from datetime import datetime
+from datetime import timedelta
 
 def get_movies_df():
     movies_df = database_helper.select_query("movies", {"investigate" : "1"})
@@ -322,4 +323,82 @@ def get_correlation_matrix():
     sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0, 
                 square=True, linewidths=.5, cbar_kws={"shrink": .5}) 
     
+    
+def get_movies_with_run_gaps():
+    movies_df = get_movies_df()
+    
+    gap_movies_df = pd.DataFrame()
+    for index, row in movies_df.iterrows():
+        mojo_box_office_df = database_helper.select_query("weekend_box_office_mojo", {"movieid" : row['movieId']})
+        
+        if (check_mojo_for_gaps(mojo_box_office_df)):
+            gap_movies_df = gap_movies_df.append(row)
+            
+    return gap_movies_df
+        
+def check_mojo_for_gaps(df):
+    df = df.sort_values(by='weeks_on_release', ascending=True)
+    
+    prev_weeks = df.iloc[0]['weeks_on_release']
+    for index, row in df.iterrows():
+        if index > 0:
+            cur_weeks = row['weeks_on_release']
+            if (cur_weeks - prev_weeks) > 1:
+                return True
+            
+            prev_weeks = cur_weeks
+            
+    return False
+
+def get_end_weekend_for_first_run(df):
+    df = df.sort_values(by='weeks_on_release', ascending=True)
+    
+    prev_weeks = df.iloc[0]['weeks_on_release']
+    prev_end = df.iloc[0]['end_date']
+    
+    end_weekend = df.iloc[df['weeks_on_release'].idxmax()].end_date
+    
+    for index, row in df.iterrows():
+        if index > 0:
+            cur_weeks = row['weeks_on_release']
+            cur_end = row['end_date']
+            if (cur_weeks - prev_weeks) > 1:
+                return prev_end
+            
+            prev_weeks = cur_weeks
+            prev_end = cur_end
+            
+    return end_weekend
+
+def get_movie_run_info():
+    movies_df = get_movies_df()
+    
+    dict_lst = []
+    for index, row in movies_df.iterrows():
+        mojo_box_office_df = database_helper.select_query("weekend_box_office_mojo", {"movieid" : row['movieId']})
+        
+        end_weekend = mojo_box_office_df.iloc[mojo_box_office_df['weeks_on_release'].idxmax()].end_date
+        end_weekend_datetime = datetime.combine((end_weekend + timedelta(days=14)), datetime.max.time())
+        
+        total_weekends = mojo_box_office_df.shape[0]
+        total_release_weeks = mojo_box_office_df.iloc[mojo_box_office_df['weeks_on_release'].idxmax()].weeks_on_release
+        
+        
+        #some films have gaps in their running
+        first_run_end = get_end_weekend_for_first_run(mojo_box_office_df)
+        first_run_datetime = datetime.combine((first_run_end + timedelta(days=14)), datetime.max.time())
+        
+        first_end_index = mojo_box_office_df.index[mojo_box_office_df['end_date'] == first_run_end].tolist()[0]
+        first_run_weeks = mojo_box_office_df.iloc[first_end_index]['weeks_on_release']   
+        
+        my_dict = { "movieId" : int(row["movieId"]), 
+                   "end_weekend" : end_weekend, 
+                   "total_weekends" : total_weekends, 
+                   "total_release_weeks" : total_release_weeks, 
+                   "first_run_end" : first_run_end,
+                   "first_run_weeks" : first_run_weeks}
+        
+        dict_lst.append(my_dict)
+    
+    return pd.DataFrame(dict_lst)
 

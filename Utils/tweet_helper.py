@@ -112,4 +112,11 @@ def clean_tweet(msg):
     
     return str(msg).strip()
     
+def get_max_date():
+    sql = """
+            SELECT MAX (created_at)
+            FROM tweets2019;"""
+          
+    max_date = database_helper.get_data(sql)
+    return max_date.iloc[0]['max']
     

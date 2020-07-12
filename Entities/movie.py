@@ -21,6 +21,7 @@ import database_helper
 from person import Actor, Director, Writer
 from trailers import Trailer
 from weekend_box_office import WeekendBoxOffice
+from mojo_box_office import MojoWeekendBoxOffice
 import geopandas as gpd
 from geopandas.tools import sjoin
 import matplotlib.dates as mdates
@@ -65,6 +66,7 @@ class Movie:
         self.get_trailers()
         self.get_synopsis()
         self.get_box_office()
+        self.get_mojo_box_office()
         
         
     def get_cast(self):
@@ -121,6 +123,15 @@ class Movie:
             box_office = WeekendBoxOffice(row)
             self.box_office.append(box_office)   
         return
+    
+    def get_mojo_box_office(self):
+        box_office_df = database_helper.select_query("weekend_box_office_mojo", {"movieid" : int(self.movieId) })
+        self.mojo_box_office = []
+        self.mojo_box_office_df = box_office_df
+        for index, row in box_office_df.iterrows(): 
+            box_office = MojoWeekendBoxOffice(row)
+            self.mojo_box_office.append(box_office)   
+        return        
     
     def toJSON(self):
         return jsonpickle.encode(self, unpicklable=False)

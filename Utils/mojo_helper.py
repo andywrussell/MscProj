@@ -118,6 +118,7 @@ def get_uk_box_office_df(imdbId):
     box_office_df = pd.read_html(str(tables[0]))[0]
     box_office_df["start_date"] = box_office_df.apply(lambda row: get_start_date(row['Date']), axis = 1)
     box_office_df["end_date"] = box_office_df.apply(lambda row: get_start_date(row['Date']), axis = 1)
+
     
     prev_start = box_office_df.iloc[0]["start_date"]
     prev_end = box_office_df.iloc[0]["end_date"]
@@ -141,7 +142,24 @@ def get_uk_box_office_df(imdbId):
             prev_start = row["start_date"]
             prev_end = row["end_date"]
                 
-            
+    box_office_df = box_office_df.rename(columns = {"Date" : "date",
+                                    "Rank" : "rank",
+                                    "Weekend" : "weekend_gross_usd",
+                                    "%± LW" : "percentage_change",
+                                    "Theaters" : "no_of_theatres",
+                                    "Change" : "theatres_change",
+                                    "Avg" : "average_per_theatre_usd",
+                                    "To Date" : "gross_to_date_usd", 
+                                    "Weekend.1" : "weeks_on_release" })
+    
+    box_office_df["weekend_gross_usd"] = box_office_df.apply(lambda row: try_convert_money(row["weekend_gross_usd"]), axis = 1)
+    box_office_df["average_per_theatre_usd"] = box_office_df.apply(lambda row: try_convert_money(row["average_per_theatre_usd"]), axis = 1)
+    box_office_df["gross_to_date_usd"] = box_office_df.apply(lambda row: try_convert_money(row["gross_to_date_usd"]), axis = 1)
+    box_office_df["no_of_theatres"] = box_office_df.apply(lambda row: try_convert_int(row["no_of_theatres"]), axis = 1)
+    box_office_df['percentage_change'] = box_office_df.apply(lambda row: try_convert_float(row['percentage_change']), axis=1)
+    
+    box_office_df = box_office_df.astype({'no_of_theatres': 'int32'})
+    box_office_df = box_office_df.drop(columns='Estimated')
     
     return box_office_df
     
@@ -155,3 +173,32 @@ def get_end_date(date_str):
     month = dates[0].split(' ')[0]
     dates[1] = "{0} {1} 2019".format(month, dates[1])
     return datetime.strptime(dates[1], '%b %d %Y').date() 
+
+def try_convert_float(val):
+    return_val = None
+    try:
+        return_val = float(val.strip('%'))/100
+    except ValueError:
+        return_val = None
+        
+    return return_val
+
+def try_convert_money(val):
+    return_val = None
+    try:
+        return_val = int(re.sub(r'[^0-9.]', '', str(val)))
+    except ValueError:
+        return_val = None
+        
+    return return_val
+
+def try_convert_int(val):
+    return_val = None
+
+    try:
+        return_val = int(float(val))
+    except ValueError:
+        return_val = -1
+
+    
+    return return_val
