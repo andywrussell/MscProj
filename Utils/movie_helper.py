@@ -100,7 +100,7 @@ def count_tweets(movieId, start_date = None, end_date = None):
     if not end_date == None:
         sql += """ AND "created_at" <= {0}""".format(end_date)
           
-    sql += """ GROUP BY "movieid"""""
+    sql += """ GROUP BY "movieid" """
 
         
     tweet_count = database_helper.get_data(sql)
@@ -296,7 +296,17 @@ def get_correlation_matrix():
     movies_df["tweet_count"] = movies_df.apply(lambda row: count_tweets(row.movieId)['count'], axis = 1)
     
     
-    correlation_subset = movies_df[['budget_usd', 'uk_gross_usd', 'domestic_gross_usd', 'worldwide_gross_usd', 'international_gross_usd', 'gross_profit_usd', 'return_percentage', 'uk_percentage', 'tweet_count']]
+    correlation_subset = movies_df[['budget_usd', 
+                                    'uk_gross_usd', 
+                                    'domestic_gross_usd', 
+                                    'worldwide_gross_usd', 
+                                    'international_gross_usd', 
+                                    'gross_profit_usd', 
+                                    'return_percentage', 
+                                    'uk_percentage', 
+                                    'tweet_count',
+                                    'total_release_weeks',
+                                    'first_run_weeks']]
     
     #covert money to float ($mil)
     correlation_subset["budget_usd"] = correlation_subset["budget_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
@@ -401,4 +411,31 @@ def get_movie_run_info():
         dict_lst.append(my_dict)
     
     return pd.DataFrame(dict_lst)
+
+def check_run_dates_tweets():
+    movies_df = get_movies_df()
+    max_tweet_date = tweet_helper.get_max_date().date()
+    
+    
+    problem_films = pd.DataFrame()
+    for index, row in movies_df.iterrows():
+        if row['first_run_end'] >= max_tweet_date:
+            problem_films = problem_films.append(row)
+            
+    return problem_films
+
+def get_run_positive_increase():
+    movies_df = get_movies_df()
+    
+    positive_changes = pd.DataFrame()
+    for index, row in movies_df.iterrows():
+        mojo_box_office_df = database_helper.select_query("weekend_box_office_mojo", {"movieid" : row['movieId']})
+        if (mojo_box_office_df['percentage_change'] > 0).any() :
+            positive_changes = positive_changes.append(row)
+            
+    return positive_changes
+
+
+        
+            
 

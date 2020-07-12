@@ -17,7 +17,7 @@ class MojoWeekendBoxOffice():
         self.no_of_theatres = db_row.no_of_theatres
         self.average_per_theatre_usd = db_row.average_per_theatre_usd
         self.gross_to_date_usd = db_row.gross_to_date_usd
-        self.weeks_on_release = db_row.weekes_on_release
+        self.weeks_on_release = db_row.weeks_on_release
         self.start_date = db_row.start_date
         self.end_date = db_row.end_date
         self.theatres_change = db_row.theatres_change

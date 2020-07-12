@@ -252,6 +252,8 @@ def get_mojo_data():
             
             
 def get_mojo_box_office():
+    movies_df = movie_helper.get_movies_df()
+    
     with tqdm(total=len(movies_df)) as pbar:
         for index, row in movies_df.iterrows(): 
             weekend_df = mojo_helper.get_uk_box_office_df(row['imdbId'])
@@ -278,7 +280,7 @@ def get_mojo_run_info():
             
             pbar.update(1)
  
-get_mojo_run_info()
+#get_mojo_run_info()
 #get_mojo_box_office()
 #get_mojo_data()
 #get_cast_notes()

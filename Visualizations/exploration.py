@@ -462,7 +462,17 @@ def correlatte_movie_stats():
     movies_df["international_gross_usd"] = movies_df["international_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
     movies_df["gross_profit_usd"] = movies_df["gross_profit_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
     
-    columns = ['budget_usd', 'uk_gross_usd', 'domestic_gross_usd', 'worldwide_gross_usd', 'international_gross_usd', 'gross_profit_usd', 'return_percentage', 'uk_percentage', 'tweet_count']
+    columns = ['budget_usd', 
+                'uk_gross_usd', 
+                'domestic_gross_usd', 
+                'worldwide_gross_usd', 
+                'international_gross_usd', 
+                'gross_profit_usd', 
+                'return_percentage', 
+                'uk_percentage', 
+                'tweet_count',
+                'total_release_weeks',
+                'first_run_weeks']
 
     # Basic correlogram
     sns.pairplot(movies_df[columns])

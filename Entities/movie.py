@@ -60,6 +60,11 @@ class Movie:
         self.international_gross_usd = db_row.international_gross_usd
         self.gross_profit_usd = db_row.gross_profit_usd
         self.profit_class = db_row.profit_class
+        self.end_weekend = db_row.end_weekend
+        self.total_weekends = db_row.total_weekends
+        self.total_release_weeks = db_row.total_release_weeks
+        self.first_run_end = db_row.first_run_end
+        self.first_run_weeks = db_row.first_run_weeks
         self.get_cast()
         self.get_directors()
         self.get_writers()
@@ -166,16 +171,53 @@ class Movie:
         plt.cla()
         plt.close()
         
+        
+    def plot_weekend_revenue_mojo(self):
+        self.mojo_box_office_df['weekend_gross_thou'] = self.mojo_box_office_df['weekend_gross_usd'].replace('[\£,]', '', regex=True).astype(float) / 1000
+        ax = sns.lineplot(x="start_date", y="weekend_gross_thou", data=self.mojo_box_office_df)
+        ax.set(xlabel='Weekend Start Date', ylabel='Gross Takings ($thou)')
+        plt.title("{0} Weekend Takings".format(self.title))
+        plt.xticks(rotation=40)
+        plt.show()
+        
+    def plot_weekend_revenue_mojo_vs_tweets(self):
+        self.mojo_box_office_df['weekend_gross_thou'] = self.mojo_box_office_df['weekend_gross_usd'].replace('[\£,]', '', regex=True).astype(float) / 1000
+        self.mojo_box_office_df["weekend_tweet_count"] = self.mojo_box_office_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"], row["end_date"]), axis = 1)
+        
+        
+        ax = self.mojo_box_office_df.plot(x="start_date", y="weekend_gross_thou", legend=False, label="Gross Takings")
+        ax.set(xlabel='Weekend Start Date', ylabel='Gross Takings ($thou)')
+        ax2 = ax.twinx()
+        ax2.set(ylabel = 'Tweet Count')
+        self.mojo_box_office_df.plot(x="start_date", y="weekend_tweet_count", ax=ax2, legend=False, color="r", label="Tweet Count")
+      
+        lines_1, labels_1 = ax.get_legend_handles_labels()
+        lines_2, labels_2 = ax2.get_legend_handles_labels()
+        
+        lines = lines_1 + lines_2
+        labels = labels_1 + labels_2
+      
+        ax.legend(lines, labels, loc=0)  
+
+        plt.title("{0} Weekend Takings".format(self.title))
+       # plt.xticks(rotation=40)
+        plt.setp(ax.get_xticklabels(), rotation=45)
+        plt.show()
+        
     def get_geotweets_by_dates(self, start_date = None, end_date = None):
         
         if start_date == None:
             #try two weeks prior to release
-            release_date = self.ukReleaseDate
-            start_date = datetime.combine((release_date - timedelta(days=14)), datetime.min.time())
-            
+            start_date = self.ukReleaseDate
+            start_date = datetime.combine((start_date - timedelta(days=14)), datetime.min.time())
+        else:
+            start_date = datetime.combine(start_date, datetime.min.time())
+                     
         if end_date == None: 
-            end_weekend = self.box_office_df.iloc[self.box_office_df['weeksOnRelease'].idxmax()].weekendEnd
-            end_date = datetime.combine((end_weekend + timedelta(days=14)), datetime.max.time())
+            end_date = self.first_run_end    
+            end_date = datetime.combine((end_date + timedelta(days=14)), datetime.max.time())
+        else:
+            end_date = datetime.combine(end_date, datetime.min.time())
         
         
         tweets = database_helper.select_geo_tweets(self.movieId)
@@ -260,7 +302,8 @@ class Movie:
         
     def plot_tweets_over_time(self, cinema_run = False):
         releaseDate = self.ukReleaseDate
-        endWeekend = self.box_office_df.iloc[self.box_office_df['weeksOnRelease'].idxmax()].weekendEnd
+        endWeekend = self.first_run_end
+       # endWeekend = self.box_office_df.iloc[self.box_office_df['weeksOnRelease'].idxmax()].weekendEnd
         fig, ax = plt.subplots()
         ax.axvspan(*mdates.datestr2num([str(releaseDate), str(endWeekend)]), color='skyblue', alpha=0.5)
         
@@ -353,11 +396,22 @@ class Movie:
         data = grouped_tweets.pivot(index="region", columns="senti_class", values=plot_col)
         data.plot.bar(stacked=True)      
                 
-    def plot_time_series(self):
-        tweets = database_helper.select_geo_tweets(self.movieId)
-        tweets = tweets.sort_values(by=['created_at'])
+    def plot_time_map(self, movie_run = False):
+        #adapted from https://districtdatalabs.silvrback.com/time-maps-visualizing-discrete-events-across-many-timescales
+        
+        start_date = None
+        end_date = None
+        
+        if movie_run:    
+            start_date = datetime.combine((movie.ukReleaseDate - timedelta(days=14)), datetime.min.time())
+            end_date = datetime.combine((movie.first_run_end - timedelta(days=14)), datetime.min.time())
+
+         
+        tweets = database_helper.select_geo_tweets(self.movieId, start_date, end_date)
+        tweets = tweets.sort_values(by=['created_at']).reset_index()
         times = tweets['created_at']
         times_tot_mins = 24*60 - (60*np.array([t.hour for t in times]) + np.array([t.minute for t in times]))
+        
         seps=np.array([(times[i]-times[i-1]).total_seconds() for i in range(1,len(times))])
         seps[seps==0]=1 # convert zero second separations to 1-second separations
         
@@ -375,9 +429,6 @@ class Movie:
         
         fig=plt.figure()
         ax =fig.add_subplot(111)
-        
-        plt.rc('text',usetex=False)
-        plt.rc('font',family='serif')
          	
         colormap = plt.cm.get_cmap('rainbow')  # see color maps at http://matplotlib.org/users/colormaps.html
         
@@ -387,29 +438,35 @@ class Movie:
         sc= ax.scatter(sep_array[:,0][order],sep_array[:,1][order],c=times_tot_mins[1:-1][order],vmin=0,vmax=24*60,s=25,cmap=colormap,marker='o',edgecolors='none')
         # taken from http://stackoverflow.com/questions/6063876/matplotlib-colorbar-for-scatter
          	
-        color_bar=fig.colorbar(sc,ticks=[0,24*15,24*30,24*45,24*60],orientation='horizontal',shrink=0.5)
-        color_bar.ax.set_xticklabels(['Midnight','18:00','Noon','6:00','Midnight'])
-        color_bar.ax.invert_xaxis()
-        color_bar.ax.tick_params(labelsize=16)
+        color_bar=fig.colorbar(sc,ticks=[0,24*15,24*30,24*45,24*60],orientation='vertical')
+        color_bar.ax.set_yticklabels(['Midnight','6:00','Noon','18:00','Midnight'])
          	
         ax.set_yscale('log') # logarithmic axes
-        pure_ticks = np.array([1e-3,1,10,60*10,2*3600,1*24*3600, 7*24*3600])
         ax.set_xscale('log')
         
-        plt.minorticks_off() # where the tick marks will be placed, in units of seconds.
+        plt.minorticks_off()
+        pure_ticks = np.array([1e-3,1,10,60*10,2*3600,1*24*3600, 7*24*3600]) # where the tick marks will be placed, in units of seconds.
         labels = ['1 msec','1 sec','10 sec','10 min','2 hr','1 day','1 week']  # tick labels
-         	
+        
         max_val = np.max([np.max(sep_array[:,0]), np.max(sep_array[:,1])])
          	
         ticks = np.hstack((pure_ticks, max_val))
         
         min_val = np.min([np.min(sep_array[:,0]), np.min(sep_array[:,1])])
          	
-        plt.xticks(ticks,labels,fontsize=16)
-        plt.yticks(ticks,labels,fontsize=16)
+        
+        title = "{0} Time Map".format(self.title)
+        
+        if not (start_date == None) and (not end_date == None):
+            title += "{0} - {1}".format(start_date, end_date)
+            
+        plt.title(title)
+        plt.xticks(ticks,labels)
+        plt.yticks(ticks,labels)
+        plt.xticks(rotation=40)
          	
-        plt.xlabel('Time Before Tweet',fontsize=18)
-        plt.ylabel('Time After Tweet',fontsize=18)
+        plt.xlabel('Time Before Tweet')
+        plt.ylabel('Time After Tweet')
         
         plt.xlim((min_val, max_val))
         plt.ylim((min_val, max_val))

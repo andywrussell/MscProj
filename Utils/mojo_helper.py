@@ -129,12 +129,12 @@ def get_uk_box_office_df(imdbId):
             curr_start = row["start_date"]
             curr_end = row["end_date"]
         
-            if (prev_start.month == 12 and curr_start.month < 12) or fix_remaining:
+            if (prev_start.month > curr_start.month) or fix_remaining:
                 new_start = row["start_date"].replace(year=2020)
                 box_office_df.loc[index, "start_date"] = new_start
                 fix_remaining = True
                 
-            if (prev_end.month == 12 and curr_end.month < 12) or fix_remaining:
+            if (prev_end.month > curr_end.month) or fix_remaining:
                 new_end = row["end_date"].replace(year=2020)
                 box_office_df.loc[index, "end_date"] = new_end
                 fix_remaining = True
