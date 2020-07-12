@@ -396,19 +396,26 @@ class Movie:
         data.plot.bar(stacked=True)      
                 
         
-    #def plot_time_maps_per_week(self):
-        #for index, row in self.mojo_box_office_df.iterrows():
+    def plot_time_maps_per_week(self):
+        for index, row in self.mojo_box_office_df.iterrows():
+            week_start = row["start_date"]  - timedelta(days=4)
+            week_end = row["end_date"]
             
+            print(week_start)
+            print(week_end)
+            self.plot_time_map(start_date = week_start, end_date = week_end)
+            self.plot_heated_time_map(start_date = week_start, end_date = week_end)
     
     
     def plot_time_map(self, movie_run = False, start_date = None, end_date = None):
         #adapted from https://districtdatalabs.silvrback.com/time-maps-visualizing-discrete-events-across-many-timescales
-        
-
         if movie_run:    
             start_date = datetime.combine((self.ukReleaseDate - timedelta(days=14)), datetime.min.time())
-            end_date = datetime.combine((self.first_run_end - timedelta(days=14)), datetime.min.time())
-
+            end_date = datetime.combine((self.first_run_end + timedelta(days=14)), datetime.max.time())
+            
+        elif not (start_date == False) and not (end_date == False):
+            start_date = datetime.combine(start_date, datetime.min.time())
+            end_date = datetime.combine(end_date, datetime.max.time())
          
         tweets = database_helper.select_geo_tweets(self.movieId, start_date, end_date)
         tweets = tweets.sort_values(by=['created_at']).reset_index()
@@ -479,15 +486,15 @@ class Movie:
         
         plt.show()
         
-    def plot_heated_time_map(self, movie_run = False):
-        #adapted from https://districtdatalabs.silvrback.com/time-maps-visualizing-discrete-events-across-many-timescales        
-                
-        start_date = None
-        end_date = None
-        
+    def plot_heated_time_map(self, movie_run = False, start_date = None, end_date = None):
+        #adapted from https://districtdatalabs.silvrback.com/time-maps-visualizing-discrete-events-across-many-timescales               
         if movie_run:    
             start_date = datetime.combine((self.ukReleaseDate - timedelta(days=14)), datetime.min.time())
-            end_date = datetime.combine((self.first_run_end - timedelta(days=14)), datetime.min.time())
+            end_date = datetime.combine((self.first_run_end + timedelta(days=14)), datetime.max.time())
+            
+        elif not (start_date == False) and not (end_date == False):
+            start_date = datetime.combine(start_date, datetime.min.time())
+            end_date = datetime.combine(end_date, datetime.max.time())
 
          
         tweets = database_helper.select_geo_tweets(self.movieId, start_date, end_date)
