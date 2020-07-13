@@ -279,6 +279,25 @@ def get_mojo_run_info():
             database_helper.update_data("movies", update_params = updates, select_params = selects)
             
             pbar.update(1)
+            
+def get_mojo_rank_info():
+    rank_info_df = movie_helper.get_highest_mojo_rank()
+    
+    with tqdm(total=len(rank_info_df)) as pbar:
+        for index, row in rank_info_df.iterrows():   
+            
+            updates =   {"best_rank" : int(row['best_rank']), 
+                          'weekends_at_best_rank' : int(row['weekends_at_best_rank']), 
+                          'weekends_in_top_3' : int(row['weekends_in_top_3']), 
+                          'weekends_in_top_5' : int(row['weekends_in_top_5']), 
+                          'weekends_in_top_10' : int(row['weekends_in_top_10']), 
+                          'weekends_in_top_15' : int(row['weekends_in_top_15'])}
+            selects = {"movieId" : int(row["movieId"])}
+            database_helper.update_data("movies", update_params = updates, select_params = selects)
+            
+            pbar.update(1)
+            
+            
  
 #get_mojo_run_info()
 #get_mojo_box_office()

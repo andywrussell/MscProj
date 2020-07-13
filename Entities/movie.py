@@ -33,6 +33,7 @@ from colour import Color
 from datetime import datetime
 from datetime import timedelta
 import scipy.ndimage as ndi
+import scipy.stats as stats
 
 class Movie:
     def __init__(self, db_row):
@@ -202,6 +203,132 @@ class Movie:
        # plt.xticks(rotation=40)
         plt.setp(ax.get_xticklabels(), rotation=45)
         plt.show()
+        
+        
+    def plot_weekend_rank_mojo_vs_tweets(self, first_run = False):
+        mojo_df = self.mojo_box_office_df
+        
+        if first_run:
+            mojo_df = mojo_df[mojo_df['end_date'] <= self.first_run_end]
+        
+        mojo_df["weekend_tweet_count"] = mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"], row["end_date"]), axis = 1)
+        
+        
+        ax = mojo_df.plot(x="start_date", y="rank", legend=False, label="Weekend Ranking")
+        ax.set(xlabel='Weekend Start Date', ylabel='Weekend Ranking')
+     #   ax.invert_yaxis()
+        ax.set_ylim(ax.get_ylim()[::-1])
+        ax2 = ax.twinx()
+        ax2.set(ylabel = 'Tweet Count')
+        mojo_df.plot(x="start_date", y="weekend_tweet_count", ax=ax2, legend=False, color="r", label="Tweet Count")
+      
+        lines_1, labels_1 = ax.get_legend_handles_labels()
+        lines_2, labels_2 = ax2.get_legend_handles_labels()
+        
+        lines = lines_1 + lines_2
+        labels = labels_1 + labels_2
+      
+        ax.legend(lines, labels, loc=0)  
+
+        plt.title("{0} Weekend Ranking".format(self.title))
+        plt.setp(ax.get_xticklabels(), rotation=45)
+        plt.show()
+        
+    def plot_weekend_takings_mojo_against_tweets(self, first_run):
+        mojo_df = self.mojo_box_office_df
+        
+        if first_run:
+            mojo_df = mojo_df[mojo_df['end_date'] <= self.first_run_end]
+        
+        mojo_df['weekend_gross_thou'] = mojo_df['weekend_gross_usd'].replace('[\£,]', '', regex=True).astype(float) / 1000
+        mojo_df["weekend_tweet_count"] = mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"], row["end_date"]), axis = 1)
+        
+        ax = sns.regplot(x="weekend_gross_thou", y="weekend_tweet_count", data=mojo_df)
+
+        ax.set(xlabel="Gross Takings ($thou)", ylabel="Tweet Count")
+        plt.title("{0} Weekend Takings vs Tweet Count".format(self.title))
+        plt.show()
+        
+    def plot_weekend_tweets_against_rank(self, first_run):
+        mojo_df = self.mojo_box_office_df
+        
+        if first_run:
+            mojo_df = mojo_df[mojo_df['end_date'] <= self.first_run_end]
+        
+        mojo_df["weekend_tweet_count"] = mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"], row["end_date"]), axis = 1)
+        
+        ax = sns.regplot(x="rank", y="weekend_tweet_count", data=mojo_df)
+
+        ax.set(xlabel="Weekend Rank", ylabel="Tweet Count")
+        plt.title("{0} Weekend Rank vs Tweet Count".format(self.title))
+        plt.show()
+        
+    def corellate_weekend_takings_against_tweets(self, first_run):
+        mojo_df = self.mojo_box_office_df
+        
+        if first_run:
+            mojo_df = mojo_df[mojo_df['end_date'] <= self.first_run_end]
+        
+        mojo_df['weekend_gross_thou'] = mojo_df['weekend_gross_usd'].replace('[\£,]', '', regex=True).astype(float) / 1000
+        mojo_df["weekend_tweet_count"] = mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"], row["end_date"]), axis = 1)
+              
+        pearson = stats.pearsonr(mojo_df['weekend_gross_thou'] , mojo_df["weekend_tweet_count"])
+        pearson_res = {"movieId" : self.movieId, 
+                      "method" : "pearson", 
+                      "coef" : pearson[0], 
+                      "p_val" : pearson[1]}
+
+        spearman = stats.spearmanr(mojo_df['weekend_gross_thou'] , mojo_df["weekend_tweet_count"])
+        spearman_res = {"movieId" : self.movieId,  
+                      "method" : "spearman", 
+                      "coef" : spearman[0], 
+                      "p_val" : spearman[1]}
+        
+        kendall = stats.kendalltau(mojo_df['weekend_gross_thou'] , mojo_df["weekend_tweet_count"])
+        kendall_res = {"movieId" : self.movieId, 
+                      "method" : "kendalltau", 
+                      "coef" : kendall[0], 
+                      "p_val" : kendall[1]}
+        
+        results = []
+        results.append(pearson_res)                
+        results.append(spearman_res)
+        results.append(kendall_res)
+        
+        return pd.DataFrame(results)
+    
+    def corellate_weekend_takings_against_rank(self, first_run):
+        mojo_df = self.mojo_box_office_df
+        
+        if first_run:
+            mojo_df = mojo_df[mojo_df['end_date'] <= self.first_run_end]
+        
+        mojo_df["weekend_tweet_count"] = mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"], row["end_date"]), axis = 1)
+              
+        pearson = stats.pearsonr(mojo_df['rank'] , mojo_df["weekend_tweet_count"])
+        pearson_res = {"movieId" : self.movieId, 
+                      "method" : "pearson", 
+                      "coef" : pearson[0], 
+                      "p_val" : pearson[1]}
+
+        spearman = stats.spearmanr(mojo_df['rank'] , mojo_df["weekend_tweet_count"])
+        spearman_res = {"movieId" : self.movieId,  
+                      "method" : "spearman", 
+                      "coef" : spearman[0], 
+                      "p_val" : spearman[1]}
+        
+        kendall = stats.kendalltau(mojo_df['rank'] , mojo_df["weekend_tweet_count"])
+        kendall_res = {"movieId" : self.movieId, 
+                      "method" : "kendalltau", 
+                      "coef" : kendall[0], 
+                      "p_val" : kendall[1]}
+        
+        results = []
+        results.append(pearson_res)                
+        results.append(spearman_res)
+        results.append(kendall_res)
+        
+        return pd.DataFrame(results)
         
     def get_geotweets_by_dates(self, start_date = None, end_date = None):
         

@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
 from datetime import timedelta
+import scipy
 
 def get_movies_df():
     movies_df = database_helper.select_query("movies", {"investigate" : "1"})
@@ -95,10 +96,10 @@ def count_tweets(movieId, start_date = None, end_date = None):
           WHERE "movieid" = {0}""".format(movieId)   
           
     if not start_date == None:
-        sql += """ AND "created_at" >= {0}""".format(start_date)
+        sql += """ AND "created_at" >= '{0}'""".format(start_date)
         
     if not end_date == None:
-        sql += """ AND "created_at" <= {0}""".format(end_date)
+        sql += """ AND "created_at" <= '{0}'""".format(end_date)
           
     sql += """ GROUP BY "movieid" """
 
@@ -435,7 +436,217 @@ def get_run_positive_increase():
             
     return positive_changes
 
-
+def get_highest_mojo_rank():
+    movies_df = get_movies_df()
+    
+    rank_list = []
+    for index, row in movies_df.iterrows():
+        mojo_box_office_df = database_helper.select_query("weekend_box_office_mojo", {"movieid" : row['movieId']})
         
-            
+        best_rank = mojo_box_office_df["rank"].min()
+        
+        best_rows = mojo_box_office_df[mojo_box_office_df['rank'] == best_rank]
+        weekends_at_rank = best_rows.shape[0]
+        
+        top_3_rows = mojo_box_office_df[mojo_box_office_df['rank'] <= 3]
+        top_3_weekends = top_3_rows.shape[0]
+        
+        top_5_rows = mojo_box_office_df[mojo_box_office_df['rank'] <= 5]
+        top_5_weekends = top_5_rows.shape[0]
+        
+        top_10_rows = mojo_box_office_df[mojo_box_office_df['rank'] <= 10]
+        top_10_weekends = top_10_rows.shape[0]
+        
+        top_15_rows = mojo_box_office_df[mojo_box_office_df['rank'] <= 15]
+        top_15_weekends = top_15_rows.shape[0]
+        
+        rank_list.append({"movieId" : row["movieId"], 
+                          "best_rank" : best_rank, 
+                          'weekends_at_best_rank' : weekends_at_rank,
+                          'weekends_in_top_3' : top_3_weekends,
+                          'weekends_in_top_5' : top_5_weekends,
+                          'weekends_in_top_10' : top_10_weekends,
+                          'weekends_in_top_15' : top_15_weekends})
+        
+        
+        
+    return pd.DataFrame(rank_list)
 
+
+def get_movies_df_with_opening_weekend():
+    movies_df = get_movies_df()
+    movies_df["opening_weekend_takings"] = movies_df.apply(lambda row: database_helper.select_query("weekend_box_office_mojo", {"movieid" : row['movieId']}).iloc[0]['weekend_gross_usd'], axis=1)
+    
+    
+    
+    tweets_prior_to_opening = [] 
+    opening_weekend_tweets = []
+    
+    for index, row in movies_df.iterrows():
+        mojo_df = database_helper.select_query("weekend_box_office_mojo", {"movieid" : row['movieId']})
+        
+        opening_start = mojo_df.iloc[0]['start_date']
+        opening_end = mojo_df.iloc[0]['end_date']
+        
+        prev_week = datetime.combine((opening_start  - timedelta(days=7)), datetime.min.time())
+        prev_end = datetime.combine((opening_start - timedelta(days=1)), datetime.max.time())
+
+
+        run_up_count = count_tweets(row['movieId'], prev_week, prev_end)
+        if run_up_count.empty:
+            run_up_count = 0
+        else: 
+            run_up_count = run_up_count.iloc[0]['count']
+        
+        opening_start = datetime.combine(opening_start, datetime.min.time())
+        opening_end = datetime.combine(opening_end, datetime.max.time())
+        
+        opening_count = count_tweets(row['movieId'], opening_start, opening_end)
+        if opening_count.empty:
+            opening_count = 0
+        else: 
+            opening_count = opening_count.iloc[0]['count'] 
+
+        tweets_prior_to_opening.append(run_up_count)
+        opening_weekend_tweets.append(opening_count)
+        
+    movies_df['run_up_tweets'] = tweets_prior_to_opening
+    movies_df['opening_tweets'] = opening_weekend_tweets
+    
+    return movies_df
+
+
+def get_df_and_col_list_for_correlation():
+    movies_df = get_movies_df_with_opening_weekend()
+    movies_df["tweet_count"] = movies_df.apply(lambda row: count_tweets(row.movieId)['count'], axis = 1)
+    movies_df["budget_usd"] = movies_df["budget_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["uk_gross_usd"] = movies_df["domestic_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["domestic_gross_usd"] = movies_df["domestic_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["worldwide_gross_usd"] = movies_df["worldwide_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["international_gross_usd"] = movies_df["international_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["gross_profit_usd"] = movies_df["gross_profit_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["opening_weekend_takings"] = movies_df["opening_weekend_takings"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    
+    col_list = ['budget_usd', 
+                'uk_gross_usd', 
+                'domestic_gross_usd', 
+                'worldwide_gross_usd', 
+                'international_gross_usd', 
+                'gross_profit_usd', 
+                'return_percentage', 
+                'uk_percentage', 
+                'tweet_count',
+                'total_release_weeks',
+                'first_run_weeks',
+                'best_rank',
+                'weekends_at_best_rank',
+                'weekends_in_top_3',
+                'weekends_in_top_5',
+                'weekends_in_top_10',
+                'weekends_in_top_15',
+                'opening_weekend_takings',
+                'run_up_tweets',
+                'opening_tweets']  
+
+    return movies_df, col_list    
+
+def get_correlation_measures_by_class(class_col):
+    movies_df, col_list = get_df_and_col_list_for_correlation()
+
+    class_list = movies_df[class_col].unique()
+    
+    results_df = pd.DataFrame()
+    for class_val in class_list:
+        class_df = movies_df[movies_df[class_col] == class_val]
+        
+        tweet_count_df = get_correlation_by_col(class_df, "tweet_count", col_list)
+        run_up_tweets_df = get_correlation_by_col(class_df, "run_up_tweets", col_list)
+        opening_tweets_df = get_correlation_by_col(class_df, "opening_tweets", col_list)
+        
+        tweet_count_df["class_val"] = class_val
+        run_up_tweets_df["class_val"] = class_val
+        opening_tweets_df["class_val"] = class_val
+        
+        class_results_df = tweet_count_df.append(run_up_tweets_df, ignore_index=True)
+        class_results_df = class_results_df.append(opening_tweets_df, ignore_index=True)
+        
+        results_df = results_df.append(tweet_count_df, ignore_index=True)
+        results_df = results_df.append(run_up_tweets_df, ignore_index=True)
+        results_df = results_df.append(opening_tweets_df, ignore_index=True)
+        
+    return results_df
+    
+
+def get_correlation_measures():
+    movies_df = get_movies_df_with_opening_weekend()
+    movies_df["tweet_count"] = movies_df.apply(lambda row: count_tweets(row.movieId)['count'], axis = 1)
+    movies_df["budget_usd"] = movies_df["budget_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["uk_gross_usd"] = movies_df["domestic_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["domestic_gross_usd"] = movies_df["domestic_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["worldwide_gross_usd"] = movies_df["worldwide_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["international_gross_usd"] = movies_df["international_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["gross_profit_usd"] = movies_df["gross_profit_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["opening_weekend_takings"] = movies_df["opening_weekend_takings"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    
+    col_list = ['budget_usd', 
+                'uk_gross_usd', 
+                'domestic_gross_usd', 
+                'worldwide_gross_usd', 
+                'international_gross_usd', 
+                'gross_profit_usd', 
+                'return_percentage', 
+                'uk_percentage', 
+                'tweet_count',
+                'total_release_weeks',
+                'first_run_weeks',
+                'best_rank',
+                'weekends_at_best_rank',
+                'weekends_in_top_3',
+                'weekends_in_top_5',
+                'weekends_in_top_10',
+                'weekends_in_top_15',
+                'opening_weekend_takings',
+                'run_up_tweets',
+                'opening_tweets']
+    
+    #compare tweet_count for correlation  
+    tweet_count_df = get_correlation_by_col(movies_df, "tweet_count", col_list)
+    run_up_tweets_df = get_correlation_by_col(movies_df, "run_up_tweets", col_list)
+    opening_tweets_df = get_correlation_by_col(movies_df, "opening_tweets", col_list)
+                
+    results_df = tweet_count_df.append(run_up_tweets_df, ignore_index=True)
+    results_df = results_df.append(opening_tweets_df, ignore_index=True)
+    
+    return results_df
+
+def get_correlation_by_col(df, cor_col, col_list):
+    results = []
+    for col in col_list:
+        if not col == cor_col:
+                pearson = scipy.stats.pearsonr(df[cor_col], df[col])
+                pearson_res = {"col_1" : cor_col, 
+                              "col_2" : col, 
+                              "method" : "pearson", 
+                              "coef" : pearson[0], 
+                              "p_val" : pearson[1]}
+    
+                spearman = scipy.stats.spearmanr(df[cor_col], df[col])
+                spearman_res = {"col_1" : cor_col, 
+                              "col_2" : col, 
+                              "method" : "spearman", 
+                              "coef" : spearman[0], 
+                              "p_val" : spearman[1]}
+                
+                kendall = scipy.stats.kendalltau(df[cor_col], df[col])
+                kendall_res = {"col_1" : cor_col, 
+                              "col_2" : col, 
+                              "method" : "kendalltau", 
+                              "coef" : kendall[0], 
+                              "p_val" : kendall[1]}
+
+                results.append(pearson_res)                
+                results.append(spearman_res)
+                results.append(kendall_res)
+                
+    return pd.DataFrame(results)
+    

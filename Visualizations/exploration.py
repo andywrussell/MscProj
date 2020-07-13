@@ -452,7 +452,8 @@ def plot_genre_movie_counts():
                     
 def correlatte_movie_stats():
     #https://towardsdatascience.com/better-heatmaps-and-correlation-matrix-plots-in-python-41445d0f2bec
-    movies_df = movie_helper.get_movies_df()
+    #movies_df = movie_helper.get_movies_df()
+    movies_df = movie_helper.get_movies_df_with_opening_weekend()
     
     movies_df["tweet_count"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId)['count'], axis = 1)
     movies_df["budget_usd"] = movies_df["budget_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
@@ -461,6 +462,7 @@ def correlatte_movie_stats():
     movies_df["worldwide_gross_usd"] = movies_df["worldwide_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
     movies_df["international_gross_usd"] = movies_df["international_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
     movies_df["gross_profit_usd"] = movies_df["gross_profit_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["opening_weekend_takings"] = movies_df["opening_weekend_takings"].replace('[\£,]', '', regex=True).astype(float) / 1000000
     
     columns = ['budget_usd', 
                 'uk_gross_usd', 
@@ -472,7 +474,16 @@ def correlatte_movie_stats():
                 'uk_percentage', 
                 'tweet_count',
                 'total_release_weeks',
-                'first_run_weeks']
+                'first_run_weeks',
+                'best_rank',
+                'weekends_at_best_rank',
+                'weekends_in_top_3',
+                'weekends_in_top_5',
+                'weekends_in_top_10',
+                'weekends_in_top_15',
+                'opening_weekend_takings',
+                'run_up_tweets',
+                'opening_tweets']
 
     # Basic correlogram
     sns.pairplot(movies_df[columns])
@@ -482,7 +493,7 @@ def correlatte_movie_stats():
     sns.heatmap(correlation_mat, annot = True)
     plt.show()
 
-    
+
 
     
 
