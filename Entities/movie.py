@@ -467,7 +467,15 @@ class Movie:
         
         return date_freq.iloc[indexes]
     
-    def do_tweet_peaks_match_trailer(self):
+    def tweet_peaks_analysis(self):
+        peak_dates_count = self.get_tweet_peak_dates()
+        self.trailers_df["date"] = self.trailers_df.apply(lambda row: row["publishDate"].date(), axis=1).astype('datetime64[ns]')
+        
+        results_df = pd.merge(peak_dates_count, self.trailers_df[['date','youtubeId']], on='date', how='left')
+        results_df["movie_release"] = results_df.apply(lambda row: row["date"] == self.ukReleaseDate, axis = 1)
+        results_df = results_df.sort_values(by='count', ascending=False)
+
+        return results_df
         
         
     def plot_tweet_sentiment_over_time(self, avg = False):
