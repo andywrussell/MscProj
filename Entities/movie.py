@@ -455,6 +455,21 @@ class Movie:
         plt.xticks(rotation=40)
         plt.show()
         
+    def get_tweet_peak_dates(self):
+        tweets = database_helper.select_geo_tweets(self.movieId)
+     #   tweets =  database_helper.select_geo_tweets(self.movieId, self.critical_start, self.critical_end) if critical_period else tweets
+
+        tweets['date'] = tweets['created_at'].dt.date
+        date_freq = tweets.groupby('date').size().reset_index(name='count') 
+        date_freq.sort_values('date')
+        date_freq['date'] = pd.to_datetime(date_freq['date'], errors='coerce')
+        indexes, _ = scipy.signal.find_peaks(date_freq['count'], height=7, distance=2.1)    
+        
+        return date_freq.iloc[indexes]
+    
+    def do_tweet_peaks_match_trailer(self):
+        
+        
     def plot_tweet_sentiment_over_time(self, avg = False):
         analyser = SentimentIntensityAnalyzer()
         tweets =  database_helper.select_geo_tweets(self.movieId)

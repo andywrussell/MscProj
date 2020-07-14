@@ -13,10 +13,11 @@ import re
 sys.path.insert(1, '/home/andy/Documents/MscProject/MscProj/Utils')
 
 import database_helper
-from youtube_helper import YouTubeHelper
+#from youtube_helper import YouTubeHelper
+import youtube_helper
 
 
-yt = YouTubeHelper().yt
+yt = youtube_helper.YouTubeHelper().yt
 movies_df = database_helper.select_query("movies")
 
 def get_youtube_trailers():
@@ -87,6 +88,18 @@ def get_trailer_metadata():
             database_helper.update_data("trailers", update_params = update_params, select_params = select_params)
             pbar.update(1)
     
+def get_trailer_release_dates():
+    trailers_df = database_helper.select_query("trailers")
+    with tqdm(total=len(trailers_df)) as pbar:
+        for index, row in trailers_df.iterrows():  
+            trailer_date = youtube_helper.get_trailer_release(row['youtubeId'], yt)
+            
+            update_params = { 'publishDate' : trailer_date }
+            select_params = {"youtubeId" : row["youtubeId"]}
+            
+            database_helper.update_data("trailers", update_params = update_params, select_params = select_params)
+            pbar.update(1)
+
 def get_hashtags_from_trailers():
    trailers_df = database_helper.select_query("trailers")
    with tqdm(total=len(trailers_df)) as pbar:
@@ -100,7 +113,7 @@ def get_hashtags_from_trailers():
 #get_trailer_metadata()
 #get_youtube_trailers()
 #load_trailers_from_csv()
-get_hashtags_from_trailers()
+#get_hashtags_from_trailers()
 #get_trailer_metadata()
 
             
