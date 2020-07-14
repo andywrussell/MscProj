@@ -519,6 +519,7 @@ def get_movies_df_with_opening_weekend():
 def get_df_and_col_list_for_correlation():
     movies_df = get_movies_df_with_opening_weekend()
     movies_df["tweet_count"] = movies_df.apply(lambda row: count_tweets(row.movieId)['count'], axis = 1)
+    movies_df["critical_period_tweet_count"] = movies_df.apply(lambda row: count_tweets(row["movieId"], row["critical_start"], row["critical_end"])['count'], axis = 1)
     movies_df["budget_usd"] = movies_df["budget_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
     movies_df["uk_gross_usd"] = movies_df["domestic_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
     movies_df["domestic_gross_usd"] = movies_df["domestic_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
@@ -536,6 +537,7 @@ def get_df_and_col_list_for_correlation():
                 'return_percentage', 
                 'uk_percentage', 
                 'tweet_count',
+                'critical_period_tweet_count',
                 'total_release_weeks',
                 'first_run_weeks',
                 'best_rank',
@@ -560,17 +562,17 @@ def get_correlation_measures_by_class(class_col):
         class_df = movies_df[movies_df[class_col] == class_val]
         
         tweet_count_df = get_correlation_by_col(class_df, "tweet_count", col_list)
+        critical_tweets_df = get_correlation_by_col(class_df, "critical_period_tweet_count", col_list)
         run_up_tweets_df = get_correlation_by_col(class_df, "run_up_tweets", col_list)
         opening_tweets_df = get_correlation_by_col(class_df, "opening_tweets", col_list)
         
         tweet_count_df["class_val"] = class_val
+        critical_tweets_df["class_val"] = class_val        
         run_up_tweets_df["class_val"] = class_val
         opening_tweets_df["class_val"] = class_val
         
-        class_results_df = tweet_count_df.append(run_up_tweets_df, ignore_index=True)
-        class_results_df = class_results_df.append(opening_tweets_df, ignore_index=True)
-        
         results_df = results_df.append(tweet_count_df, ignore_index=True)
+        results_df = results_df.append(critical_tweets_df, ignore_index=True)
         results_df = results_df.append(run_up_tweets_df, ignore_index=True)
         results_df = results_df.append(opening_tweets_df, ignore_index=True)
         
@@ -578,43 +580,16 @@ def get_correlation_measures_by_class(class_col):
     
 
 def get_correlation_measures():
-    movies_df = get_movies_df_with_opening_weekend()
-    movies_df["tweet_count"] = movies_df.apply(lambda row: count_tweets(row.movieId)['count'], axis = 1)
-    movies_df["budget_usd"] = movies_df["budget_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
-    movies_df["uk_gross_usd"] = movies_df["domestic_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
-    movies_df["domestic_gross_usd"] = movies_df["domestic_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
-    movies_df["worldwide_gross_usd"] = movies_df["worldwide_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
-    movies_df["international_gross_usd"] = movies_df["international_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
-    movies_df["gross_profit_usd"] = movies_df["gross_profit_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
-    movies_df["opening_weekend_takings"] = movies_df["opening_weekend_takings"].replace('[\£,]', '', regex=True).astype(float) / 1000000
-    
-    col_list = ['budget_usd', 
-                'uk_gross_usd', 
-                'domestic_gross_usd', 
-                'worldwide_gross_usd', 
-                'international_gross_usd', 
-                'gross_profit_usd', 
-                'return_percentage', 
-                'uk_percentage', 
-                'tweet_count',
-                'total_release_weeks',
-                'first_run_weeks',
-                'best_rank',
-                'weekends_at_best_rank',
-                'weekends_in_top_3',
-                'weekends_in_top_5',
-                'weekends_in_top_10',
-                'weekends_in_top_15',
-                'opening_weekend_takings',
-                'run_up_tweets',
-                'opening_tweets']
+    movies_df, col_list = get_df_and_col_list_for_correlation()
     
     #compare tweet_count for correlation  
     tweet_count_df = get_correlation_by_col(movies_df, "tweet_count", col_list)
+    critical_tweets_df = get_correlation_by_col(movies_df, "critical_period_tweet_count", col_list)
     run_up_tweets_df = get_correlation_by_col(movies_df, "run_up_tweets", col_list)
     opening_tweets_df = get_correlation_by_col(movies_df, "opening_tweets", col_list)
                 
-    results_df = tweet_count_df.append(run_up_tweets_df, ignore_index=True)
+    results_df = tweet_count_df.append(critical_tweets_df, ignore_index=True)
+    results_df = results_df.append(run_up_tweets_df, ignore_index=True)
     results_df = results_df.append(opening_tweets_df, ignore_index=True)
     
     return results_df
@@ -649,4 +624,23 @@ def get_correlation_by_col(df, cor_col, col_list):
                 results.append(kendall_res)
                 
     return pd.DataFrame(results)
+
+def check_release_dates():
+    movies_df = get_movies_df()
+    movies_df["release_day"] = movies_df.apply(lambda row: row["ukReleaseDate"].weekday(), axis = 1)
+    
+    
+    #get movies not released on a friday
+    not_friday = movies_df.loc[lambda row: row["release_day"] != 4]
+    
+    return not_friday
+
+def get_critical_period():
+    movies_df = get_movies_df()
+    
+    movies_df["critical_start"] = movies_df.apply(lambda row: datetime.combine((row["ukReleaseDate"] - timedelta(days=7)), datetime.min.time()), axis = 1)
+    movies_df["critical_end"] = movies_df.apply(lambda row: datetime.combine((row["ukReleaseDate"] + timedelta(days=14)), datetime.max.time()), axis = 1)
+    
+    
+    return movies_df
     

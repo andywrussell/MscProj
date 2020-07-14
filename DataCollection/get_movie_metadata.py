@@ -296,8 +296,22 @@ def get_mojo_rank_info():
             database_helper.update_data("movies", update_params = updates, select_params = selects)
             
             pbar.update(1)
+    
+def get_critical_period():
+    movies_df = movie_helper.get_critical_period()
+    
+    with tqdm(total=len(movies_df)) as pbar:
+        for index, row in movies_df.iterrows(): 
             
+            print(row["critical_start"])
+            print(row["critical_end"])
             
+            updates =   {"critical_start" : row['critical_start'], 
+                          'critical_end' : row['critical_end']}
+            selects = {"movieId" : int(row["movieId"])}
+            database_helper.update_data("movies", update_params = updates, select_params = selects)
+            
+            pbar.update(1)
  
 #get_mojo_run_info()
 #get_mojo_box_office()

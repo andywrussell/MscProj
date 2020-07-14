@@ -65,6 +65,8 @@ class Movie:
         self.total_release_weeks = db_row.total_release_weeks
         self.first_run_end = db_row.first_run_end
         self.first_run_weeks = db_row.first_run_weeks
+        self.critical_start = db_row.critical_start
+        self.critical_end = db_row.critical_end
         self.get_cast()
         self.get_directors()
         self.get_writers()
@@ -426,14 +428,16 @@ class Movie:
         plt.cla()
         plt.close()
         
-    def plot_tweets_over_time(self, cinema_run = False):
+    def plot_tweets_over_time(self, cinema_run = False, critical_period = False):
         releaseDate = self.ukReleaseDate
         endWeekend = self.first_run_end
        # endWeekend = self.box_office_df.iloc[self.box_office_df['weeksOnRelease'].idxmax()].weekendEnd
         fig, ax = plt.subplots()
-        ax.axvspan(*mdates.datestr2num([str(releaseDate), str(endWeekend)]), color='skyblue', alpha=0.5)
+        if cinema_run:
+            ax.axvspan(*mdates.datestr2num([str(releaseDate), str(endWeekend)]), color='skyblue', alpha=0.5)
         
         tweets = self.get_geotweets_by_dates() if cinema_run else database_helper.select_geo_tweets(self.movieId)
+        tweets =  database_helper.select_geo_tweets(self.movieId, self.critical_start, self.critical_end) if critical_period else tweets
 
         tweets['date'] = tweets['created_at'].dt.date
         date_freq = tweets.groupby('date').size().reset_index(name='count') 
@@ -534,6 +538,12 @@ class Movie:
             self.plot_heated_time_map(start_date = week_start, end_date = week_end)
     
     
+    def plot_time_map_critical(self, heated = False):
+        if heated:
+            self.plot_heated_time_map(start_date = self.critical_start, end_date = self.critical_end)
+        else:            
+            self.plot_time_map(start_date = self.critical_start, end_date = self.critical_end)
+    
     def plot_time_map(self, movie_run = False, start_date = None, end_date = None):
         #adapted from https://districtdatalabs.silvrback.com/time-maps-visualizing-discrete-events-across-many-timescales
         if movie_run:    
@@ -619,7 +629,7 @@ class Movie:
             start_date = datetime.combine((self.ukReleaseDate - timedelta(days=14)), datetime.min.time())
             end_date = datetime.combine((self.first_run_end + timedelta(days=14)), datetime.max.time())
             
-        elif not (start_date == False) and not (end_date == False):
+        elif not (start_date == None) and not (end_date == None):
             start_date = datetime.combine(start_date, datetime.min.time())
             end_date = datetime.combine(end_date, datetime.max.time())
 
