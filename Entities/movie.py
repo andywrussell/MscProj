@@ -265,37 +265,52 @@ class Movie:
         plt.title("{0} Weekend Rank vs Tweet Count".format(self.title))
         plt.show()
         
-    def corellate_weekend_takings_against_tweets(self, first_run):
+    def corellate_weekend_takings_against_tweets(self, first_run = False, critical_period = False):
         mojo_df = self.mojo_box_office_df
         
-        if first_run:
-            mojo_df = mojo_df[mojo_df['end_date'] <= self.first_run_end]
-        
-        mojo_df['weekend_gross_thou'] = mojo_df['weekend_gross_usd'].replace('[\£,]', '', regex=True).astype(float) / 1000
-        mojo_df["weekend_tweet_count"] = mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"], row["end_date"]), axis = 1)
-              
-        pearson = stats.pearsonr(mojo_df['weekend_gross_thou'] , mojo_df["weekend_tweet_count"])
-        pearson_res = {"movieId" : self.movieId, 
-                      "method" : "pearson", 
-                      "coef" : pearson[0], 
-                      "p_val" : pearson[1]}
-
-        spearman = stats.spearmanr(mojo_df['weekend_gross_thou'] , mojo_df["weekend_tweet_count"])
-        spearman_res = {"movieId" : self.movieId,  
-                      "method" : "spearman", 
-                      "coef" : spearman[0], 
-                      "p_val" : spearman[1]}
-        
-        kendall = stats.kendalltau(mojo_df['weekend_gross_thou'] , mojo_df["weekend_tweet_count"])
-        kendall_res = {"movieId" : self.movieId, 
-                      "method" : "kendalltau", 
-                      "coef" : kendall[0], 
-                      "p_val" : kendall[1]}
-        
         results = []
-        results.append(pearson_res)                
-        results.append(spearman_res)
-        results.append(kendall_res)
+        if (mojo_df.shape[0] > 1):
+            if first_run:
+                mojo_df = mojo_df[mojo_df['end_date'] <= self.first_run_end]
+                
+            if critical_period:
+                start = datetime.fromtimestamp(self.critical_start.timestamp())
+                end = datetime.fromtimestamp(self.critical_end.timestamp())
+                
+                mojo_df = mojo_df[(mojo_df['start_date'] >= self.critical_start) & (mojo_df['end_date'] <= self.critical_end)]
+            
+            
+            mojo_df['weekend_gross_thou'] = mojo_df['weekend_gross_usd'].replace('[\£,]', '', regex=True).astype(float) / 1000
+            mojo_df["weekend_tweet_count"] = mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"], row["end_date"]), axis = 1)
+                  
+            pearson = stats.pearsonr(mojo_df['weekend_gross_thou'] , mojo_df["weekend_tweet_count"])
+            pearson_res = {"movieId" : self.movieId, 
+                          "method" : "pearson", 
+                          "coef" : pearson[0], 
+                          "p_val" : pearson[1]}
+    
+            spearman = stats.spearmanr(mojo_df['weekend_gross_thou'] , mojo_df["weekend_tweet_count"])
+            spearman_res = {"movieId" : self.movieId,  
+                          "method" : "spearman", 
+                          "coef" : spearman[0], 
+                          "p_val" : spearman[1]}
+            
+            kendall = stats.kendalltau(mojo_df['weekend_gross_thou'] , mojo_df["weekend_tweet_count"])
+            kendall_res = {"movieId" : self.movieId, 
+                          "method" : "kendalltau", 
+                          "coef" : kendall[0], 
+                          "p_val" : kendall[1]}
+        
+        
+
+            results.append(pearson_res)                
+            results.append(spearman_res)
+            results.append(kendall_res)
+        else:
+            results.append({"movieId" : self.movieId,
+                            "method" : "NA",
+                           "coef" : 0,
+                           "p_val" : 0})
         
         return pd.DataFrame(results)
     

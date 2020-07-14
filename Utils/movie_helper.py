@@ -626,6 +626,18 @@ def get_correlation_by_col(df, cor_col, col_list):
                 
     return pd.DataFrame(results)
 
+def get_weekend_tweets_takings_correltation():
+    movies = get_movies()
+    
+    results_df = pd.DataFrame()
+    
+    for movie in movies:
+        correl_df = movie.corellate_weekend_takings_against_tweets()
+        results_df = results_df.append(correl_df)
+        
+    return results_df
+        
+
 def check_release_dates():
     movies_df = get_movies_df()
     movies_df["release_day"] = movies_df.apply(lambda row: row["ukReleaseDate"].weekday(), axis = 1)
