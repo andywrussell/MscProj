@@ -79,6 +79,7 @@ def get_movie_tweets():
             if len(search_terms) > 0:
                 movieTweets = database_helper.search_tweets(search_terms, "OR") 
                 movieTweets['movieid'] = movie.movieId
+                movieTweets = movieTweets.drop(columns=['geomwgs', 'inuk'])
                 database_helper.bulk_insert_df("movie_tweets2019", movieTweets, movieTweets.columns.values.tolist())
             else:
                 print("SEARCH ON TITLE FOR " + movie.title)
@@ -113,3 +114,21 @@ def update_tweet_sentiments():
 #     count = count_df.iloc[0]['count'] if not count_df.empty else 0
 #     print(movie.title + " (" + str(movie.movieId) +"): " + str(count))
     
+# movie = movie_helper.get_movie_by_id(1)
+# search_terms = []
+# if (movie.twitterHandle != None):
+#    # handleTweets = database_helper.select_lower_like("tweets2019", {"msg": "%" + movie.twitterHandle.lower() + "%"})
+#    # movieTweets.append(handleTweets) 
+#     search_terms.append("%" + movie.twitterHandle.strip().lower() + "%")
+
+# for tag in movie.hashtags:
+#     #hashTweets = database_helper.select_lower_like("tweets2019", {"msg": "%#" + tag.lower() + "%"})
+#     #movieTweets.append(hashtweets)
+#     search_terms.append("%#" + tag.strip().lower() + "%")
+  
+# if len(search_terms) > 0:
+#     movieTweets = database_helper.search_tweets(search_terms, "OR") 
+#     movieTweets['movieid'] = movie.movieId
+#     database_helper.bulk_insert_df("movie_tweets2019", movieTweets, movieTweets.columns.values.tolist())
+# else:
+#     print("SEARCH ON TITLE FOR " + movie.title)

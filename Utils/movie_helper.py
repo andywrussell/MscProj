@@ -131,6 +131,38 @@ def categorize_by_gross_profit():
     
     return movies_df
 
+def categorize_by_budget():
+    movies_df = get_movies_df()
+    movies_df["budget_norm"] = movies_df["budget_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    
+    custom_bucket_array =[0, 10, 25, 50, 150, 1000]
+    bucket_labels = ['< $10m (Small)', '$10m < $25m', '$25m < $50m', '$50m < $150m', ' > $150m (Big)' ]
+    
+    movies_df['class'] = pd.cut(movies_df['budget_norm'], custom_bucket_array,labels= bucket_labels)
+    
+    for index, row in movies_df.iterrows(): 
+            updates = { "budget_class" : row["class"] }
+            selects = {"movieId" : row["movieId"]}
+            database_helper.update_data("movies", update_params = updates, select_params = selects)
+    
+    return movies_df    
+
+def categorize_by_uk_gross():
+    movies_df = get_movies_df()
+    movies_df["uk_gross_usd"] = movies_df["uk_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    
+    custom_bucket_array =[0, 1, 5, 15, 50, 1000]
+    bucket_labels = ['< $1m (Small)', '$1m < $5m', '$5m < $15m', '$15m < $50m', ' > $50m (Big)' ]
+    
+    movies_df['class'] = pd.cut(movies_df['uk_gross_usd'], custom_bucket_array,labels= bucket_labels)
+    
+    for index, row in movies_df.iterrows(): 
+            updates = { "uk_gross_class" : row["class"] }
+            selects = {"movieId" : row["movieId"]}
+            database_helper.update_data("movies", update_params = updates, select_params = selects)
+    
+    return movies_df       
+
 def calculate_percentage_profit():
     movies_df = get_movies_df()
     movies_df["gross_profit_norm"] = movies_df["gross_profit_usd"].replace('[\£,]', '', regex=True).astype(float)
@@ -656,4 +688,14 @@ def get_critical_period():
     
     
     return movies_df
+
+def convert_financial_to_mil(df):
+    df["budget_usd"] = df["budget_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    df["uk_gross_usd"] = df["uk_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    df["domestic_gross_usd"] = df["domestic_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    df["worldwide_gross_usd"] = df["worldwide_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    df["international_gross_usd"] = df["international_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    df["gross_profit_usd"] = df["gross_profit_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    df["opening_weekend_takings"] = df["opening_weekend_takings"].replace('[\£,]', '', regex=True).astype(float) / 1000000
     
+    return df

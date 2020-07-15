@@ -178,11 +178,11 @@ def bulk_insert_df(table, df, cols):
     connection = engine.raw_connection()
     cursor = connection.cursor()
     
-    # escaped = {'\\': '\\\\', '\n': r'\n', '\r': r'\r', '\t': r'\t'}
-    # for col in df.columns:
-    #     if df.dtypes[col] == 'object':
-    #         for v, e in escaped.items():
-    #             df[col] = df[col].str.replace(v, e)
+    escaped = {'\\': '\\\\', '\n': r'\n', '\r': r'\r', '\t': r'\t'}
+    for col in df.columns:
+        if df.dtypes[col] == 'object':
+            for v, e in escaped.items():
+                df[col] = df[col].str.replace(v, e)
     
     #stream the data using 'to_csv' and StringIO(); then use sql's 'copy_from' function
     output = io.StringIO()

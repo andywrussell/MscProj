@@ -448,7 +448,19 @@ def plot_genre_movie_counts():
     fig.subplots_adjust(top=0.9)
     fig.suptitle("Movie Profit Class", fontsize=16)
     plt.show()
+  
     
+def generate_heatmap_from_df(df, columns):
+    f, ax = plt.subplots(figsize=(11, 9))
+    
+    correlation_mat = df[columns].corr()
+  #  sns.heatmap(correlation_mat, annot = True)
+    cmap = sns.diverging_palette(220, 10, as_cmap=True)
+    
+    sns.heatmap(correlation_mat, cmap=cmap, center=0,
+            square=True, annot = True, linewidths=.5)
+    
+    plt.show() 
                     
 def correlatte_movie_stats():
     #https://towardsdatascience.com/better-heatmaps-and-correlation-matrix-plots-in-python-41445d0f2bec
@@ -457,7 +469,7 @@ def correlatte_movie_stats():
     
     movies_df["tweet_count"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId)['count'], axis = 1)
     movies_df["budget_usd"] = movies_df["budget_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
-    movies_df["uk_gross_usd"] = movies_df["domestic_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    movies_df["uk_gross_usd"] = movies_df["uk_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
     movies_df["domestic_gross_usd"] = movies_df["domestic_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
     movies_df["worldwide_gross_usd"] = movies_df["worldwide_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
     movies_df["international_gross_usd"] = movies_df["international_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
@@ -489,12 +501,83 @@ def correlatte_movie_stats():
     sns.pairplot(movies_df[columns])
     plt.show()
     
-    correlation_mat = movies_df[columns].corr()
-    sns.heatmap(correlation_mat, annot = True)
+    generate_heatmap_from_df(df, columns)
+
+
+def plot_df_as_table(df):
+    #https://pythonmatplotlibtips.blogspot.com/2018/11/matplotlib-only-table.html
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    
+    # Draw table
+    the_table = plt.table(cellText=df.values,
+                          rowLabels=df.index,
+                          colLabels=df.columns,
+                          loc='center')
+    the_table.auto_set_font_size(False)
+    the_table.auto_set_column_width(col=list(range(len(df.columns))))
+   # the_table.set_fontsize(24)
+   # the_table.scale(4, 4)
+    
+    # Removing ticks and spines enables you to get the figure only with table
+    plt.tick_params(axis='x', which='both', bottom=False, top=False, labelbottom=False)
+    plt.tick_params(axis='y', which='both', right=False, left=False, labelleft=False)
+    for pos in ['right','top','bottom','left']:
+        plt.gca().spines[pos].set_visible(False)
+        
     plt.show()
+    
+def plot_boxplot_for_df(df):
+    #https://towardsdatascience.com/dynamic-subplot-layout-in-seaborn-e777500c7386
+    
+    num_plots = len(df.columns)
+    total_cols = 5 if num_plots >= 5 else 4
+    total_rows = num_plots//total_cols
+    
+    fig, axs = plt.subplots(nrows=total_rows, ncols=total_cols, figsize=(7*total_cols, 7*total_rows), constrained_layout=True)
+    ax_count = 0
+    
+    for i, var in enumerate(df.columns):
+        row = i//total_cols
+        pos = i % total_cols
+        
+        if total_rows > 1:        
+            sns.boxplot(x=df[var], orient='v', ax=axs[row][pos])
+            axs[row][pos].xaxis.label.set_size(100)
+        else:
+            sns.boxplot(x=df[var], orient='v', ax=axs[pos])
+            axs[pos].xaxis.label.set_size(100)
+    
 
+    plt.show()
+    
+def plot_dist_for_df(df):
+    #https://towardsdatascience.com/dynamic-subplot-layout-in-seaborn-e777500c7386
+    
+    num_plots = len(df.columns)
+    total_cols = 5 if num_plots >= 5 else 4
+    total_rows = num_plots//total_cols
+    
+    print(total_cols)
+    print(total_rows)
+    
+    fig, axs = plt.subplots(nrows=total_rows, ncols=total_cols, figsize=(7*total_cols, 7*total_rows), constrained_layout=True)
+    ax_count = 0
+    
+    for i, var in enumerate(df.columns):
+        row = i//total_cols
+        pos = i % total_cols
+        
+        if total_rows > 1:        
+            sns.distplot(df[var], ax=axs[row][pos])
+            axs[row][pos].xaxis.label.set_size(12)
+        else:
+            sns.distplot(df[var], ax=axs[pos])
+            axs[pos].xaxis.label.set_size(12)           
 
-
+    plt.show()
+   # plt.savefig('matplotlib-table.png', bbox_inches='tight', pad_inches=0.05)
     
 
     
