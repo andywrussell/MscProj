@@ -22,7 +22,7 @@ import exploration
 import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime
-
+from datetime import timedelta
 
 def get_cols_to_drop():
       return [
@@ -217,8 +217,18 @@ def twitter_exploration(df):
     sns.regplot(x="uk_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])   
     # return df
     return describe_df
-    
 
+def get_correlation_for_tweets(full_week = False, week_inc_weekend = False):
+    correl_df = movie_helper.get_weekend_tweets_takings_correltation(full_week=full_week, week_inc_weekend=week_inc_weekend)
+    
+    #only take perasons
+    correl_df = correl_df[correl_df["method"] == 'pearson']
+    
+    #test for significance
+    correl_df['stat_significance'] = correl_df.apply(lambda row: row['p_val'] < 0.05, axis=1)
+    
+    return correl_df
+    
 def get_interesting_cases():
     return_df = pd.DataFrame()
     
@@ -287,7 +297,39 @@ def get_interesting_cases():
     
     return return_df.reset_index(drop=True)
 
+
+def analyse_special_cases():
+    special_cases_df = get_interesting_cases()
+    special_cases = movie_helper.gen_movies(special_cases_df)
     
+    #explore heatmaps and tweet correlations for special cases
+    for movie in special_cases:
+        movie.plot_weekend_revenue_mojo_vs_tweets()
+        movie.plot_time_map()
+        movie.plot_heated_time_map()
+        
+        opening_start = movie.mojo_box_office_df.iloc[0]['start_date']
+        opening_end = movie.mojo_box_office_df.iloc[0]['end_date']
+        movie.plot_time_map(start_date = opening_start, end_date = opening_end)
+        movie.plot_heated_time_map(start_date = opening_start, end_date = opening_end)
+        
+        run_up_start = datetime.combine((opening_start  - timedelta(days=7)), datetime.min.time())
+        run_up_end = datetime.combine((opening_start - timedelta(days=1)), datetime.max.time())
+        movie.plot_time_map(start_date = run_up_start, end_date = run_up_end)
+        movie.plot_heated_time_map(start_date = run_up_start, end_date = run_up_end)
+        
+        critical_start = movie.critical_start
+        critical_end = movie.critical_end
+        movie.plot_time_map(start_date = critical_start, end_date = critical_end)
+        movie.plot_heated_time_map(start_date = critical_start, end_date = critical_end)
+        
+def analyse_tweet_sentiment():
+    movies_df = movie_helper.get_movies_df_with_opening_weekend()
+    movies_df = movie_helper.convert_financial_to_mil(movies_df)     
+        
+    
+    movies_df["tweet_count"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId)['count'], axis = 1)
+    movies_df["positive_tweets"] = 
 # def twitter_exploration():
     
 #     exploration.gen_top_20_tweet_count()

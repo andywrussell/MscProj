@@ -265,7 +265,7 @@ class Movie:
         plt.title("{0} Weekend Rank vs Tweet Count".format(self.title))
         plt.show()
         
-    def corellate_weekend_takings_against_tweets(self, first_run = False, critical_period = False):
+    def corellate_weekend_takings_against_tweets(self, full_week = False, week_inc_weekend = False, first_run = False, critical_period = False):
         mojo_df = self.mojo_box_office_df
         
         results = []
@@ -280,37 +280,56 @@ class Movie:
                 mojo_df = mojo_df[(mojo_df['start_date'] >= self.critical_start) & (mojo_df['end_date'] <= self.critical_end)]
             
             
+            
             mojo_df['weekend_gross_thou'] = mojo_df['weekend_gross_usd'].replace('[\£,]', '', regex=True).astype(float) / 1000
             mojo_df["weekend_tweet_count"] = mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"], row["end_date"]), axis = 1)
-                  
-            pearson = stats.pearsonr(mojo_df['weekend_gross_thou'] , mojo_df["weekend_tweet_count"])
+              
+            
+            tweet_col = "weekend_tweet_count"
+            if full_week:
+                mojo_df["week_tweet_count"] = mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"] - timedelta(days=4), row["start_date"]), axis = 1)
+                tweet_col = "week_tweet_count"
+                
+            if week_inc_weekend:
+                mojo_df["week_tweet_count_weekend"] = mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"] - timedelta(days=4), row["end_date"]), axis = 1)
+                tweet_col = "week_tweet_count_weekend"
+            
+            total_tweets = mojo_df[tweet_col].sum()
+            
+            pearson = stats.pearsonr(mojo_df['weekend_gross_thou'] , mojo_df[tweet_col])
             pearson_res = {"movieId" : self.movieId, 
                           "method" : "pearson", 
                           "coef" : pearson[0], 
-                          "p_val" : pearson[1]}
+                          "p_val" : pearson[1],
+                          "tweet_count" : total_tweets }
     
-            spearman = stats.spearmanr(mojo_df['weekend_gross_thou'] , mojo_df["weekend_tweet_count"])
+            spearman = stats.spearmanr(mojo_df['weekend_gross_thou'] , mojo_df[tweet_col])
             spearman_res = {"movieId" : self.movieId,  
                           "method" : "spearman", 
                           "coef" : spearman[0], 
-                          "p_val" : spearman[1]}
+                          "p_val" : spearman[1],
+                          "tweet_count" : total_tweets }
             
-            kendall = stats.kendalltau(mojo_df['weekend_gross_thou'] , mojo_df["weekend_tweet_count"])
+            kendall = stats.kendalltau(mojo_df['weekend_gross_thou'] , mojo_df[tweet_col])
             kendall_res = {"movieId" : self.movieId, 
                           "method" : "kendalltau", 
                           "coef" : kendall[0], 
-                          "p_val" : kendall[1]}
+                          "p_val" : kendall[1],
+                          "tweet_count" : total_tweets }
         
         
 
             results.append(pearson_res)                
             results.append(spearman_res)
             results.append(kendall_res)
+            
+            
         else:
             results.append({"movieId" : self.movieId,
                             "method" : "NA",
                            "coef" : 0,
-                           "p_val" : 0})
+                           "p_val" : 0,
+                           "tweet_count" : 0 })
         
         return pd.DataFrame(results)
     
@@ -588,7 +607,7 @@ class Movie:
             start_date = datetime.combine((self.ukReleaseDate - timedelta(days=14)), datetime.min.time())
             end_date = datetime.combine((self.first_run_end + timedelta(days=14)), datetime.max.time())
             
-        elif not (start_date == False) and not (end_date == False):
+        elif not (start_date == None) and not (end_date == None):
             start_date = datetime.combine(start_date, datetime.min.time())
             end_date = datetime.combine(end_date, datetime.max.time())
          
@@ -597,69 +616,72 @@ class Movie:
         times = tweets['created_at']
         times_tot_mins = 24*60 - (60*np.array([t.hour for t in times]) + np.array([t.minute for t in times]))
         
-        seps=np.array([(times[i]-times[i-1]).total_seconds() for i in range(1,len(times))])
-        seps[seps==0]=1 # convert zero second separations to 1-second separations
-        
-        sep_array=np.zeros((len(seps)-1,2)) # 1st column: x-coords, 2nd column: y-coords
-        sep_array[:,0]=seps[:-1]
-        sep_array[:,1]=seps[1:]
-        
-        Ncolors=24*60 
-        
-        ## set up color list
-        red=Color("red")
-        blue=Color("blue")
-        color_list = list(red.range_to(blue, Ncolors)) # range of colors evenly speced on the spectrum between red and blue. Each element is a colour object
-        color_list = [c.hex for c in color_list] # give hex version
-        
-        fig=plt.figure()
-        ax =fig.add_subplot(111)
-         	
-        colormap = plt.cm.get_cmap('rainbow')  # see color maps at http://matplotlib.org/users/colormaps.html
-        
-        order=np.argsort(times_tot_mins[1:-1]) # so that the red dots are on top
-        #	order=np.arange(1,len(times_tot_mins)-2) # dots are unsorted
-        
-        sc= ax.scatter(sep_array[:,0][order],sep_array[:,1][order],c=times_tot_mins[1:-1][order],vmin=0,vmax=24*60,s=25,cmap=colormap,marker='o',edgecolors='none')
-        # taken from http://stackoverflow.com/questions/6063876/matplotlib-colorbar-for-scatter
-         	
-        color_bar=fig.colorbar(sc,ticks=[0,24*15,24*30,24*45,24*60],orientation='vertical')
-        color_bar.ax.set_yticklabels(['Midnight','6:00','Noon','18:00','Midnight'])
-         	
-        ax.set_yscale('log') # logarithmic axes
-        ax.set_xscale('log')
-        
-        plt.minorticks_off()
-        pure_ticks = np.array([1e-3,1,10,60*10,2*3600,1*24*3600, 7*24*3600]) # where the tick marks will be placed, in units of seconds.
-        labels = ['1 msec','1 sec','10 sec','10 min','2 hr','1 day','1 week']  # tick labels
-        
-        max_val = np.max([np.max(sep_array[:,0]), np.max(sep_array[:,1])])
-         	
-        ticks = np.hstack((pure_ticks, max_val))
-        
-        min_val = np.min([np.min(sep_array[:,0]), np.min(sep_array[:,1])])
-         	
-        
-        title = "{0} Time Map".format(self.title)
-        
-        if not (start_date == None) and (not end_date == None):
-            title += " {0} - {1}".format(start_date.date(), end_date.date())
+        if tweets.shape[0] > 0:
+            seps=np.array([(times[i]-times[i-1]).total_seconds() for i in range(1,len(times))])
+            seps[seps==0]=1 # convert zero second separations to 1-second separations
             
-        plt.title(title)
-        plt.xticks(ticks,labels)
-        plt.yticks(ticks,labels)
-        plt.xticks(rotation=40)
+            sep_array=np.zeros((len(seps)-1,2)) # 1st column: x-coords, 2nd column: y-coords
+            sep_array[:,0]=seps[:-1]
+            sep_array[:,1]=seps[1:]
+            
+            Ncolors=24*60 
+            
+            ## set up color list
+            red=Color("red")
+            blue=Color("blue")
+            color_list = list(red.range_to(blue, Ncolors)) # range of colors evenly speced on the spectrum between red and blue. Each element is a colour object
+            color_list = [c.hex for c in color_list] # give hex version
+            
+            fig=plt.figure()
+            ax =fig.add_subplot(111)
+             	
+            colormap = plt.cm.get_cmap('rainbow')  # see color maps at http://matplotlib.org/users/colormaps.html
+            
+            order=np.argsort(times_tot_mins[1:-1]) # so that the red dots are on top
+            #	order=np.arange(1,len(times_tot_mins)-2) # dots are unsorted
+            
+            sc= ax.scatter(sep_array[:,0][order],sep_array[:,1][order],c=times_tot_mins[1:-1][order],vmin=0,vmax=24*60,s=25,cmap=colormap,marker='o',edgecolors='none')
+            # taken from http://stackoverflow.com/questions/6063876/matplotlib-colorbar-for-scatter
+             	
+            color_bar=fig.colorbar(sc,ticks=[0,24*15,24*30,24*45,24*60],orientation='vertical')
+            color_bar.ax.set_yticklabels(['Midnight','6:00','Noon','18:00','Midnight'])
+             	
+            ax.set_yscale('log') # logarithmic axes
+            ax.set_xscale('log')
+            
+            plt.minorticks_off()
+            pure_ticks = np.array([1e-3,1,10,60*10,2*3600,1*24*3600, 7*24*3600]) # where the tick marks will be placed, in units of seconds.
+            labels = ['1 msec','1 sec','10 sec','10 min','2 hr','1 day','1 week']  # tick labels
+            
+            max_val = np.max([np.max(sep_array[:,0]), np.max(sep_array[:,1])])
+             	
+            ticks = np.hstack((pure_ticks, max_val))
+            
+            min_val = np.min([np.min(sep_array[:,0]), np.min(sep_array[:,1])])
+             	
+            
+            title = "{0} Time Map".format(self.title)
+            
+            if not (start_date == None) and (not end_date == None):
+                title += " {0} - {1}".format(start_date.date(), end_date.date())
+                
+            plt.title(title)
+            plt.xticks(ticks,labels)
+            plt.yticks(ticks,labels)
+            plt.xticks(rotation=40)
          	
-        plt.xlabel('Time Before Tweet')
-        plt.ylabel('Time After Tweet')
-        
-        plt.xlim((min_val, max_val))
-        plt.ylim((min_val, max_val))
-         	
-        ax.set_aspect('equal')
-        plt.tight_layout()
-        
-        plt.show()
+            plt.xlabel('Time Before Tweet')
+            plt.ylabel('Time After Tweet')
+            
+            plt.xlim((min_val, max_val))
+            plt.ylim((min_val, max_val))
+             	
+            ax.set_aspect('equal')
+            plt.tight_layout()
+            
+            plt.show()
+        else:
+            print("No tweets for {0} between {1} and {2}".format(self.title, start_date.date(), end_date.date()))
         
     def plot_heated_time_map(self, movie_run = False, start_date = None, end_date = None):
         #adapted from https://districtdatalabs.silvrback.com/time-maps-visualizing-discrete-events-across-many-timescales               
@@ -677,87 +699,91 @@ class Movie:
         times = tweets['created_at']
         times_tot_mins = 24*60 - (60*np.array([t.hour for t in times]) + np.array([t.minute for t in times]))
         
-        seps=np.array([(times[i]-times[i-1]).total_seconds() for i in range(1,len(times))])
-        seps[seps==0]=1 # convert zero second separations to 1-second separations
         
-        sep_array=np.zeros((len(seps)-1,2)) # 1st column: x-coords, 2nd column: y-coords
-        sep_array[:,0]=seps[:-1]
-        sep_array[:,1]=seps[1:]
-        
-        Nside=4*256 # number of pixels along the x and y directions
-        width=4 # the number of pixels that specifies the width of the Gaussians for the Gaussian filter
-        
-        # choose points within specified range. Example plot separations greater than 5 minutes:
-        #	indices = (sep_array[:,0]>5*60) & (sep_array[:,1]>5*60)
-        indices=range(sep_array.shape[0]) # all time separations
-        
-        x_pts = np.log(sep_array[indices,0])
-        y_pts = np.log(sep_array[indices,1])
-        
-        
-        #x_pts = sep_array[indices,0]
-        #y_pts = sep_array[indices,1]
-        
-        min_val = np.min([np.min(x_pts), np.min(y_pts)])
-           	
-        x_pts = x_pts - min_val
-        y_pts = y_pts - min_val
-           	
-        max_val = np.max([np.max(x_pts), np.max(y_pts)])
-           	
-        x_pts = x_pts * (Nside-1)/max_val
-        y_pts = y_pts * (Nside-1)/max_val
-           	
-        img=np.zeros((Nside,Nside))
-           
-        for i in range(len(x_pts)):
-            img[int(x_pts[i]),int(y_pts[i])] +=1
-           
-        img = ndi.gaussian_filter(img,width) # apply Gaussian filter
-        img = np.sqrt(img) # taking the square root makes the lower values more visible
-        img=np.transpose(img) # needed so the orientation is the same as scatterplot
-           
-        plt.imshow(img, origin='lower')
-           	
-        ## create custom tick marks. Calculate positions of tick marks on the transformed log scale of the image array
-        plt.minorticks_off()
-           	
-        ## change font, which can also now accept latex: http://matplotlib.org/users/usetex.html
-        plt.rc('text',usetex=False)
-        plt.rc('font',family='serif')
-           
-        my_max = np.max([np.max(sep_array[indices,0]), np.max(sep_array[indices,1])])
-        my_min = np.max([np.min(sep_array[indices,0]), np.min(sep_array[indices,1])])
-        
-        pure_ticks = np.array([1e-3,1,10,60*10,2*3600,1*24*3600, 7*24*3600]) 
-        # where the tick marks will be placed, in units of seconds. An additional value will be appended to the end for the max
-        labels = ['1 msec','1 sec','10 sec','10 min','2 hr','1 day','1 week']  # tick labels
-           
-        index_lower=np.min(np.nonzero(pure_ticks >= my_min)) 
-        # index of minimum tick that is greater than or equal to the smallest time interval. This will be the first tick with a non-blank label
-           
-        index_upper=np.max(np.nonzero(pure_ticks <= my_max))
-        # similar to index_lower, but for upperbound
-           	
-        ticks = pure_ticks[index_lower: index_upper + 1]
-        ticks = np.log(np.hstack((my_min, ticks, my_max ))) # append values to beginning and end in order to specify the limits
-        ticks = ticks - min_val
-        ticks *= (Nside-1)/(max_val)
-           	
-        labels= np.hstack(('',labels[index_lower:index_upper + 1],'')) # append blank labels to beginning and end
-        
-        title = "{0} Time Map".format(self.title)
-        
-        if not (start_date == None) and (not end_date == None):
-            title += " {0} - {1}".format(start_date.date(), end_date.date())
+        if tweets.shape[0] > 0:
+            seps=np.array([(times[i]-times[i-1]).total_seconds() for i in range(1,len(times))])
+            seps[seps==0]=1 # convert zero second separations to 1-second separations
             
-        plt.title(title)
-        plt.xticks(ticks,labels)
-        plt.yticks(ticks,labels)
-        plt.xticks(rotation=40)
-         	
-        plt.xlabel('Time Before Tweet')
-        plt.ylabel('Time After Tweet')
-        plt.show()
+            sep_array=np.zeros((len(seps)-1,2)) # 1st column: x-coords, 2nd column: y-coords
+            sep_array[:,0]=seps[:-1]
+            sep_array[:,1]=seps[1:]
+            
+            Nside=4*256 # number of pixels along the x and y directions
+            width=4 # the number of pixels that specifies the width of the Gaussians for the Gaussian filter
+            
+            # choose points within specified range. Example plot separations greater than 5 minutes:
+            #	indices = (sep_array[:,0]>5*60) & (sep_array[:,1]>5*60)
+            indices=range(sep_array.shape[0]) # all time separations
+            
+            x_pts = np.log(sep_array[indices,0])
+            y_pts = np.log(sep_array[indices,1])
+            
+            
+            #x_pts = sep_array[indices,0]
+            #y_pts = sep_array[indices,1]
+            
+            min_val = np.min([np.min(x_pts), np.min(y_pts)])
+               	
+            x_pts = x_pts - min_val
+            y_pts = y_pts - min_val
+               	
+            max_val = np.max([np.max(x_pts), np.max(y_pts)])
+               	
+            x_pts = x_pts * (Nside-1)/max_val
+            y_pts = y_pts * (Nside-1)/max_val
+               	
+            img=np.zeros((Nside,Nside))
+               
+            for i in range(len(x_pts)):
+                img[int(x_pts[i]),int(y_pts[i])] +=1
+               
+            img = ndi.gaussian_filter(img,width) # apply Gaussian filter
+            img = np.sqrt(img) # taking the square root makes the lower values more visible
+            img=np.transpose(img) # needed so the orientation is the same as scatterplot
+               
+            plt.imshow(img, origin='lower')
+               	
+            ## create custom tick marks. Calculate positions of tick marks on the transformed log scale of the image array
+            plt.minorticks_off()
+               	
+            ## change font, which can also now accept latex: http://matplotlib.org/users/usetex.html
+            plt.rc('text',usetex=False)
+            plt.rc('font',family='serif')
+               
+            my_max = np.max([np.max(sep_array[indices,0]), np.max(sep_array[indices,1])])
+            my_min = np.max([np.min(sep_array[indices,0]), np.min(sep_array[indices,1])])
+            
+            pure_ticks = np.array([1e-3,1,10,60*10,2*3600,1*24*3600, 7*24*3600]) 
+            # where the tick marks will be placed, in units of seconds. An additional value will be appended to the end for the max
+            labels = ['1 msec','1 sec','10 sec','10 min','2 hr','1 day','1 week']  # tick labels
+               
+            index_lower=np.min(np.nonzero(pure_ticks >= my_min)) 
+            # index of minimum tick that is greater than or equal to the smallest time interval. This will be the first tick with a non-blank label
+               
+            index_upper=np.max(np.nonzero(pure_ticks <= my_max))
+            # similar to index_lower, but for upperbound
+               	
+            ticks = pure_ticks[index_lower: index_upper + 1]
+            ticks = np.log(np.hstack((my_min, ticks, my_max ))) # append values to beginning and end in order to specify the limits
+            ticks = ticks - min_val
+            ticks *= (Nside-1)/(max_val)
+               	
+            labels= np.hstack(('',labels[index_lower:index_upper + 1],'')) # append blank labels to beginning and end
+            
+            title = "{0} Time Map".format(self.title)
+            
+            if not (start_date == None) and (not end_date == None):
+                title += " {0} - {1}".format(start_date.date(), end_date.date())
+                
+            plt.title(title)
+            plt.xticks(ticks,labels)
+            plt.yticks(ticks,labels)
+            plt.xticks(rotation=40)
+             	
+            plt.xlabel('Time Before Tweet')
+            plt.ylabel('Time After Tweet')
+            plt.show()
+        else:
+            print("No tweets for {0} between {1} and {2}".format(self.title, start_date.date(), end_date.date()))
 
         

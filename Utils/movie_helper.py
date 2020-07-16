@@ -99,7 +99,7 @@ def get_lowest_movies_by_column(column, max_movies = 20):
     return gen_movies(bottom_df)    
 
 
-def count_tweets(movieId, start_date = None, end_date = None):
+def count_tweets(movieId, start_date = None, end_date = None, senti_class = None):
     sql = """
           SELECT "movieid", COUNT(*) 
           FROM movie_tweets2019 
@@ -111,6 +111,9 @@ def count_tweets(movieId, start_date = None, end_date = None):
     if not end_date == None:
         sql += """ AND "created_at" <= '{0}'""".format(end_date)
           
+    if not senti_class == None:
+        sql += """ AND senti_class = '{0}'""".format(senti_class)
+        
     sql += """ GROUP BY "movieid" """
 
         
@@ -667,13 +670,13 @@ def get_correlation_by_col(df, cor_col, col_list):
                 
     return pd.DataFrame(results)
 
-def get_weekend_tweets_takings_correltation():
+def get_weekend_tweets_takings_correltation(full_week=False, week_inc_weekend=False):
     movies = get_movies()
     
     results_df = pd.DataFrame()
     
     for movie in movies:
-        correl_df = movie.corellate_weekend_takings_against_tweets()
+        correl_df = movie.corellate_weekend_takings_against_tweets(full_week=full_week, week_inc_weekend=week_inc_weekend)
         results_df = results_df.append(correl_df)
         
     return results_df
