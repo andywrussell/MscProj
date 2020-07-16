@@ -68,10 +68,14 @@ def set_total_revenue_for_movies():
             database_helper.update_data("movies", update_params = update_params, select_params = select_params)
             pbar.update(1)
             
-def get_top_by_column(column, max_movies = 20):
+def get_top_by_column(column, max_movies = 20, where_clause = ""):
     sql = """SELECT * FROM public.movies 
-             WHERE "investigate" = '1'
-             ORDER BY "{0}" DESC LIMIT {1}""".format(column, max_movies)
+             WHERE "investigate" = '1'"""
+             
+    if where_clause:
+        sql+= """ AND ({0})""".format(where_clause)
+        
+    sql+=""" ORDER BY "{0}" DESC LIMIT {1}""".format(column, max_movies)
 
     return database_helper.get_data(sql)
 
@@ -79,16 +83,21 @@ def get_top_movies_by_column(column, max_movies = 20):
     top_df = get_top_by_column(column, max_movies)
     return gen_movies(top_df) 
 
-def get_lowest_by_column(column, max_movies = 20):
+def get_lowest_by_column(column, max_movies = 20, where_clause = ""):
     sql = """SELECT * FROM public.movies 
-             WHERE "investigate" = '1'
-             ORDER BY "{0}" ASC LIMIT {1}""".format(column, max_movies)
+             WHERE "investigate" = '1'"""
+             
+    if where_clause:
+        sql+= """ AND ({0})""".format(where_clause)
+        
+    sql+=""" ORDER BY "{0}" ASC LIMIT {1}""".format(column, max_movies)
              
     return database_helper.get_data(sql)  
 
 def get_lowest_movies_by_column(column, max_movies = 20):
     bottom_df = get_lowest_by_column(column, max_movies)
     return gen_movies(bottom_df)    
+
 
 def count_tweets(movieId, start_date = None, end_date = None):
     sql = """
