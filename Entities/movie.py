@@ -394,17 +394,21 @@ class Movie:
         
     def plot_geotweets(self, normalize = True, cinema_run = False):
         #NB TIDY THIS UP
-        regional_pop = { 'Scotland Euro Region' :  5463300,  
-                'East Midlands Euro Region' : 4835928, 
-                'London Euro Region' : 8961989, 
-                'North West Euro Region' : 7341196, 
-                'West Midlands Euro Region' : 5934037,
-                'Yorkshire and the Humber Euro Region' : 5502967,
-                'South East Euro Region' : 9180135, 
-                'North East Euro Region' : 2669941,
-                'Wales Euro Region' : 3152879, 
-                'Eastern Euro Region' : 6236072,
-                'South West Euro Region' : 5624696} 
+        # regional_pop = { 'Scotland Euro Region' :  5463300,  
+        #         'East Midlands Euro Region' : 4835928, 
+        #         'London Euro Region' : 8961989, 
+        #         'North West Euro Region' : 7341196, 
+        #         'West Midlands Euro Region' : 5934037,
+        #         'Yorkshire and the Humber Euro Region' : 5502967,
+        #         'South East Euro Region' : 9180135, 
+        #         'North East Euro Region' : 2669941,
+        #         'Wales Euro Region' : 3152879, 
+        #         'Eastern Euro Region' : 6236072,
+        #         'South West Euro Region' : 5624696} 
+        
+        
+        #region_tweets_count_df = database_helper.select_query("tweets_region_count")
+        cell_tweet_count_df = database_helper.select_query("tweet_cell_count")
   
         title = "{0} tweets per region".format(self.title)
         map_col = 'counts'
@@ -420,13 +424,33 @@ class Movie:
         
         tweets.dropna(subset=["geombng"], inplace=True)
         gb_tweets = sjoin(tweets, gb, how='inner')
-        tweet_freq = gb_tweets.groupby('NAME').size().reset_index(name='counts')
+        #THIS WAS FOR NORMALIZING BY POPULATION
+        # tweet_freq = gb_tweets.groupby('NAME').size().reset_index(name='counts')
+        
+        # if normalize:
+        #     tweet_freq['population'] = tweet_freq['NAME'].map(regional_pop)
+        #     tweet_freq["norm_count"] = tweet_freq['counts'] / tweet_freq['population']
+        #     tweet_freq["norm_count"] = (tweet_freq['counts'] / tweet_freq['population']) * 1000000
+        #     map_col = 'norm_count'
+        
+        #NORMALIZE BY UK REGION
+        # tweet_freq = gb_tweets.groupby('UNIT_ID').size().reset_index(name='counts')
+        # if normalize:
+        #     tweet_freq = tweet_freq.merge(region_tweets_count_df, left_on="UNIT_ID", right_on="unit_id")
+        #     tweet_freq = tweet_freq.rename(columns={'tweet_count' : 'region_tweet_count'})
+        #     tweet_freq = tweet_freq.drop(columns=['unit_id'])
+        #     tweet_freq["norm_count"] = (tweet_freq['counts'] / tweet_freq['region_tweet_count']) * 1000000
+        #     map_col = 'norm_count'
+        
+        tweet_freq = gb_tweets.groupby('NUMBER').size().reset_index(name='counts')
         if normalize:
-            tweet_freq['population'] = tweet_freq['NAME'].map(regional_pop)
-            tweet_freq["norm_count"] = tweet_freq['counts'] / tweet_freq['population']
-            tweet_freq["norm_count"] = (tweet_freq['counts'] / tweet_freq['population']) * 1000000
+            tweet_freq = tweet_freq.merge(cell_tweet_count_df, left_on="NUMBER", right_on="cellid")
+            tweet_freq = tweet_freq.rename(columns={'tweet_count' : 'cell_tweet_count'})
+            tweet_freq = tweet_freq.drop(columns=['cellid'])
+            tweet_freq["norm_count"] = (tweet_freq['counts'] / tweet_freq['cell_tweet_count']) * 1000000
             map_col = 'norm_count'
-        map_freq = gb.merge(tweet_freq, left_on='NAME', right_on='NAME')
+        
+        map_freq = gb.merge(tweet_freq, left_on='NUMBER', right_on='NUMBER')
         fig, ax = plt.subplots(1, 1)
         ax.axis('off')
         ax.set_title(title)
@@ -509,6 +533,7 @@ class Movie:
         results_df["movie_release"] = results_df.apply(lambda row: row["date"] == self.ukReleaseDate, axis = 1)
         results_df = results_df.sort_values(by='count', ascending=False)
 
+        
         return results_df
         
         

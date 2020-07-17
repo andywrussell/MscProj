@@ -329,7 +329,8 @@ def analyse_tweet_sentiment():
         
     
     movies_df["tweet_count"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId)['count'], axis = 1)
-    movies_df["positive_tweets"] = 
+    movies_df["positive_tweets"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId, senti_class = 'positive')['count'], axis = 1)
+    movies_df["neutral_tweets"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId, senti_class = 'positive')['count'], axis = 1)
 # def twitter_exploration():
     
 #     exploration.gen_top_20_tweet_count()
