@@ -118,7 +118,7 @@ def plot_profit_classes():
     grouped_movies = movies_df.groupby(["profit_class"]).size().reset_index(name = "counts")
     order_lst = ['< $0 (Flop)', '$0 < $50m', '$50m < $150m', '$150m < $300m', ' > $300m (BlockBuster)' ]
     ax = sns.barplot(x="profit_class", y="counts", data=grouped_movies, order=order_lst)
-    ax.set(xlabel='Gross Profit (USD)', ylabel='Movie Count')
+    ax.set(xlabel='Gross Profit ($mil)', ylabel='Movie Count')
     plt.title("Movie Profit Classes")
     plt.xticks(rotation=40)
     plt.show()
@@ -139,9 +139,30 @@ def plot_uk_classes():
     order_lst = ['0% - 2%', '2% - 4%', '4% - 6%', '6% - 12%', '> 12%']
     ax = sns.barplot(x="uk_percentage_class", y="counts", data=grouped_movies, order=order_lst)
     ax.set(xlabel='Percentage of UK Profits', ylabel='Movie Count')
+    plt.title("UK Percentage Takings Classes")
+    plt.xticks(rotation=40)
+    plt.show()    
+
+def plot_budget_classes():
+    sns.set(style="whitegrid")
+    grouped_movies = movies_df.groupby(["budget_class"]).size().reset_index(name = "counts")
+    order_lst = ['< $10m (Small)', '$10m < $25m', '$25m < $50m', '$50m < $150m', ' > $150m (Big)' ]
+    ax = sns.barplot(x="budget_class", y="counts", data=grouped_movies, order=order_lst)
+    ax.set(xlabel='Movie Budget ($mil)', ylabel='Movie Count')
+    plt.title("Movie Budget Classes")
+    plt.xticks(rotation=40)
+    plt.show()
+
+def plot_uk_taking_classes():
+    sns.set(style="whitegrid")
+    grouped_movies = movies_df.groupby(["uk_gross_class"]).size().reset_index(name = "counts")
+    order_lst = ['< $1m (Small)', '$1m < $5m', '$5m < $15m', '$15m < $50m', ' > $50m (Big)' ]
+    ax = sns.barplot(x="uk_gross_class", y="counts", data=grouped_movies, order=order_lst)
+    ax.set(xlabel='Gross UK Takings ($mil)', ylabel='Movie Count')
     plt.title("UK Takings Classes")
     plt.xticks(rotation=40)
-    plt.show()        
+    plt.show()    
+      
     
 def plot_financial_box(column, title, xlabel):
     temp_col_name = column + "_norm"
@@ -450,7 +471,7 @@ def plot_genre_movie_counts():
     plt.show()
   
     
-def generate_heatmap_from_df(df, columns):
+def generate_heatmap_from_df(df, columns, title):
     f, ax = plt.subplots(figsize=(11, 9))
     
     correlation_mat = df[columns].corr()
@@ -460,8 +481,35 @@ def generate_heatmap_from_df(df, columns):
     sns.heatmap(correlation_mat, cmap=cmap, center=0,
             square=True, annot = True, linewidths=.5)
     
+   # plt.title(title)
     plt.show() 
                     
+def get_success_figure(class_col, order_list, dist_col, movies_df, title, money=True):
+    fig, axs = plt.subplots(figsize=(20, 10), ncols=3)
+    
+    xlabel = title + " ($mil)" if money else title
+    
+    #get box
+    box = sns.boxplot(x=movies_df[dist_col], data=movies_df, ax=axs[0])
+    box.set_title(title + " Box Plot")
+    box.set_xlabel(xlabel)
+    
+    #get dist
+    dist = sns.distplot(movies_df[dist_col], ax=axs[1])
+    dist.set_title(title + " Distribution")
+    dist.set_xlabel(xlabel)
+    
+    #show class plot
+    grouped_movies = movies_df.groupby([class_col]).size().reset_index(name = "counts")
+    bar = sns.barplot(x=class_col, y="counts", data=grouped_movies, order=order_list, ax=axs[2])
+    bar.set(xlabel=class_col, ylabel='Movie Count')
+    bar.set_title(title + " Class Counts")
+    bar.set_xticklabels(order_list, rotation=40)
+   # plt.xticks(rotation=40)
+    plt.show()   
+    
+    
+
 def correlatte_movie_stats():
     #https://towardsdatascience.com/better-heatmaps-and-correlation-matrix-plots-in-python-41445d0f2bec
     #movies_df = movie_helper.get_movies_df()
@@ -498,8 +546,8 @@ def correlatte_movie_stats():
                 'opening_tweets']
 
     # Basic correlogram
-    sns.pairplot(movies_df[columns])
-    plt.show()
+   # sns.pairplot(movies_df[columns])
+   # plt.show()
     
     generate_heatmap_from_df(df, columns)
 

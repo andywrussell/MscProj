@@ -58,9 +58,9 @@ def get_tweet_sentiment_scores_clean(movieId):
        
  
 def classify_sentiment(sentiment):
-    if sentiment["compound"] < -0.05:
+    if sentiment["compound"] <= -0.05:
         return "negative"
-    elif sentiment["compound"] > 0.05:
+    elif sentiment["compound"] >= 0.05:
         return "positive"
     else:
         return "neutral"

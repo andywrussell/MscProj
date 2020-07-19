@@ -58,7 +58,10 @@ def explore_movies():
     movies_df = movie_helper.get_movies_df_with_opening_weekend()
     movies_df = movie_helper.convert_financial_to_mil(movies_df)
     
-    get_exploration_plots(movies_df, "YESY")
+    return get_exploration_plots(movies_df, "Test")
+    
+    #create table of variables t0 use 
+    #plot success measures 
     
 def get_exploration_plots(df, title):
     #drop certain columns
@@ -67,17 +70,22 @@ def get_exploration_plots(df, title):
     describe_df = df.drop(columns=drop_cols)
     summary_df = pd.DataFrame(describe_df.describe().round(2).drop(['count']))
     
+    summary_df_t = summary_df.transpose()
+    
     #get summary stats
     exploration.plot_df_as_table(summary_df)
+    exploration.plot_df_as_table(summary_df_t)
     
     #get correlations of key feilds
-    exploration.generate_heatmap_from_df(describe_df, describe_df.columns)
+    exploration.generate_heatmap_from_df(describe_df, describe_df.columns, title)
     
   #  sns.pairplot(describe_df)
   #  plt.show()
     
     exploration.plot_boxplot_for_df(describe_df)
     exploration.plot_dist_for_df(describe_df)
+    
+    return summary_df_t
     
    
 def explore_movies_by_class(class_col):
@@ -91,27 +99,29 @@ def explore_movies_by_class(class_col):
         get_exploration_plots(class_df)
     
 def define_success():
-    #get box plots 
-    exploration.plot_financial_box("budget_usd", "Budget Box Plot",  "Budget ($mil)")
-    exploration.plot_financial_distribution("budget_usd", "Budget Distribution", "Budget ($mil)")
+    movies_df = movie_helper.get_movies_df_with_opening_weekend()
+    movies_df = movie_helper.convert_financial_to_mil(movies_df)
     
-    exploration.plot_financial_box("gross_profit_usd", "Profit Box Plot", "Profit ($mil)")
-    exploration.plot_financial_distribution("gross_profit_usd", "Profit Distribution", "Profit ($mil)")
+    #budget class
+    budget_lst = ['< $10m (Small)', '$10m < $25m', '$25m < $50m', '$50m < $150m', ' > $150m (Big)' ]
+    exploration.get_success_figure("budget_class", budget_lst, "budget_usd", movies_df, "Budget")
     
-    exploration.plot_financial_box("uk_gross_usd", "UK Takings Box Plot", "UK Gross ($mil)")
-    exploration.plot_financial_distribution("uk_gross_usd", "UK Takings Distribution", "Uk Gross ($mil)")
+    #profit class
+    profit_lst = ['< $0 (Flop)', '$0 < $50m', '$50m < $150m', '$150m < $300m', ' > $300m (BlockBuster)' ]
+    exploration.get_success_figure("profit_class", profit_lst, "gross_profit_usd", movies_df, "Gross Profit")
     
-    exploration.plot_float_box("return_percentage", "Return On Investment Box Plot", "Return Percentage")
-    exploration.plot_float_distribution("return_percentage", "Return On Investment Distribution", "Return Percentage")
+    #uk gross class
+    uk_lst = ['< $1m (Small)', '$1m < $5m', '$5m < $15m', '$15m < $50m', ' > $50m (Big)' ]
+    exploration.get_success_figure("uk_gross_class", uk_lst, "uk_gross_usd", movies_df, "UK Takings")
+     
+    #return percentage
+    return_lst = ['< %0 (Flop)', '%0-100%', '%100-%400', '%400-%1000', '> %1000 (BlockBuster)']
+    exploration.get_success_figure("return_class", return_lst, "return_percentage", movies_df, "Return Percentage", False)
     
-    exploration.plot_float_box("uk_percentage", "Percentage Takings in UK", "Percentage of Takings in UK")
-    exploration.plot_float_distribution("uk_percentage", "Percentage Takings in UK Distribution", "Percentage of Takings in UK")
-    
-    #plot classes 
-    exploration.plot_profit_classes()
-    exploration.plot_return_classes()
-    exploration.plot_uk_classes()
-    
+    #uk percentage
+    uk_percentage_lst = ['0% - 2%', '2% - 4%', '4% - 6%', '6% - 12%', '> 12%']   
+    exploration.get_success_figure("uk_percentage_class", uk_percentage_lst, "uk_percentage", movies_df, "UK Percentage", False)
+
     #get bar distributions
     
 def twitter_exploration(df):
@@ -122,10 +132,11 @@ def twitter_exploration(df):
     
     #describe_df = df.drop(columns=drop_cols)
     summary_df = pd.DataFrame(describe_df.describe().round(2).drop(['count']))
-    
+    summary_df_t = summary_df.drop(columns=['movieId']).transpose()
     describe_df = describe_df.drop(columns=['movieId'])
     
     exploration.plot_df_as_table(summary_df)
+    exploration.plot_df_as_table(summary_df_t)
     exploration.plot_boxplot_for_df(describe_df)
     exploration.plot_dist_for_df(describe_df)
     
@@ -133,7 +144,7 @@ def twitter_exploration(df):
     correl_df = df[['budget_usd','gross_profit_usd', 'return_percentage', 'uk_gross_usd', 'uk_percentage', 'tweet_count', 'critical_period_tweet_count', 'run_up_tweets', 'opening_tweets']]
 
     #get correlations of key feilds
-    exploration.generate_heatmap_from_df(correl_df, correl_df.columns)
+    exploration.generate_heatmap_from_df(correl_df, correl_df.columns, "TEST")
     
    # g = sns.lmplot(x="uk_gross_usd", y="tweet_count", hue="profit_class", data=df)
     #profit class
@@ -216,16 +227,20 @@ def twitter_exploration(df):
     g = sns.lmplot(x="uk_percentage", y="tweet_count", hue="uk_gross_class", data=df, fit_reg=False)
     sns.regplot(x="uk_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])   
     # return df
-    return describe_df
+    return summary_df_t
 
 def get_correlation_for_tweets(full_week = False, week_inc_weekend = False):
     correl_df = movie_helper.get_weekend_tweets_takings_correltation(full_week=full_week, week_inc_weekend=week_inc_weekend)
     
     #only take perasons
-    correl_df = correl_df[correl_df["method"] == 'pearson']
+    correl_df = correl_df[(correl_df["method"] == 'pearson') | (correl_df["method"] == 'NA')]
     
     #test for significance
-    correl_df['stat_significance'] = correl_df.apply(lambda row: row['p_val'] < 0.05, axis=1)
+    correl_df['stat_significance'] = correl_df.apply(lambda row: (row['p_val'] < 0.05) & (row["method"] == "pearson"), axis=1)
+    
+    correl_df = correl_df.drop(columns="method")
+    correl_df = correl_df.sort_values(by="tweet_count", ascending=False)
+    correl_df = correl_df.round({"coef" : 5})
     
     return correl_df
     
@@ -297,7 +312,6 @@ def get_interesting_cases():
     
     return return_df.reset_index(drop=True)
 
-
 def analyse_special_cases():
     special_cases_df = get_interesting_cases()
     special_cases = movie_helper.gen_movies(special_cases_df)
@@ -305,6 +319,7 @@ def analyse_special_cases():
     #explore heatmaps and tweet correlations for special cases
     for movie in special_cases:
         movie.plot_weekend_revenue_mojo_vs_tweets()
+        movie.plot_weekend_revenue_mojo_vs_tweets(full_week=True)
         movie.plot_time_map()
         movie.plot_heated_time_map()
         
@@ -323,6 +338,10 @@ def analyse_special_cases():
         movie.plot_time_map(start_date = critical_start, end_date = critical_end)
         movie.plot_heated_time_map(start_date = critical_start, end_date = critical_end)
         
+def twitter_weekly():
+    weekend_tweet_cor = get_correlation_for_tweets()
+    weekly_tweet_cor = get_correlation_for_tweets(full_week=True)
+        
 def analyse_tweet_sentiment():
     movies_df = movie_helper.get_movies_df_with_opening_weekend()
     movies_df = movie_helper.convert_financial_to_mil(movies_df)     
@@ -331,6 +350,8 @@ def analyse_tweet_sentiment():
     movies_df["tweet_count"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId)['count'], axis = 1)
     movies_df["positive_tweets"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId, senti_class = 'positive')['count'], axis = 1)
     movies_df["neutral_tweets"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId, senti_class = 'positive')['count'], axis = 1)
+    
+    
 # def twitter_exploration():
     
 #     exploration.gen_top_20_tweet_count()

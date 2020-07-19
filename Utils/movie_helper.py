@@ -711,3 +711,13 @@ def convert_financial_to_mil(df):
     df["opening_weekend_takings"] = df["opening_weekend_takings"].replace('[\£,]', '', regex=True).astype(float) / 1000000
     
     return df
+
+def get_percentage_of_takings_in_first_weeks():
+    movies = get_movies()
+
+    for movie in movies:
+        percentage = movie.get_percentage_of_takings_in_first_two_weeks()
+        updates = { "two_week_takings" : percentage }
+        selects = {"movieId" : movie.movieId }
+        database_helper.update_data("movies", update_params = updates, select_params = selects)
+        

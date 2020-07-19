@@ -181,17 +181,44 @@ class Movie:
         plt.title("{0} Weekend Takings".format(self.title))
         plt.xticks(rotation=40)
         plt.show()
+      
         
-    def plot_weekend_revenue_mojo_vs_tweets(self):
+    def get_percentage_of_takings_in_first_two_weeks(self):
+        
+        if (self.mojo_box_office_df.shape[0] > 1):
+            self.mojo_box_office_df["gross_to_date_f"] = self.mojo_box_office_df['gross_to_date_usd'].replace('[\£,]', '', regex=True).astype(float)
+            
+            week_two = self.mojo_box_office_df.iloc[1]["gross_to_date_f"]
+            total_gross = float(re.sub('[^\d.]', '', self.uk_gross_usd))
+            
+            percentage = (week_two/total_gross) * 100
+            
+            return percentage
+        else: 
+            return 100
+        
+    def plot_weekend_revenue_mojo_vs_tweets(self, full_week = False, week_inc_weekend = False):
         self.mojo_box_office_df['weekend_gross_thou'] = self.mojo_box_office_df['weekend_gross_usd'].replace('[\£,]', '', regex=True).astype(float) / 1000
         self.mojo_box_office_df["weekend_tweet_count"] = self.mojo_box_office_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"], row["end_date"]), axis = 1)
+        
+        tweet_col = "weekend_tweet_count"
+        y_label = "Weekend Tweet Count"
+        
+        if full_week:
+            self.mojo_box_office_df["week_tweet_count"] = self.mojo_box_office_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"] - timedelta(days=4), row["start_date"]), axis = 1)
+            tweet_col = "week_tweet_count"
+            y_label = "Weekly Tweet Count"
+            
+        if week_inc_weekend:
+            self.mojo_box_office_df["week_tweet_count_weekend"] = self.mojo_box_office_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"] - timedelta(days=4), row["end_date"]), axis = 1)
+            tweet_col = "week_tweet_count_weekend"
         
         
         ax = self.mojo_box_office_df.plot(x="start_date", y="weekend_gross_thou", legend=False, label="Gross Takings")
         ax.set(xlabel='Weekend Start Date', ylabel='Gross Takings ($thou)')
         ax2 = ax.twinx()
-        ax2.set(ylabel = 'Tweet Count')
-        self.mojo_box_office_df.plot(x="start_date", y="weekend_tweet_count", ax=ax2, legend=False, color="r", label="Tweet Count")
+        ax2.set(ylabel = y_label)
+        self.mojo_box_office_df.plot(x="start_date", y=tweet_col, ax=ax2, legend=False, color="r", label="Tweet Count")
       
         lines_1, labels_1 = ax.get_legend_handles_labels()
         lines_2, labels_2 = ax2.get_legend_handles_labels()
@@ -301,21 +328,24 @@ class Movie:
                           "method" : "pearson", 
                           "coef" : pearson[0], 
                           "p_val" : pearson[1],
-                          "tweet_count" : total_tweets }
+                          "tweet_count" : total_tweets,
+                          "weekends" : mojo_df.shape[0]}
     
             spearman = stats.spearmanr(mojo_df['weekend_gross_thou'] , mojo_df[tweet_col])
             spearman_res = {"movieId" : self.movieId,  
                           "method" : "spearman", 
                           "coef" : spearman[0], 
                           "p_val" : spearman[1],
-                          "tweet_count" : total_tweets }
+                          "tweet_count" : total_tweets,
+                          "weekends" : mojo_df.shape[0]}
             
             kendall = stats.kendalltau(mojo_df['weekend_gross_thou'] , mojo_df[tweet_col])
             kendall_res = {"movieId" : self.movieId, 
                           "method" : "kendalltau", 
                           "coef" : kendall[0], 
                           "p_val" : kendall[1],
-                          "tweet_count" : total_tweets }
+                          "tweet_count" : total_tweets,
+                          "weekends" : mojo_df.shape[0]}
         
         
 
@@ -329,7 +359,8 @@ class Movie:
                             "method" : "NA",
                            "coef" : 0,
                            "p_val" : 0,
-                           "tweet_count" : 0 })
+                           "tweet_count" : 0 ,
+                           "weekends" : mojo_df.shape[0]})
         
         return pd.DataFrame(results)
     
@@ -525,7 +556,7 @@ class Movie:
         
         return date_freq.iloc[indexes]
     
-    def tweet_peaks_analysis(self):
+    def the(self):
         peak_dates_count = self.get_tweet_peak_dates()
         self.trailers_df["date"] = self.trailers_df.apply(lambda row: row["publishDate"].date(), axis=1).astype('datetime64[ns]')
         
