@@ -517,12 +517,12 @@ class Movie:
         plt.cla()
         plt.close()
         
-    def plot_tweets_over_time(self, cinema_run = False, critical_period = False):
+    def plot_tweets_over_time(self, plot_run=True, cinema_run = False, critical_period = False):
         releaseDate = self.ukReleaseDate
         endWeekend = self.first_run_end
        # endWeekend = self.box_office_df.iloc[self.box_office_df['weeksOnRelease'].idxmax()].weekendEnd
         fig, ax = plt.subplots()
-        if cinema_run:
+        if plot_run:
             ax.axvspan(*mdates.datestr2num([str(releaseDate), str(endWeekend)]), color='skyblue', alpha=0.5)
         
         tweets = self.get_geotweets_by_dates() if cinema_run else database_helper.select_geo_tweets(self.movieId)
@@ -532,9 +532,23 @@ class Movie:
         date_freq = tweets.groupby('date').size().reset_index(name='count') 
         date_freq.sort_values('date')
         date_freq['date'] = pd.to_datetime(date_freq['date'], errors='coerce')
+        
         indexes, _ = scipy.signal.find_peaks(date_freq['count'], height=7, distance=2.1)
-        #date_freq.set_index('date')['count'].plot(markevery=indexes.tolist())
-        plt.plot(date_freq['date'], date_freq['count'], marker='D',markerfacecolor='r', markevery=indexes.tolist())
+        peak_dates = date_freq[date_freq.index.isin(indexes)]
+           
+        peak_dates['color'] = date_freq.apply(lambda row: "g" if row["date"] == self.ukReleaseDate else "r", axis=1)
+        peak_dates['label'] = date_freq.apply(lambda row: "Release Date" if row["date"] == self.ukReleaseDate else "Ohter", axis=1)
+        
+        self.trailers_df["publishDate_date"] = self.trailers_df.apply(lambda row: row["publishDate"].date(), axis = 1)
+        peak_dates['color'] = peak_dates.apply(lambda row: "b" if row["date"] in self.trailers_df["publishDate_date"].values else row['color'], axis = 1)
+        peak_dates['label'] = peak_dates.apply(lambda row: "Trailer Release" if row["date"] in self.trailers_df["publishDate_date"].values else row['label'], axis = 1)
+        
+        ax.plot(date_freq['date'], date_freq['count'])
+        sns.scatterplot(x="date", y="count", data=peak_dates, hue="label", ax=ax)
+
+        ax.legend()
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(handles=handles[1:], labels=labels[1:])
         
         print('Peaks are: %s' % (indexes))
         #plt.xticks(date_freq['date'])
@@ -543,6 +557,7 @@ class Movie:
         plt.title(self.title + " Tweets over time")
         plt.xticks(rotation=40)
         plt.show()
+
         
     def get_tweet_peak_dates(self):
         tweets = database_helper.select_geo_tweets(self.movieId)
@@ -556,14 +571,14 @@ class Movie:
         
         return date_freq.iloc[indexes]
     
-    def the(self):
+    def get_tweet_peak_events(self):
         peak_dates_count = self.get_tweet_peak_dates()
         self.trailers_df["date"] = self.trailers_df.apply(lambda row: row["publishDate"].date(), axis=1).astype('datetime64[ns]')
         
         results_df = pd.merge(peak_dates_count, self.trailers_df[['date','youtubeId']], on='date', how='left')
         results_df["movie_release"] = results_df.apply(lambda row: row["date"] == self.ukReleaseDate, axis = 1)
         results_df = results_df.sort_values(by='count', ascending=False)
-
+        results_df["movieId"] = self.movieId
         
         return results_df
         
