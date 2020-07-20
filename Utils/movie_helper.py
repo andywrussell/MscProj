@@ -517,6 +517,14 @@ def get_highest_mojo_rank():
         
     return pd.DataFrame(rank_list)
 
+def get_movie_tweet_events():
+    movies = get_movies()
+    
+    events_df = pd.DataFrame()
+    for movie in movies:
+        events_df = events_df.append(movie.get_tweet_peak_events())
+        
+    return events_df.reset_index(drop=True)
 
 def get_movies_df_with_opening_weekend():
     movies_df = get_movies_df()

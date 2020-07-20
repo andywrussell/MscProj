@@ -67,7 +67,7 @@ def get_trailer_metadata():
     """
     Use youtubeId to collect trailer metadata
     """
-    trailers_df = database_helper.select_query("trailers")
+    trailers_df = database_helper.select_query("trailers", {"movieId" : 254})
     with tqdm(total=len(trailers_df)) as pbar:
         for index, row in trailers_df.iterrows():
             trailer_data = yt.get_video_metadata(row['youtubeId'])
@@ -89,7 +89,7 @@ def get_trailer_metadata():
             pbar.update(1)
     
 def get_trailer_release_dates():
-    trailers_df = database_helper.select_query("trailers")
+    trailers_df = database_helper.select_query("trailers", {"movieId" : 254})
     with tqdm(total=len(trailers_df)) as pbar:
         for index, row in trailers_df.iterrows():  
             trailer_date = youtube_helper.get_trailer_release(row['youtubeId'], yt)

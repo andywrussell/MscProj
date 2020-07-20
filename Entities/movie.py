@@ -133,6 +133,7 @@ class Movie:
     
     def get_mojo_box_office(self):
         box_office_df = database_helper.select_query("weekend_box_office_mojo", {"movieid" : int(self.movieId) })
+        box_office_df = box_office_df.sort_values(by="start_date")
         self.mojo_box_office = []
         self.mojo_box_office_df = box_office_df
         for index, row in box_office_df.iterrows(): 
@@ -572,15 +573,38 @@ class Movie:
         return date_freq.iloc[indexes]
     
     def get_tweet_peak_events(self):
+        print("{0} {1}".format(self.title, self.movieId))
+        
         peak_dates_count = self.get_tweet_peak_dates()
         self.trailers_df["date"] = self.trailers_df.apply(lambda row: row["publishDate"].date(), axis=1).astype('datetime64[ns]')
         
         results_df = pd.merge(peak_dates_count, self.trailers_df[['date','youtubeId']], on='date', how='left')
-        results_df["movie_release"] = results_df.apply(lambda row: row["date"] == self.ukReleaseDate, axis = 1)
-        results_df = results_df.sort_values(by='count', ascending=False)
-        results_df["movieId"] = self.movieId
         
-        return results_df
+        if (results_df.shape[0] > 0):
+                
+            
+            results_df["movie_release"] = results_df.apply(lambda row: row["date"] == self.ukReleaseDate, axis = 1)
+            
+    
+            
+            opening_start = self.mojo_box_office_df.iloc[0]["start_date"]
+            opening_end = self.mojo_box_office_df.iloc[0]["end_date"]
+            
+            results_df["movie_opening_weekend"] = results_df.apply(lambda row: (opening_start <= row["date"].date()) & (opening_end >= row["date"].date()), axis=1)
+            results_df = results_df.sort_values(by='count', ascending=False)
+            results_df["movieId"] = self.movieId
+            
+            return results_df
+        
+        else:
+            dummy = {"date" : None, 
+                     "count" : 0, 
+                     "movie_release" : False, 
+                     "movie_opening_weekend" : False, 
+                     "movieId" : self.movieId}
+            return pd.DataFrame([dummy])
+        
+        
         
         
     def plot_tweet_sentiment_over_time(self, avg = False):

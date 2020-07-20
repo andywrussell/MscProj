@@ -56,8 +56,8 @@ import tweet_helper
 #movies = movie_helper.get_top_earning()
 #movies = movie_helper.get_movies()
 
-escape_room = movie_helper.get_movie_by_id(157)
-movies = [escape_room]
+#aladdin = movie_helper.get_movie_by_id(254)
+#movies = [aladdin]
 
 def get_movie_tweets():
     with tqdm(total=len(movies)) as pbar:
