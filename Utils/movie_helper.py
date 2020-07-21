@@ -129,8 +129,8 @@ def categorize_by_gross_profit():
     movies_df["gross_profit_usd_norm"] = movies_df["worldwide_gross_usd_norm"] - movies_df["budget_usd_norm"]
     movies_df["gross_profit_usd"] = movies_df["worldwide_gross_usd"].replace('[\£,]', '', regex=True).astype(float) - movies_df["budget_usd"].replace('[\£,]', '', regex=True).astype(float)
     
-    custom_bucket_array =[-50, 0, 50, 150, 300, 2500]
-    bucket_labels = ['< $0 (Flop)', '$0 < $50m', '$50m < $150m', '$150m < $300m', ' > $300m (BlockBuster)' ]
+    custom_bucket_array =[-100, 0, 90, 235, 700, 99999]
+    bucket_labels = ['< $0 (Flop)', '$0 < $90m', '$90m < $235m', '$235m < $700m', '> $700m (BlockBuster)' ]
     
     movies_df['class'] = pd.cut(movies_df['gross_profit_usd_norm'], custom_bucket_array,labels= bucket_labels)
     
@@ -147,8 +147,8 @@ def categorize_by_budget():
     movies_df = get_movies_df()
     movies_df["budget_norm"] = movies_df["budget_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
     
-    custom_bucket_array =[0, 10, 25, 50, 150, 1000]
-    bucket_labels = ['< $10m (Small)', '$10m < $25m', '$25m < $50m', '$50m < $150m', ' > $150m (Big)' ]
+    custom_bucket_array =[0, 10, 40, 100, 185, 1000]
+    bucket_labels = ['< $10m (Small)', '$10m < $40m', '$40m < $100m', '$100m < $185m', '> 185m (Big)' ]
     
     movies_df['class'] = pd.cut(movies_df['budget_norm'], custom_bucket_array,labels= bucket_labels)
     
@@ -163,8 +163,8 @@ def categorize_by_uk_gross():
     movies_df = get_movies_df()
     movies_df["uk_gross_usd"] = movies_df["uk_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
     
-    custom_bucket_array =[0, 1, 5, 15, 50, 1000]
-    bucket_labels = ['< $1m (Small)', '$1m < $5m', '$5m < $15m', '$15m < $50m', ' > $50m (Big)' ]
+    custom_bucket_array =[0, 1, 8, 20, 50, 1000]
+    bucket_labels = ['< $1m (Small)', '$1m < $8m', '$8m < $20m', '$20m < $50m', '> $50m (Big)' ]
     
     movies_df['class'] = pd.cut(movies_df['uk_gross_usd'], custom_bucket_array,labels= bucket_labels)
     
@@ -192,8 +192,8 @@ def calculate_percentage_profit():
 def categorize_by_return_percentage():
     movies_df = get_movies_df()
     
-    custom_bucket_array =[-100, 0, 100, 400, 1000, 2000]
-    bucket_labels = ['< %0 (Flop)', '%0-100%', '%100-%400', '%400-%1000', '> %1000 (BlockBuster)']
+    custom_bucket_array = [-100, 0, 290, 540, 1000, 2000]
+    bucket_labels = ['< %0 (Flop)', '0% - 290%', '100% - 540%', '540% - 1000%', '> 1000% (BlockBuster)']
     movies_df['class'] = pd.cut(movies_df['return_percentage'], custom_bucket_array,labels= bucket_labels)
     
     for index, row in movies_df.iterrows(): 
@@ -206,8 +206,8 @@ def categorize_by_return_percentage():
 def categorize_by_uk_percentage():
     movies_df = get_movies_df()
     
-    custom_bucket_array =[0, 2, 4, 6, 12, 20]
-    bucket_labels = ['0% - 2%', '2% - 4%', '4% - 6%', '6% - 12%', '> 12%']
+    custom_bucket_array =[0, 1, 4, 6, 12, 20]
+    bucket_labels = ['0% - 1%', '1% - 4%', '4% - 6%', '6% - 12%', '> 12%']
     movies_df['class'] = pd.cut(movies_df['uk_percentage'], custom_bucket_array,labels= bucket_labels)
     
     for index, row in movies_df.iterrows(): 
@@ -678,13 +678,13 @@ def get_correlation_by_col(df, cor_col, col_list):
                 
     return pd.DataFrame(results)
 
-def get_weekend_tweets_takings_correltation(full_week=False, week_inc_weekend=False):
+def get_weekend_tweets_takings_correltation(full_week=False, week_inc_weekend=False, senti_class = None):
     movies = get_movies()
     
     results_df = pd.DataFrame()
     
     for movie in movies:
-        correl_df = movie.corellate_weekend_takings_against_tweets(full_week=full_week, week_inc_weekend=week_inc_weekend)
+        correl_df = movie.corellate_weekend_takings_against_tweets(full_week=full_week, week_inc_weekend=week_inc_weekend, senti_class = senti_class)
         results_df = results_df.append(correl_df)
         
     return results_df

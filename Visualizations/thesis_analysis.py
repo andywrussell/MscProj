@@ -82,10 +82,22 @@ def get_exploration_plots(df, title):
   #  sns.pairplot(describe_df)
   #  plt.show()
     
-    exploration.plot_boxplot_for_df(describe_df)
-    exploration.plot_dist_for_df(describe_df)
+   # exploration.plot_boxplot_for_df(describe_df)
+#    exploration.plot_dist_for_df(describe_df)
     
-    return summary_df_t
+    small_describe = describe_df = describe_df[["budget_usd", "uk_gross_usd", "gross_profit_usd", "return_percentage", "uk_percentage"]]
+    small_summary = pd.DataFrame(describe_df.describe().round(2).drop(['count']))
+    
+    small_summary_t = small_summary.transpose()
+    
+    sns.pairplot(small_describe)
+    plt.show()
+    
+    exploration.plot_df_as_table(small_summary)
+    exploration.plot_df_as_table(small_summary_t)
+    exploration.plot_dist_for_df(small_describe)
+    
+    return summary_df_t, small_summary_t
     
    
 def explore_movies_by_class(class_col):
@@ -103,24 +115,38 @@ def define_success():
     movies_df = movie_helper.convert_financial_to_mil(movies_df)
     
     #budget class
-    budget_lst = ['< $10m (Small)', '$10m < $25m', '$25m < $50m', '$50m < $150m', ' > $150m (Big)' ]
-    exploration.get_success_figure("budget_class", budget_lst, "budget_usd", movies_df, "Budget")
+    budget_lst = ['< $10m (Small)', '$10m < $40m', '$40m < $100m', '$100m < $185m', '> 185m (Big)' ]
+   # exploration.get_success_figure("budget_class", budget_lst, "budget_usd", movies_df, "Budget")
+    exploration.plot_budget_classes()
+    exploration.get_dist_figure("budget_usd", movies_df, "Budget ")
     
     #profit class
-    profit_lst = ['< $0 (Flop)', '$0 < $50m', '$50m < $150m', '$150m < $300m', ' > $300m (BlockBuster)' ]
-    exploration.get_success_figure("profit_class", profit_lst, "gross_profit_usd", movies_df, "Gross Profit")
+    profit_lst = ['< $0 (Flop)', '$0 < $90m', '$90m < $235m', '$235m < $700m', '> $700m (BlockBuster)' ]
+   # exploration.get_success_figure("profit_class", profit_lst, "gross_profit_usd", movies_df, "Gross Profit")    
+    exploration.plot_profit_classes()
+    exploration.get_dist_figure("gross_profit_usd", movies_df, "Gross Profit")
+   
     
     #uk gross class
-    uk_lst = ['< $1m (Small)', '$1m < $5m', '$5m < $15m', '$15m < $50m', ' > $50m (Big)' ]
-    exploration.get_success_figure("uk_gross_class", uk_lst, "uk_gross_usd", movies_df, "UK Takings")
-     
+    uk_lst =  ['< $1m (Small)', '$1m < $8m', '$8m < $20m', '$20m < $50m', '> $50m (Big)' ]
+    #exploration.get_success_figure("uk_gross_class", uk_lst, "uk_gross_usd", movies_df, "UK Takings")
+    exploration.plot_uk_taking_classes()
+    exploration.get_dist_figure("uk_gross_usd", movies_df, "UK Takings") 
+    
+    
     #return percentage
-    return_lst = ['< %0 (Flop)', '%0-100%', '%100-%400', '%400-%1000', '> %1000 (BlockBuster)']
-    exploration.get_success_figure("return_class", return_lst, "return_percentage", movies_df, "Return Percentage", False)
+    return_lst = ['< %0 (Flop)', '0% - 290%', '100% - 540%', '540% - 1000%', '> 1000% (BlockBuster)']
+    #exploration.get_success_figure("return_class", return_lst, "return_percentage", movies_df, "Return Percentage", False)
+    exploration.plot_return_classes()
+    exploration.get_dist_figure("return_percentage", movies_df, "Return Percentage ")
+    
     
     #uk percentage
-    uk_percentage_lst = ['0% - 2%', '2% - 4%', '4% - 6%', '6% - 12%', '> 12%']   
-    exploration.get_success_figure("uk_percentage_class", uk_percentage_lst, "uk_percentage", movies_df, "UK Percentage", False)
+    uk_percentage_lst = ['0% - 1%', '1% - 4%', '4% - 6%', '6% - 12%', '> 12%']
+    #exploration.get_success_figure("uk_percentage_class", uk_percentage_lst, "uk_percentage", movies_df, "UK Percentage", False)
+    exploration.plot_uk_classes()
+    exploration.get_dist_figure("uk_percentage", movies_df, "UK Percentage")
+
 
     #get bar distributions
     
@@ -146,91 +172,96 @@ def twitter_exploration(df):
     #get correlations of key feilds
     exploration.generate_heatmap_from_df(correl_df, correl_df.columns, "TEST")
     
+    exploration.get_dist_figure("tweet_count", describe_df, "Tweet Count", money=False)
+    exploration.get_dist_figure("critical_period_tweet_count", describe_df, "Critical Period Tweets", money=False)
+    exploration.get_dist_figure("run_up_tweets", describe_df, "Run Up Tweets", money=False)
+    exploration.get_dist_figure("opening_tweets", describe_df, "Opening Weekend Tweets", money=False)
+    
    # g = sns.lmplot(x="uk_gross_usd", y="tweet_count", hue="profit_class", data=df)
     #profit class
-    g = sns.lmplot(x="uk_gross_usd", y="tweet_count", hue="profit_class", data=df, fit_reg=False)
-    sns.regplot(x="uk_gross_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="uk_gross_usd", y="tweet_count", hue="profit_class", data=df, fit_reg=False)
+    # sns.regplot(x="uk_gross_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
     
-    g = sns.lmplot(x="budget_usd", y="tweet_count", hue="profit_class", data=df, fit_reg=False)
-    sns.regplot(x="budget_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="budget_usd", y="tweet_count", hue="profit_class", data=df, fit_reg=False)
+    # sns.regplot(x="budget_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
     
-    g = sns.lmplot(x="gross_profit_usd", y="tweet_count", hue="profit_class", data=df, fit_reg=False)
-    sns.regplot(x="gross_profit_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="gross_profit_usd", y="tweet_count", hue="profit_class", data=df, fit_reg=False)
+    # sns.regplot(x="gross_profit_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
     
-    g = sns.lmplot(x="return_percentage", y="tweet_count", hue="profit_class", data=df, fit_reg=False)
-    sns.regplot(x="return_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="return_percentage", y="tweet_count", hue="profit_class", data=df, fit_reg=False)
+    # sns.regplot(x="return_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
        
-    g = sns.lmplot(x="uk_percentage", y="tweet_count", hue="profit_class", data=df, fit_reg=False)
-    sns.regplot(x="uk_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="uk_percentage", y="tweet_count", hue="profit_class", data=df, fit_reg=False)
+    # sns.regplot(x="uk_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
     
-    #return class
-    g = sns.lmplot(x="uk_gross_usd", y="tweet_count", hue="return_class", data=df, fit_reg=False)
-    sns.regplot(x="uk_gross_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # #return class
+    # g = sns.lmplot(x="uk_gross_usd", y="tweet_count", hue="return_class", data=df, fit_reg=False)
+    # sns.regplot(x="uk_gross_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
     
-    g = sns.lmplot(x="budget_usd", y="tweet_count", hue="return_class", data=df, fit_reg=False)
-    sns.regplot(x="budget_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="budget_usd", y="tweet_count", hue="return_class", data=df, fit_reg=False)
+    # sns.regplot(x="budget_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
     
-    g = sns.lmplot(x="gross_profit_usd", y="tweet_count", hue="return_class", data=df, fit_reg=False)
-    sns.regplot(x="gross_profit_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="gross_profit_usd", y="tweet_count", hue="return_class", data=df, fit_reg=False)
+    # sns.regplot(x="gross_profit_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
     
-    g = sns.lmplot(x="return_percentage", y="tweet_count", hue="return_class", data=df, fit_reg=False)
-    sns.regplot(x="return_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="return_percentage", y="tweet_count", hue="return_class", data=df, fit_reg=False)
+    # sns.regplot(x="return_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
        
-    g = sns.lmplot(x="uk_percentage", y="tweet_count", hue="return_class", data=df, fit_reg=False)
-    sns.regplot(x="uk_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="uk_percentage", y="tweet_count", hue="return_class", data=df, fit_reg=False)
+    # sns.regplot(x="uk_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
     
-    #uk percentage class
-    g = sns.lmplot(x="uk_gross_usd", y="tweet_count", hue="uk_percentage_class", data=df, fit_reg=False)
-    sns.regplot(x="uk_gross_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # #uk percentage class
+    # g = sns.lmplot(x="uk_gross_usd", y="tweet_count", hue="uk_percentage_class", data=df, fit_reg=False)
+    # sns.regplot(x="uk_gross_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
     
-    g = sns.lmplot(x="budget_usd", y="tweet_count", hue="uk_percentage_class", data=df, fit_reg=False)
-    sns.regplot(x="budget_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="budget_usd", y="tweet_count", hue="uk_percentage_class", data=df, fit_reg=False)
+    # sns.regplot(x="budget_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
     
-    g = sns.lmplot(x="gross_profit_usd", y="tweet_count", hue="uk_percentage_class", data=df, fit_reg=False)
-    sns.regplot(x="gross_profit_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="gross_profit_usd", y="tweet_count", hue="uk_percentage_class", data=df, fit_reg=False)
+    # sns.regplot(x="gross_profit_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
     
-    g = sns.lmplot(x="return_percentage", y="tweet_count", hue="uk_percentage_class", data=df, fit_reg=False)
-    sns.regplot(x="return_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="return_percentage", y="tweet_count", hue="uk_percentage_class", data=df, fit_reg=False)
+    # sns.regplot(x="return_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
        
-    g = sns.lmplot(x="uk_percentage", y="tweet_count", hue="uk_percentage_class", data=df, fit_reg=False)
-    sns.regplot(x="uk_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="uk_percentage", y="tweet_count", hue="uk_percentage_class", data=df, fit_reg=False)
+    # sns.regplot(x="uk_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
     
-    #budget_class
-    g = sns.lmplot(x="uk_gross_usd", y="tweet_count", hue="budget_class", data=df, fit_reg=False)
-    sns.regplot(x="uk_gross_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # #budget_class
+    # g = sns.lmplot(x="uk_gross_usd", y="tweet_count", hue="budget_class", data=df, fit_reg=False)
+    # sns.regplot(x="uk_gross_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
     
-    g = sns.lmplot(x="budget_usd", y="tweet_count", hue="budget_class", data=df, fit_reg=False)
-    sns.regplot(x="budget_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="budget_usd", y="tweet_count", hue="budget_class", data=df, fit_reg=False)
+    # sns.regplot(x="budget_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
     
-    g = sns.lmplot(x="gross_profit_usd", y="tweet_count", hue="budget_class", data=df, fit_reg=False)
-    sns.regplot(x="gross_profit_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="gross_profit_usd", y="tweet_count", hue="budget_class", data=df, fit_reg=False)
+    # sns.regplot(x="gross_profit_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
     
-    g = sns.lmplot(x="return_percentage", y="tweet_count", hue="budget_class", data=df, fit_reg=False)
-    sns.regplot(x="return_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="return_percentage", y="tweet_count", hue="budget_class", data=df, fit_reg=False)
+    # sns.regplot(x="return_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
        
-    g = sns.lmplot(x="uk_percentage", y="tweet_count", hue="budget_class", data=df, fit_reg=False)
-    sns.regplot(x="uk_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="uk_percentage", y="tweet_count", hue="budget_class", data=df, fit_reg=False)
+    # sns.regplot(x="uk_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
     
-    #uk gross class
-    g = sns.lmplot(x="uk_gross_usd", y="tweet_count", hue="uk_gross_class", data=df, fit_reg=False)
-    sns.regplot(x="uk_gross_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # #uk gross class
+    # g = sns.lmplot(x="uk_gross_usd", y="tweet_count", hue="uk_gross_class", data=df, fit_reg=False)
+    # sns.regplot(x="uk_gross_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
     
-    g = sns.lmplot(x="budget_usd", y="tweet_count", hue="uk_gross_class", data=df, fit_reg=False)
-    sns.regplot(x="budget_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="budget_usd", y="tweet_count", hue="uk_gross_class", data=df, fit_reg=False)
+    # sns.regplot(x="budget_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
     
-    g = sns.lmplot(x="gross_profit_usd", y="tweet_count", hue="uk_gross_class", data=df, fit_reg=False)
-    sns.regplot(x="gross_profit_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="gross_profit_usd", y="tweet_count", hue="uk_gross_class", data=df, fit_reg=False)
+    # sns.regplot(x="gross_profit_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
     
-    g = sns.lmplot(x="return_percentage", y="tweet_count", hue="uk_gross_class", data=df, fit_reg=False)
-    sns.regplot(x="return_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
+    # g = sns.lmplot(x="return_percentage", y="tweet_count", hue="uk_gross_class", data=df, fit_reg=False)
+    # sns.regplot(x="return_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
        
-    g = sns.lmplot(x="uk_percentage", y="tweet_count", hue="uk_gross_class", data=df, fit_reg=False)
-    sns.regplot(x="uk_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])   
+    # g = sns.lmplot(x="uk_percentage", y="tweet_count", hue="uk_gross_class", data=df, fit_reg=False)
+    # sns.regplot(x="uk_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])   
     # return df
     return summary_df_t
 
-def get_correlation_for_tweets(full_week = False, week_inc_weekend = False):
-    correl_df = movie_helper.get_weekend_tweets_takings_correltation(full_week=full_week, week_inc_weekend=week_inc_weekend)
+def get_correlation_for_tweets(full_week = False, week_inc_weekend = False, senti_class = None):
+    correl_df = movie_helper.get_weekend_tweets_takings_correltation(full_week=full_week, week_inc_weekend=week_inc_weekend, senti_class = senti_class)
     
     #only take perasons
     correl_df = correl_df[(correl_df["method"] == 'pearson') | (correl_df["method"] == 'NA')]
@@ -293,28 +324,60 @@ def get_interesting_cases():
     return_df = return_df.append(smallest_budget_df)
     
     #lowest budget successful
-    where = "profit_class = ' > $300m (BlockBuster)'"
-    lowest_budget_successful_df = movie_helper.get_lowest_by_column('budget_usd', 1, where)
+    where = "profit_class = '> $700m (BlockBuster)'"
+    lowest_budget_successful_df = movie_helper.get_lowest_by_column('budget_usd', 2, where)
     lowest_budget_successful_df['reason'] = 'lowest budget successful'
     return_df = return_df.append(lowest_budget_successful_df)
     
+    #lowest budget high return 
+    where = "profit_class = '> 1000% (BlockBuster)'"
+    lowest_budget_return_df = movie_helper.get_lowest_by_column('budget_usd', 2, where)
+    lowest_budget_return_df['reason'] = 'lowest budget return'
+    return_df = return_df.append(lowest_budget_successful_df)   
+    
     #poorly performing movies who did well in the uk
-    where = "(profit_class = '< $0 (Flop)' or return_class = '< %0 (Flop)' or return_class = '%0-100%')"
+    where = "(profit_class = '< $0 (Flop)' or return_class = '< %0 (Flop)' or return_class = '0% - 290%')"
     bad_uk_success_df = movie_helper.get_top_by_column('uk_percentage', 2, where)
     bad_uk_success_df['reason'] = 'bad film who did well in uk'
     return_df = return_df.append(bad_uk_success_df)
     
     #good movies that under performed in the uk
-    where = "(profit_class = ' > $300m (BlockBuster)' or profit_class = '$150m < $300m' or return_class = '> %1000 (BlockBuster)' or return_class = '%400-%1000')"
+    where = "(profit_class = ' > $700m (BlockBuster)' or profit_class = '$235m < $700m' or return_class = '> 1000% (BlockBuster)' or return_class = '540% - %1000')"
     good_bad_uk_df = movie_helper.get_lowest_by_column('uk_percentage', 2, where)
     good_bad_uk_df['reason'] = 'good movies that underperformed in the uk'
     return_df = return_df.append(good_bad_uk_df)
+    
+    #Green book
+    #low budget, blockbuster, 
+    green_book_df = database_helper.select_query("movies", {"movieId" : 142})
+    green_book_df["reason"] = "low budget, high return, and low two week takings"    
+    return_df = return_df.append(green_book_df)
+    
+    #toy story
+    toy_story_df = database_helper.select_query("movies", {"movieId" : 11})
+    toy_story_df["reason"] = "Slow burner, animation, big budget" 
+    return_df = return_df.append(toy_story_df)    
+    
+    #it
+    it_df = database_helper.select_query("movies", {"movieId" : 5})
+    it_df["reason"] = "Fast burner, good uk return"
+    return_df = return_df.append(it_df)    
+    
+    return_df["tweet_count"] = return_df.apply(lambda row: movie_helper.count_tweets(row.movieId)['count'], axis = 1)
+    return_df["critical_period_tweet_count"] = return_df.apply(lambda row: movie_helper.count_tweets(row["movieId"], row["critical_start"], row["critical_end"])['count'], axis = 1)
+    
+    #it - high two week takings but still took alot in uk
+    
     
     return return_df.reset_index(drop=True)
 
 def analyse_special_cases():
     special_cases_df = get_interesting_cases()
-    special_cases = movie_helper.gen_movies(special_cases_df)
+    
+    unique_df = special_cases_df.drop_duplicates(subset="movieId", inplace=False, keep="first")
+    
+    
+    special_cases = movie_helper.gen_movies(unique_df)
     
     #explore heatmaps and tweet correlations for special cases
     for movie in special_cases:
@@ -322,21 +385,22 @@ def analyse_special_cases():
         movie.plot_weekend_revenue_mojo_vs_tweets(full_week=True)
         movie.plot_time_map()
         movie.plot_heated_time_map()
+        movie.plot_tweets_over_time()
         
-        opening_start = movie.mojo_box_office_df.iloc[0]['start_date']
-        opening_end = movie.mojo_box_office_df.iloc[0]['end_date']
-        movie.plot_time_map(start_date = opening_start, end_date = opening_end)
-        movie.plot_heated_time_map(start_date = opening_start, end_date = opening_end)
+        # opening_start = movie.mojo_box_office_df.iloc[0]['start_date']
+        # opening_end = movie.mojo_box_office_df.iloc[0]['end_date']
+        # movie.plot_time_map(start_date = opening_start, end_date = opening_end)
+        # movie.plot_heated_time_map(start_date = opening_start, end_date = opening_end)
         
-        run_up_start = datetime.combine((opening_start  - timedelta(days=7)), datetime.min.time())
-        run_up_end = datetime.combine((opening_start - timedelta(days=1)), datetime.max.time())
-        movie.plot_time_map(start_date = run_up_start, end_date = run_up_end)
-        movie.plot_heated_time_map(start_date = run_up_start, end_date = run_up_end)
+        # run_up_start = datetime.combine((opening_start  - timedelta(days=7)), datetime.min.time())
+        # run_up_end = datetime.combine((opening_start - timedelta(days=1)), datetime.max.time())
+        # movie.plot_time_map(start_date = run_up_start, end_date = run_up_end)
+        # movie.plot_heated_time_map(start_date = run_up_start, end_date = run_up_end)
         
-        critical_start = movie.critical_start
-        critical_end = movie.critical_end
-        movie.plot_time_map(start_date = critical_start, end_date = critical_end)
-        movie.plot_heated_time_map(start_date = critical_start, end_date = critical_end)
+        # critical_start = movie.critical_start
+        # critical_end = movie.critical_end
+        # movie.plot_time_map(start_date = critical_start, end_date = critical_end)
+        # movie.plot_heated_time_map(start_date = critical_start, end_date = critical_end)
         
 def twitter_weekly():
     weekend_tweet_cor = get_correlation_for_tweets()
@@ -344,14 +408,64 @@ def twitter_weekly():
         
 def analyse_tweet_sentiment():
     movies_df = movie_helper.get_movies_df_with_opening_weekend()
-    movies_df = movie_helper.convert_financial_to_mil(movies_df)     
-        
+    movies_df = movie_helper.convert_financial_to_mil(movies_df)           
+    
+
     
     movies_df["tweet_count"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId)['count'], axis = 1)
     movies_df["positive_tweets"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId, senti_class = 'positive')['count'], axis = 1)
-    movies_df["neutral_tweets"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId, senti_class = 'positive')['count'], axis = 1)
+    movies_df["positive_percentage"] = movies_df["positive_tweets"] / movies_df["tweet_count"]
+    
+    movies_df["neutral_tweets"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId, senti_class = 'neutral')['count'], axis = 1)
+    movies_df["neutral_percentage"] = movies_df["neutral_tweets"] / movies_df["tweet_count"]
+    
+    movies_df["negative_tweets"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId, senti_class = 'negative')['count'], axis = 1)  
+    movies_df["negative_percentage"] = movies_df["negative_tweets"] / movies_df["tweet_count"]
+    
+    describe_df = movies_df[['movieId', 
+                             'tweet_count', 
+                             'positive_tweets', 
+                             'positive_percentage', 
+                             'neutral_tweets', 
+                             'neutral_percentage', 
+                             'negative_tweets', 
+                             'negative_percentage']]
     
     
+    #describe_df = df.drop(columns=drop_cols)
+    summary_df = pd.DataFrame(describe_df.describe().round(2).drop(['count']))
+    summary_df_t = summary_df.drop(columns=['movieId']).transpose()
+    describe_df = describe_df.drop(columns=['movieId'])
+    
+    exploration.plot_df_as_table(summary_df)
+    exploration.plot_df_as_table(summary_df_t)
+    exploration.plot_boxplot_for_df(describe_df)
+    exploration.plot_dist_for_df(describe_df)
+    
+    correl_df = movies_df.drop(columns=get_cols_to_drop())
+    correl_df = correl_df[['budget_usd',
+                           'gross_profit_usd', 
+                           'return_percentage', 
+                           'uk_gross_usd', 
+                           'uk_percentage', 
+                           'tweet_count', 
+                           'positive_tweets',
+                           'positive_percentage',
+                           'neutral_tweets', 
+                           'neutral_percentage',
+                           'negative_tweets',
+                           'negative_percentage']]
+
+    exploration.generate_heatmap_from_df(correl_df, correl_df.columns, "TEST")
+    
+    
+    weekend_tweet_cor_pos = get_correlation_for_tweets(senti_class = "positive")
+    weekly_tweet_cor_pos = get_correlation_for_tweets(full_week=True, senti_class = "positive")
+    
+    weekend_tweet_cor_neg = get_correlation_for_tweets(senti_class = "negative")
+    weekly_tweet_cor_neg = get_correlation_for_tweets(full_week=True, senti_class = "negative")
+    
+    return weekend_tweet_cor_neg, weekly_tweet_cor_neg
 # def twitter_exploration():
     
 #     exploration.gen_top_20_tweet_count()

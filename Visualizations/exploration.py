@@ -114,9 +114,11 @@ def plot_budget_vs_profit():
     plt.show()
     
 def plot_profit_classes():
-    sns.set(style="whitegrid")
+   # sns.set(style="whitegrid")
+    fig = plt.figure(figsize=(10, 10))
+   
     grouped_movies = movies_df.groupby(["profit_class"]).size().reset_index(name = "counts")
-    order_lst = ['< $0 (Flop)', '$0 < $50m', '$50m < $150m', '$150m < $300m', ' > $300m (BlockBuster)' ]
+    order_lst = ['< $0 (Flop)', '$0 < $90m', '$90m < $235m', '$235m < $700m', '> $700m (BlockBuster)' ]
     ax = sns.barplot(x="profit_class", y="counts", data=grouped_movies, order=order_lst)
     ax.set(xlabel='Gross Profit ($mil)', ylabel='Movie Count')
     plt.title("Movie Profit Classes")
@@ -124,9 +126,9 @@ def plot_profit_classes():
     plt.show()
     
 def plot_return_classes():
-    sns.set(style="whitegrid")
+  #  sns.set(style="whitegrid")
     grouped_movies = movies_df.groupby(["return_class"]).size().reset_index(name = "counts")
-    order_lst = ['< %0 (Flop)', '%0-100%', '%100-%400', '%400-%1000', '> %1000 (BlockBuster)']
+    order_lst = ['< %0 (Flop)', '0% - 290%', '100% - 540%', '540% - 1000%', '> 1000% (BlockBuster)']
     ax = sns.barplot(x="return_class", y="counts", data=grouped_movies, order=order_lst)
     ax.set(xlabel='Percentage Return', ylabel='Movie Count')
     plt.title("Movie Return Classes")
@@ -134,9 +136,9 @@ def plot_return_classes():
     plt.show()    
     
 def plot_uk_classes():
-    sns.set(style="whitegrid")
+ #   sns.set(style="whitegrid")
     grouped_movies = movies_df.groupby(["uk_percentage_class"]).size().reset_index(name = "counts")
-    order_lst = ['0% - 2%', '2% - 4%', '4% - 6%', '6% - 12%', '> 12%']
+    order_lst = ['0% - 1%', '1% - 4%', '4% - 6%', '6% - 12%', '> 12%']
     ax = sns.barplot(x="uk_percentage_class", y="counts", data=grouped_movies, order=order_lst)
     ax.set(xlabel='Percentage of UK Profits', ylabel='Movie Count')
     plt.title("UK Percentage Takings Classes")
@@ -144,9 +146,9 @@ def plot_uk_classes():
     plt.show()    
 
 def plot_budget_classes():
-    sns.set(style="whitegrid")
+  #  sns.set(style="whitegrid")
     grouped_movies = movies_df.groupby(["budget_class"]).size().reset_index(name = "counts")
-    order_lst = ['< $10m (Small)', '$10m < $25m', '$25m < $50m', '$50m < $150m', ' > $150m (Big)' ]
+    order_lst = ['< $10m (Small)', '$10m < $40m', '$40m < $100m', '$100m < $185m', '> 185m (Big)' ]
     ax = sns.barplot(x="budget_class", y="counts", data=grouped_movies, order=order_lst)
     ax.set(xlabel='Movie Budget ($mil)', ylabel='Movie Count')
     plt.title("Movie Budget Classes")
@@ -154,9 +156,9 @@ def plot_budget_classes():
     plt.show()
 
 def plot_uk_taking_classes():
-    sns.set(style="whitegrid")
+   # sns.set(style="whitegrid")
     grouped_movies = movies_df.groupby(["uk_gross_class"]).size().reset_index(name = "counts")
-    order_lst = ['< $1m (Small)', '$1m < $5m', '$5m < $15m', '$15m < $50m', ' > $50m (Big)' ]
+    order_lst = ['< $1m (Small)', '$1m < $8m', '$8m < $20m', '$20m < $50m', '> $50m (Big)' ]
     ax = sns.barplot(x="uk_gross_class", y="counts", data=grouped_movies, order=order_lst)
     ax.set(xlabel='Gross UK Takings ($mil)', ylabel='Movie Count')
     plt.title("UK Takings Classes")
@@ -508,7 +510,19 @@ def get_success_figure(class_col, order_list, dist_col, movies_df, title, money=
    # plt.xticks(rotation=40)
     plt.show()   
     
+def get_dist_figure(col, df, title, money=True): 
+    # https://python-graph-gallery.com/24-histogram-with-a-boxplot-on-top-seaborn/
+    f, (ax_box, ax_hist) = plt.subplots(2, sharex=True, gridspec_kw={"height_ratios": (.15, .85)}, figsize=(10, 10))
     
+    xlabel = title + " ($mil)" if money else title
+    
+    # Add a graph in each part
+    sns.boxplot(df[col], ax=ax_box)
+    sns.distplot(df[col], ax=ax_hist)
+
+    ax_box.set(xlabel='', title=title)
+    ax_hist.set(xlabel=xlabel)
+    plt.show()
 
 def correlatte_movie_stats():
     #https://towardsdatascience.com/better-heatmaps-and-correlation-matrix-plots-in-python-41445d0f2bec
@@ -582,6 +596,8 @@ def plot_boxplot_for_df(df):
     num_plots = len(df.columns)
     total_cols = 5 if num_plots >= 5 else 4
     total_rows = num_plots//total_cols
+    
+    print("{2} plots, {0} cols, {1} rows".format(total_cols, total_rows, num_plots))
     
     fig, axs = plt.subplots(nrows=total_rows, ncols=total_cols, figsize=(7*total_cols, 7*total_rows), constrained_layout=True)
     ax_count = 0

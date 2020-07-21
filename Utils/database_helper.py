@@ -200,7 +200,7 @@ def bulk_insert_df(table, df, cols):
     
 
     
-def select_geo_tweets(movieId, start_date = None, end_date = None):
+def select_geo_tweets(movieId, start_date = None, end_date = None, senti_class = None):
     sql = """
         SELECT geombng, movieid, msg, wgslat, wgslng, created_at, id, senti_class
         FROM movie_tweets2019
@@ -212,6 +212,9 @@ def select_geo_tweets(movieId, start_date = None, end_date = None):
         
     if not end_date == None:
         sql += """ AND "created_at" <= '{0}'""".format(end_date)
+    
+    if not senti_class == None:
+        sql += """ AND "senti_class" = '{0}'""".format(senti_class)
     
     df = get_geo_data(sql, 'geombng')
     return df

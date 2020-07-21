@@ -293,7 +293,7 @@ class Movie:
         plt.title("{0} Weekend Rank vs Tweet Count".format(self.title))
         plt.show()
         
-    def corellate_weekend_takings_against_tweets(self, full_week = False, week_inc_weekend = False, first_run = False, critical_period = False):
+    def corellate_weekend_takings_against_tweets(self, full_week = False, week_inc_weekend = False, first_run = False, critical_period = False, senti_class = None):
         mojo_df = self.mojo_box_office_df
         
         results = []
@@ -306,11 +306,10 @@ class Movie:
                 end = datetime.fromtimestamp(self.critical_end.timestamp())
                 
                 mojo_df = mojo_df[(mojo_df['start_date'] >= self.critical_start) & (mojo_df['end_date'] <= self.critical_end)]
-            
-            
+                       
             
             mojo_df['weekend_gross_thou'] = mojo_df['weekend_gross_usd'].replace('[\£,]', '', regex=True).astype(float) / 1000
-            mojo_df["weekend_tweet_count"] = mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"], row["end_date"]), axis = 1)
+            mojo_df["weekend_tweet_count"] = mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"], row["end_date"], senti_class), axis = 1)
               
             
             tweet_col = "weekend_tweet_count"
@@ -398,7 +397,7 @@ class Movie:
         
         return pd.DataFrame(results)
         
-    def get_geotweets_by_dates(self, start_date = None, end_date = None):
+    def get_geotweets_by_dates(self, start_date = None, end_date = None, senti_class = None):
         
         if start_date == None:
             #try two weeks prior to release
@@ -414,13 +413,15 @@ class Movie:
             end_date = datetime.combine(end_date, datetime.min.time())
         
         
-        tweets = database_helper.select_geo_tweets(self.movieId)
+        tweets = database_helper.select_geo_tweets(self.movieId, senti_class=senti_class)
+        
+
         tweets = tweets[(tweets.created_at >= start_date) & (tweets.created_at <= end_date)]
         
         return tweets
     
-    def get_geotweet_count_by_dates(self, start_date = None, end_date = None):
-        tweets = self.get_geotweets_by_dates(start_date, end_date)
+    def get_geotweet_count_by_dates(self, start_date = None, end_date = None, senti_class=None):
+        tweets = self.get_geotweets_by_dates(start_date, end_date, senti_class)
         
         return len(tweets)
         
@@ -538,14 +539,19 @@ class Movie:
         peak_dates = date_freq[date_freq.index.isin(indexes)]
            
         peak_dates['color'] = date_freq.apply(lambda row: "g" if row["date"] == self.ukReleaseDate else "r", axis=1)
-        peak_dates['label'] = date_freq.apply(lambda row: "Release Date" if row["date"] == self.ukReleaseDate else "Ohter", axis=1)
+        peak_dates['label'] = date_freq.apply(lambda row: "Release Date" if row["date"] == self.ukReleaseDate else "Other", axis=1)
         
         self.trailers_df["publishDate_date"] = self.trailers_df.apply(lambda row: row["publishDate"].date(), axis = 1)
         peak_dates['color'] = peak_dates.apply(lambda row: "b" if row["date"] in self.trailers_df["publishDate_date"].values else row['color'], axis = 1)
         peak_dates['label'] = peak_dates.apply(lambda row: "Trailer Release" if row["date"] in self.trailers_df["publishDate_date"].values else row['label'], axis = 1)
+
+        c_palette = {"Release Date" : "g", "Trailer Release" : "b", "Other" : "y"}
+        l_order = ["Release Date", "Trailer Release", "Other"]
         
         ax.plot(date_freq['date'], date_freq['count'])
-        sns.scatterplot(x="date", y="count", data=peak_dates, hue="label", ax=ax)
+        sns.scatterplot(x="date", y="count", data=peak_dates, hue="label", palette=c_palette, hue_order=l_order, ax=ax)
+
+        
 
         ax.legend()
         handles, labels = ax.get_legend_handles_labels()
