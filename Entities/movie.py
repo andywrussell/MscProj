@@ -202,24 +202,19 @@ class Movie:
         self.mojo_box_office_df['weekend_gross_thou'] = self.mojo_box_office_df['weekend_gross_usd'].replace('[\£,]', '', regex=True).astype(float) / 1000
         self.mojo_box_office_df["weekend_tweet_count"] = self.mojo_box_office_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"], row["end_date"]), axis = 1)
         
-        tweet_col = "weekend_tweet_count"
-        y_label = "Weekend Tweet Count"
-        
+        ax = self.mojo_box_office_df.plot(x="start_date", y="weekend_gross_thou", legend=False, label="Gross Takings")
+        ax.set(xlabel='Date', ylabel='Gross Takings ($thou)')
+        ax2 = ax.twinx()
+        ax2.set(ylabel = "Tweet Count")
+        self.mojo_box_office_df.plot(x="start_date", y="weekend_tweet_count", ax=ax2, legend=False, color="r", label="Weekend Tweet Count")
+      
         if full_week:
-            self.mojo_box_office_df["week_tweet_count"] = self.mojo_box_office_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"] - timedelta(days=4), row["start_date"]), axis = 1)
-            tweet_col = "week_tweet_count"
-            y_label = "Weekly Tweet Count"
-            
+            self.mojo_box_office_df["week_tweet_count"] = self.mojo_box_office_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"] - timedelta(days=4), row["start_date"]), axis = 1)       
+            self.mojo_box_office_df.plot(x="start_date", y="week_tweet_count", ax=ax2, legend=False, color="g", label="Weekly Tweet Count")
+      
         if week_inc_weekend:
             self.mojo_box_office_df["week_tweet_count_weekend"] = self.mojo_box_office_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"] - timedelta(days=4), row["end_date"]), axis = 1)
-            tweet_col = "week_tweet_count_weekend"
-        
-        
-        ax = self.mojo_box_office_df.plot(x="start_date", y="weekend_gross_thou", legend=False, label="Gross Takings")
-        ax.set(xlabel='Weekend Start Date', ylabel='Gross Takings ($thou)')
-        ax2 = ax.twinx()
-        ax2.set(ylabel = y_label)
-        self.mojo_box_office_df.plot(x="start_date", y=tweet_col, ax=ax2, legend=False, color="r", label="Tweet Count")
+            self.mojo_box_office_df.plot(x="start_date", y="week_tweet_count_weekend", ax=ax2, legend=False, color="y", label="Week (inc Weekend) Tweet Count")            
       
         lines_1, labels_1 = ax.get_legend_handles_labels()
         lines_2, labels_2 = ax2.get_legend_handles_labels()
@@ -230,7 +225,6 @@ class Movie:
         ax.legend(lines, labels, loc=0)  
 
         plt.title("{0} Weekend Takings".format(self.title))
-       # plt.xticks(rotation=40)
         plt.setp(ax.get_xticklabels(), rotation=45)
         plt.show()
         

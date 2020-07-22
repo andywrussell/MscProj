@@ -381,10 +381,9 @@ def analyse_special_cases():
     
     #explore heatmaps and tweet correlations for special cases
     for movie in special_cases:
-        movie.plot_weekend_revenue_mojo_vs_tweets()
         movie.plot_weekend_revenue_mojo_vs_tweets(full_week=True)
-        movie.plot_time_map()
-        movie.plot_heated_time_map()
+     #   movie.plot_time_map()
+     #   movie.plot_heated_time_map()
         movie.plot_tweets_over_time()
         
         # opening_start = movie.mojo_box_office_df.iloc[0]['start_date']
