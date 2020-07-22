@@ -513,6 +513,16 @@ class Movie:
         plt.cla()
         plt.close()
         
+    def get_trailer_tweet_counts(self):
+        #include day after as option
+        #search start date
+        self.trailers_df["publishDate_date"] = self.trailers_df.apply(lambda row: datetime.combine(row["publishDate"].date(), datetime.min.time()), axis = 1)
+        self.trailers_df["publishDate_date_1"] = self.trailers_df.apply(lambda row: datetime.combine(row["publishDate_date"] + timedelta(days=1), datetime.max.time()), axis=1)
+        
+        self.trailers_df["tweet_count"] = self.trailers_df.apply(lambda row: database_helper.select_geo_tweets(self.movieId, row["publishDate_date"], row["publishDate_date_1"]).shape[0], axis=1)
+        
+        return self.trailers_df["tweet_count"].sum()
+        
     def plot_tweets_over_time(self, plot_run=True, cinema_run = False, critical_period = False):
         releaseDate = self.ukReleaseDate
         endWeekend = self.first_run_end
@@ -535,9 +545,15 @@ class Movie:
         peak_dates['color'] = date_freq.apply(lambda row: "g" if row["date"] == self.ukReleaseDate else "r", axis=1)
         peak_dates['label'] = date_freq.apply(lambda row: "Release Date" if row["date"] == self.ukReleaseDate else "Other", axis=1)
         
+        #include the day after trailer release to take into account late night trailer publishes
         self.trailers_df["publishDate_date"] = self.trailers_df.apply(lambda row: row["publishDate"].date(), axis = 1)
+        self.trailers_df["publishDate_date_1"] = self.trailers_df.apply(lambda row: row["publishDate_date"] + timedelta(days=1), axis=1)
+        
         peak_dates['color'] = peak_dates.apply(lambda row: "b" if row["date"] in self.trailers_df["publishDate_date"].values else row['color'], axis = 1)
         peak_dates['label'] = peak_dates.apply(lambda row: "Trailer Release" if row["date"] in self.trailers_df["publishDate_date"].values else row['label'], axis = 1)
+
+        peak_dates['color'] = peak_dates.apply(lambda row: "b" if row["date"] in self.trailers_df["publishDate_date_1"].values else row['color'], axis = 1)
+        peak_dates['label'] = peak_dates.apply(lambda row: "Trailer Release" if row["date"] in self.trailers_df["publishDate_date_1"].values else row['label'], axis = 1)
 
         c_palette = {"Release Date" : "g", "Trailer Release" : "b", "Other" : "y"}
         l_order = ["Release Date", "Trailer Release", "Other"]
@@ -568,21 +584,28 @@ class Movie:
         date_freq = tweets.groupby('date').size().reset_index(name='count') 
         date_freq.sort_values('date')
         date_freq['date'] = pd.to_datetime(date_freq['date'], errors='coerce')
+        
         indexes, _ = scipy.signal.find_peaks(date_freq['count'], height=7, distance=2.1)    
         
         return date_freq.iloc[indexes]
     
     def get_tweet_peak_events(self):
-        print("{0} {1}".format(self.title, self.movieId))
-        
         peak_dates_count = self.get_tweet_peak_dates()
         self.trailers_df["date"] = self.trailers_df.apply(lambda row: row["publishDate"].date(), axis=1).astype('datetime64[ns]')
         
-        results_df = pd.merge(peak_dates_count, self.trailers_df[['date','youtubeId']], on='date', how='left')
+        #include +1 for trailer dates to take into account trailers where the release date is late at night
+        temp_trailers = pd.DataFrame()
+        temp_trailers = temp_trailers.append(self.trailers_df)
+        temp_trailers["date"] = temp_trailers.apply(lambda row: row["date"] + timedelta(days=1), axis=1).astype('datetime64[ns]')
+        
+        temp_trailers = temp_trailers.append(self.trailers_df)
+        temp_trailers = temp_trailers.reset_index(drop=True)
+        
+        results_df = pd.merge(peak_dates_count, temp_trailers[['date','youtubeId']], on='date', how='left')
         
         if (results_df.shape[0] > 0):
                 
-            
+            results_df["youtubeId"].fillna("NO", inplace=True)
             results_df["movie_release"] = results_df.apply(lambda row: row["date"] == self.ukReleaseDate, axis = 1)
             
     
@@ -592,6 +615,10 @@ class Movie:
             
             results_df["movie_opening_weekend"] = results_df.apply(lambda row: (opening_start <= row["date"].date()) & (opening_end >= row["date"].date()), axis=1)
             results_df = results_df.sort_values(by='count', ascending=False)
+            
+            results_df = results_df.reset_index(drop=True)
+            
+            results_df["rank"] = results_df.index + 1
             results_df["movieId"] = self.movieId
             
             return results_df
@@ -599,6 +626,7 @@ class Movie:
         else:
             dummy = {"date" : None, 
                      "count" : 0, 
+                     "youtubeId" : "NO",
                      "movie_release" : False, 
                      "movie_opening_weekend" : False, 
                      "movieId" : self.movieId}

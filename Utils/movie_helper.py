@@ -470,6 +470,16 @@ def check_run_dates_tweets():
             
     return problem_films
 
+def get_trailer_tweet_counts():
+    movies = get_movies()
+    
+    results = []
+    for movie in movies:
+        results.append({"movieId" : movie.movieId, "trailer_tweets" : movie.get_trailer_tweet_counts()})
+        
+        
+    return pd.DataFrame(results)
+
 def get_run_positive_increase():
     movies_df = get_movies_df()
     
@@ -521,10 +531,24 @@ def get_movie_tweet_events():
     movies = get_movies()
     
     events_df = pd.DataFrame()
+    all_peaks = pd.DataFrame()
+    trailer_peaks = pd.DataFrame()
+    
     for movie in movies:
-        events_df = events_df.append(movie.get_tweet_peak_events())
+        tweet_peaks = movie.get_tweet_peak_events()
         
-    return events_df.reset_index(drop=True)
+        events_df = events_df.append(tweet_peaks)
+        all_peaks = all_peaks.append(tweet_peaks.iloc[0])
+       
+        trailer_peaks = trailer_peaks.append(tweet_peaks.loc[tweet_peaks["youtubeId"] != "NO"])
+
+    results = {"all_events" : events_df.reset_index(drop=True),
+               "peak_events" : all_peaks.reset_index(drop=True),
+               "trailer_peaks" : trailer_peaks.reset_index(drop=True)}  
+      
+    return results
+
+
 
 def get_movies_df_with_opening_weekend():
     movies_df = get_movies_df()

@@ -405,6 +405,87 @@ def twitter_weekly():
     weekend_tweet_cor = get_correlation_for_tweets()
     weekly_tweet_cor = get_correlation_for_tweets(full_week=True)
         
+    
+
+def event_peak_analysis():
+    event_results = movie_helper.get_movie_tweet_events()
+
+    all_events_df = event_results["all_events"]
+    peak_events_df = event_results["peak_events"]
+    trailer_peaks_df = event_results["trailer_peaks"]
+    
+    no_peaks_df = all_events_df[(all_events_df["movie_release"] == False)
+                                & (all_events_df["movie_opening_weekend"] == False) 
+                                & (all_events_df["youtubeId"] == "NO")
+                                & (all_events_df["count"] == 0)]
+    
+    no_peaks_movies = no_peaks_df["movieId"].unique()
+
+    opening_release_peaks = peak_events_df[(peak_events_df["movie_release"] == 1) | (peak_events_df["movie_opening_weekend"] == 1)]
+    opening_release_peaks_movies = opening_release_peaks["movieId"].unique()
+
+    trailers_top_3_peaks = trailer_peaks_df[trailer_peaks_df["rank"] <= 3]
+    top_trailer_movies = trailers_top_3_peaks["movieId"].unique()
+
+    #return opening_release_peaks
+    movies_df = movie_helper.get_movies_df_with_opening_weekend()
+    movies_df = movie_helper.convert_financial_to_mil(movies_df)  
+    
+    movies_df["opening_release_peaks"] = movies_df.apply(lambda row: row["movieId"] in opening_release_peaks_movies, axis=1)
+    movies_df["trailer_peaks_top_3"] = movies_df.apply(lambda row: row["movieId"] in top_trailer_movies, axis=1)
+    
+    describe_cols = ['budget_usd','gross_profit_usd', 'return_percentage', 'uk_gross_usd', 'uk_percentage']
+    
+    films_with_release_peaks = movies_df[movies_df["opening_release_peaks"]]
+    films_without_release_peaks = movies_df[movies_df["opening_release_peaks"] == False]
+    
+    #get success factor summary for films with release peaks
+    with_release_summary_df = pd.DataFrame(films_with_release_peaks[describe_cols].describe().round(2).drop(['count']))
+    with_release_summary_df_t = with_release_summary_df.transpose()
+    
+    #get success factor summary for films without release peaks
+    without_release_summary_df = pd.DataFrame(films_without_release_peaks[describe_cols].describe().round(2).drop(['count']))
+    without_release_summary_df_t = without_release_summary_df.transpose()    
+    
+    print("{0} films have release peaks".format(films_with_release_peaks.shape[0]))
+    
+    films_with_trailer_peaks = movies_df[movies_df["trailer_peaks_top_3"]]
+    films_without_trailer_peaks = movies_df[movies_df["trailer_peaks_top_3"] == False]
+    
+    #get success factor summary for films with trailer peaks
+    with_trailer_summary_df = pd.DataFrame(films_with_trailer_peaks[describe_cols].describe().round(2).drop(['count']))
+    with_trailer_summary_df_t = with_trailer_summary_df.transpose()
+    
+    #get success factor summary for films without trailer peaks
+    without_trailer_summary_df = pd.DataFrame(films_without_trailer_peaks[describe_cols].describe().round(2).drop(['count']))
+    without_trailer_summary_df_t = without_trailer_summary_df.transpose()   
+    
+    print("{0} films with trailers in top 3 peaks".format(films_with_trailer_peaks.shape[0]))
+    
+    no_peaks_movies_df = movies_df[movies_df["movieId"].isin(no_peaks_movies)]
+    
+    print("{0} films with no peaks".format(no_peaks_movies_df.shape[0]))
+    
+    
+    #analyse trailer tweets 
+    trailer_tweets = movie_helper.get_trailer_tweet_counts()
+    
+    movies_df = pd.merge(movies_df, trailer_tweets, on='movieId', how='left')
+    
+    return_vals = {"movies_df" : movies_df,
+                   "films_with_release_peaks" : films_with_release_peaks,
+                   "with_release_summary_df_t" : with_release_summary_df_t,
+                   "films_without_release_peaks" : films_without_release_peaks,
+                   "without_release_summary_df_t" : without_release_summary_df_t,
+                   "films_with_trailer_peaks" : films_with_trailer_peaks,
+                   "with_trailer_summary_df_t" : with_trailer_summary_df_t,
+                   "films_without_trailer_peaks" : films_without_trailer_peaks,
+                   "without_trailer_summary_df_t" : without_trailer_summary_df_t}
+    
+    return return_vals
+    
+    
+
 def analyse_tweet_sentiment():
     movies_df = movie_helper.get_movies_df_with_opening_weekend()
     movies_df = movie_helper.convert_financial_to_mil(movies_df)           
