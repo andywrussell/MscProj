@@ -521,10 +521,20 @@ def analyse_tweet_sentiment():
     
     #total tweets
     movies_df["tweet_count"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId)['count'], axis = 1)
-    movies_df["positive_tweets"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId, senti_class = 'positive')['count'], axis = 1)    
-    movies_df["neutral_tweets"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId, senti_class = 'neutral')['count'], axis = 1)    
+    movies_df["positive_tweets"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId, senti_class = 'positive')['count'], axis = 1)
+    movies_df["positive_tweets_percentage"] = (movies_df["positive_tweets"] / movies_df["tweet_count"]) * 100   
+    movies_df["neutral_tweets"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId, senti_class = 'neutral')['count'], axis= 1)  
+    movies_df["neutral_tweets_percentage"] = (movies_df["neutral_tweets"] / movies_df["tweet_count"]) * 100
     movies_df["negative_tweets"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId, senti_class = 'negative')['count'], axis = 1)  
+    movies_df["negative_tweets_percentage"] = (movies_df["negative_tweets"] / movies_df["tweet_count"]) * 100
 
+    movies_df["critical_period_tweet_count"] = movies_df.apply(lambda row: movie_helper.count_tweets(row["movieId"], row["critical_start"], row["critical_end"])['count'], axis = 1)
+    movies_df["critical_period_tweet_pos"] = movies_df.apply(lambda row: movie_helper.count_tweets(row["movieId"], row["critical_start"], row["critical_end"], senti_class = 'positive')['count'], axis = 1)
+    movies_df["critical_period_pos_percentage"] = (movies_df["critical_period_tweet_pos"] / movies_df["critical_period_tweet_count"]) * 100
+    movies_df["critical_period_tweet_neu"] = movies_df.apply(lambda row: movie_helper.count_tweets(row["movieId"], row["critical_start"], row["critical_end"], senti_class = 'neutral')['count'], axis = 1)
+    movies_df["critical_period_neu_percentage"] = (movies_df["critical_period_tweet_neu"] / movies_df["critical_period_tweet_count"]) * 100
+    movies_df["critical_period_tweet_neg"] = movies_df.apply(lambda row: movie_helper.count_tweets(row["movieId"], row["critical_start"], row["critical_end"], senti_class = 'negative')['count'], axis = 1)
+    movies_df["critical_period_neg_percentage"] = (movies_df["critical_period_tweet_neg"] / movies_df["critical_period_tweet_count"]) * 100
 
     #print general spread of tweets
     senti_df = [{"count" : movies_df["positive_tweets"].sum(), "class" : "positive"},
@@ -572,84 +582,71 @@ def analyse_tweet_sentiment():
         plt.title("Tweet Sentiment by " + class_title)
         plt.xticks(rotation=40)
         plt.show()
-        
-    return class_sent_df
     
-    #print success class spread of tweet sentiment
-   # ax.set_xticklabels(order_list, rotation=40)
     
-  #   total_pos = movies_df["positive_tweets"].sum()
-  #   total_neu = movies_df["neutral_tweets"].sum()
-  #   total_neg = movies_df["negative_tweets"].sum()
+    describe_df = movies_df[['movieId', 
+                             'tweet_count',
+                             'positive_tweets',
+                             'neutral_tweets',
+                             'negative_tweets',
+                             'critical_period_tweet_count', 
+                             'critical_period_tweet_pos', 
+                             'critical_period_tweet_neu',
+                             'critical_period_tweet_neg',
+                             'run_up_tweets',
+                             'run_up_tweets_pos',
+                             'run_up_tweets_neu',
+                             'run_up_tweets_neg',
+                             'opening_tweets', 
+                             'opening_tweets_pos', 
+                             'opening_tweets_neu', 
+                             'opening_tweets_neg']]
+    
+    
 
-  #   #critical tweets
-  #   movies_df["critical_period_tweet_count"] = movies_df.apply(lambda row: movie_helper.count_tweets(row["movieId"], row["critical_start"], row["critical_end"])['count'], axis = 1)
-  #   movies_df["critical_period_tweet_pos"] = movies_df.apply(lambda row: movie_helper.count_tweets(row["movieId"], row["critical_start"], row["critical_end"], senti_class = 'positive')['count'], axis = 1)
-  #   movies_df["critical_period_tweet_neu"] = movies_df.apply(lambda row: movie_helper.count_tweets(row["movieId"], row["critical_start"], row["critical_end"], senti_class = 'neutral')['count'], axis = 1)
-  #   movies_df["critical_period_tweet_neg"] = movies_df.apply(lambda row: movie_helper.count_tweets(row["movieId"], row["critical_start"], row["critical_end"], senti_class = 'negative')['count'], axis = 1)
+    summary_df = pd.DataFrame(describe_df.describe().round(2).drop(['count']))
+    summary_df_t = summary_df.drop(columns=['movieId']).transpose()
     
-  #   #
+    exploration.plot_df_as_table(summary_df_t)
     
-  #   describe_df = movies_df[['movieId', 
-  #                            'tweet_count', 
-  #                            'positive_tweets', 
-  #                            'neutral_tweets', 
-  #                            'negative_tweets',
-  #                            'critical_period_tweet_count', 
-  #                            'critical_period_tweet_pos', 
-  #                            'critical_period_tweet_neu', 
-  #                            'critical_period_tweet_neg',
-  #                            'run_up_tweets', 
-  #                            'run_up_tweets_pos', 
-  #                            'run_up_tweets_neu', 
-  #                            'run_up_tweets_neg',
-  #                            'opening_tweets', 
-  #                            'opening_tweets_pos', 
-  #                            'opening_tweets_neu', 
-  #                            'opening_tweets_neg']]
-    
-    
-  #   #describe_df = df.drop(columns=drop_cols)
-  #   summary_df = pd.DataFrame(describe_df.describe().round(2).drop(['count']))
-  #   summary_df_t = summary_df.drop(columns=['movieId']).transpose()
-  #   describe_df = describe_df.drop(columns=['movieId'])
-    
-  #   exploration.plot_df_as_table(summary_df)
-  #   exploration.plot_df_as_table(summary_df_t)
-  #  # exploration.plot_boxplot_for_df(describe_df)
-  #   #exploration.plot_dist_for_df(describe_df)
-    
-  # #  correl_df = movies_df.drop(columns=get_cols_to_drop())
-  #   correl_df = movies_df[['budget_usd',
-  #                          'gross_profit_usd', 
-  #                          'return_percentage', 
-  #                          'uk_gross_usd', 
-  #                          'uk_percentage', 
-  #                           'tweet_count', 
-  #                           'positive_tweets', 
-  #                           'neutral_tweets', 
-  #                           'negative_tweets',
-  #                           'critical_period_tweet_count', 
-  #                           'critical_period_tweet_pos', 
-  #                           'critical_period_tweet_neu', 
-  #                           'critical_period_tweet_neg',
-  #                           'run_up_tweets', 
-  #                           'run_up_tweets_pos', 
-  #                           'run_up_tweets_neu', 
-  #                           'run_up_tweets_neg',
-  #                           'opening_tweets', 
-  #                           'opening_tweets_pos', 
-  #                           'opening_tweets_neu', 
-  #                           'opening_tweets_neg']]
+    correl_df = movies_df[['budget_usd',
+                           'gross_profit_usd', 
+                            'return_percentage', 
+                            'uk_gross_usd', 
+                            'uk_percentage', 
+                             'critical_period_tweet_count', 
+                             'critical_period_tweet_pos', 
+                             'critical_period_tweet_neu', 
+                             'critical_period_tweet_neg',
+                             'opening_tweets', 
+                             'opening_tweets_pos', 
+                             'opening_tweets_neu', 
+                             'opening_tweets_neg']]
 
-  #   exploration.generate_heatmap_from_df(correl_df, correl_df.columns, "TEST")
+    exploration.generate_heatmap_from_df(correl_df, correl_df.columns, "TEST")
     
+    weekend_tweet_cor_pos = get_correlation_for_tweets(senti_class = "positive")
+    weekly_tweet_cor_pos = get_correlation_for_tweets(full_week=True, senti_class = "positive")
     
-  #   weekend_tweet_cor_pos = get_correlation_for_tweets(senti_class = "positive")
-  #   weekly_tweet_cor_pos = get_correlation_for_tweets(full_week=True, senti_class = "positive")
+    weekend_tweet_cor_neg = get_correlation_for_tweets(senti_class = "negative")
+    weekly_tweet_cor_neg = get_correlation_for_tweets(full_week=True, senti_class = "negative")    
     
-  #   weekend_tweet_cor_neg = get_correlation_for_tweets(senti_class = "negative")
-  #   weekly_tweet_cor_neg = get_correlation_for_tweets(full_week=True, senti_class = "negative")
+    weekend_tweet_cor_neu = get_correlation_for_tweets(senti_class = "neutral")
+    weekly_tweet_cor_neu = get_correlation_for_tweets(full_week=True, senti_class = "neutral") 
+    
+    results = {"movies_df" : movies_df, 
+               "class_sent_df" : class_sent_df,
+               "summary_df_t" : summary_df_t,
+               "correl_df" : correl_df,
+               "weekend_tweet_cor_pos" : weekend_tweet_cor_pos,
+               "weekly_tweet_cor_pos" : weekly_tweet_cor_pos,
+               "weekend_tweet_cor_neg" : weekend_tweet_cor_neg,
+               "weekly_tweet_cor_neg" : weekly_tweet_cor_neg,
+               "weekend_tweet_cor_neu" : weekend_tweet_cor_neu}
+    
+    return results
+    
+
     
   #   return weekend_tweet_cor_neg, weekly_tweet_cor_neg
 # def twitter_exploration():

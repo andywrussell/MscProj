@@ -616,13 +616,19 @@ def get_movies_df_with_opening_weekend():
         
     movies_df['run_up_tweets'] = tweets_prior_to_opening
     movies_df['run_up_tweets_pos'] = pos_tweets_prior_to_opening
+    movies_df['run_up_pos_percentage'] = (movies_df["run_up_tweets_pos"] / movies_df["run_up_tweets"]) * 100
     movies_df['run_up_tweets_neu'] = neu_tweets_prior_to_opening
+    movies_df['run_up_neu_percentage'] = (movies_df["run_up_tweets_neu"] / movies_df["run_up_tweets"]) * 100
     movies_df['run_up_tweets_neg'] = neg_tweets_prior_to_opening
+    movies_df['run_up_neg_percentage'] = (movies_df["run_up_tweets_neg"] / movies_df["run_up_tweets"]) * 100
     
     movies_df['opening_tweets'] = opening_weekend_tweets
     movies_df['opening_tweets_pos'] = pos_opening_weekend_tweets
+    movies_df['opening_pos_percentage'] = (movies_df["opening_tweets_pos"] / movies_df["opening_tweets"]) * 100
     movies_df['opening_tweets_neu'] = neu_opening_weekend_tweets
+    movies_df['opening_neu_percentage'] = (movies_df["opening_tweets_neu"] / movies_df["opening_tweets"]) * 100
     movies_df['opening_tweets_neg'] = neg_opening_weekend_tweets
+    movies_df['opening_neg_percentage'] = (movies_df["opening_tweets_neg"] / movies_df["opening_tweets"]) * 100
     
     return movies_df
 

@@ -561,6 +561,47 @@ class Movie:
         ax.plot(date_freq['date'], date_freq['count'])
         sns.scatterplot(x="date", y="count", data=peak_dates, hue="label", palette=c_palette, hue_order=l_order, ax=ax)
 
+    def plot_tweets_and_sentiment_over_time(self, plot_run=True, cinema_run = False, critical_period = False):
+        releaseDate = self.ukReleaseDate
+        endWeekend = self.first_run_end
+       # endWeekend = self.box_office_df.iloc[self.box_office_df['weeksOnRelease'].idxmax()].weekendEnd
+        fig, ax = plt.subplots()
+        if plot_run:
+            ax.axvspan(*mdates.datestr2num([str(releaseDate), str(endWeekend)]), color='skyblue', alpha=0.5)
+        
+        tweets = self.get_geotweets_by_dates() if cinema_run else database_helper.select_geo_tweets(self.movieId)
+        tweets =  database_helper.select_geo_tweets(self.movieId, self.critical_start, self.critical_end) if critical_period else tweets
+
+        tweets['date'] = tweets['created_at'].dt.date
+        date_freq = tweets.groupby(['date', 'senti_class']).size().reset_index(name='count') 
+        date_freq.sort_values('date')
+        date_freq['date'] = pd.to_datetime(date_freq['date'], errors='coerce')
+        
+        senti_class = ["positive", "negative", "neutral"]
+        for sentiment in senti_class:
+            sent_tweets = date_freq[date_freq["senti_class"]==sentiment].reset_index(drop=True)
+        
+            indexes, _ = scipy.signal.find_peaks(sent_tweets['count'], height=7, distance=2.1)
+            peak_dates = sent_tweets[sent_tweets.index.isin(indexes)]
+               
+            peak_dates['color'] = sent_tweets.apply(lambda row: "g" if row["date"] == self.ukReleaseDate else "r", axis=1)
+            peak_dates['label'] = sent_tweets.apply(lambda row: "Release Date" if row["date"] == self.ukReleaseDate else "Other", axis=1)
+            
+            #include the day after trailer release to take into account late night trailer publishes
+            self.trailers_df["publishDate_date"] = self.trailers_df.apply(lambda row: row["publishDate"].date(), axis = 1)
+            self.trailers_df["publishDate_date_1"] = self.trailers_df.apply(lambda row: row["publishDate_date"] + timedelta(days=1), axis=1)
+            
+            peak_dates['color'] = peak_dates.apply(lambda row: "b" if row["date"] in self.trailers_df["publishDate_date"].values else row['color'], axis = 1)
+            peak_dates['label'] = peak_dates.apply(lambda row: "Trailer Release" if row["date"] in self.trailers_df["publishDate_date"].values else row['label'], axis = 1)
+    
+            peak_dates['color'] = peak_dates.apply(lambda row: "b" if row["date"] in self.trailers_df["publishDate_date_1"].values else row['color'], axis = 1)
+            peak_dates['label'] = peak_dates.apply(lambda row: "Trailer Release" if row["date"] in self.trailers_df["publishDate_date_1"].values else row['label'], axis = 1)
+    
+            c_palette = {"Release Date" : "g", "Trailer Release" : "b", "Other" : "y"}
+            l_order = ["Release Date", "Trailer Release", "Other"]
+            
+            ax.plot(sent_tweets['date'], sent_tweets['count'])
+            sns.scatterplot(x="date", y="count", data=peak_dates, hue="label", palette=c_palette, hue_order=l_order, ax=ax)
         
 
         ax.legend()
