@@ -557,7 +557,16 @@ def get_movies_df_with_opening_weekend():
     
     
     tweets_prior_to_opening = [] 
+    
+    pos_tweets_prior_to_opening = []
+    neu_tweets_prior_to_opening = []
+    neg_tweets_prior_to_opening = []
+    
     opening_weekend_tweets = []
+    
+    pos_opening_weekend_tweets = []
+    neu_opening_weekend_tweets = []
+    neg_opening_weekend_tweets = []
     
     for index, row in movies_df.iterrows():
         mojo_df = database_helper.select_query("weekend_box_office_mojo", {"movieid" : row['movieId']})
@@ -568,27 +577,52 @@ def get_movies_df_with_opening_weekend():
         prev_week = datetime.combine((opening_start  - timedelta(days=7)), datetime.min.time())
         prev_end = datetime.combine((opening_start - timedelta(days=1)), datetime.max.time())
 
-
+        #check run up tweets
         run_up_count = count_tweets(row['movieId'], prev_week, prev_end)
-        if run_up_count.empty:
-            run_up_count = 0
-        else: 
-            run_up_count = run_up_count.iloc[0]['count']
+        pos_run_up_count = count_tweets(row['movieId'], prev_week, prev_end, senti_class="positive")
+        neu_run_up_count = count_tweets(row['movieId'], prev_week, prev_end, senti_class="neutral")
+        neg_run_up_count = count_tweets(row['movieId'], prev_week, prev_end, senti_class="negative")
+
+        #check for empty results
+        run_up_count = run_up_count.iloc[0]['count'] if not run_up_count.empty else 0
+        pos_run_up_count = pos_run_up_count.iloc[0]['count'] if not pos_run_up_count.empty else 0
+        neu_run_up_count = neu_run_up_count.iloc[0]['count'] if not neu_run_up_count.empty else 0
+        neg_run_up_count = neg_run_up_count.iloc[0]['count'] if not neg_run_up_count.empty else 0
         
+        #search opening weekend tweets
         opening_start = datetime.combine(opening_start, datetime.min.time())
         opening_end = datetime.combine(opening_end, datetime.max.time())
         
         opening_count = count_tweets(row['movieId'], opening_start, opening_end)
-        if opening_count.empty:
-            opening_count = 0
-        else: 
-            opening_count = opening_count.iloc[0]['count'] 
+        pos_opening_count = count_tweets(row['movieId'], opening_start, opening_end, senti_class="positive")
+        neu_opening_count = count_tweets(row['movieId'], opening_start, opening_end, senti_class="neutral")
+        neg_opening_count = count_tweets(row['movieId'], opening_start, opening_end, senti_class="negative")
+        
+        #check for empty results
+        opening_count = opening_count.iloc[0]['count'] if not opening_count.empty else 0
+        pos_opening_count = pos_opening_count.iloc[0]['count'] if not pos_opening_count.empty else 0
+        neu_opening_count = neu_opening_count.iloc[0]['count'] if not neu_opening_count.empty else 0
+        neg_opening_count = neg_opening_count.iloc[0]['count'] if not neg_opening_count.empty else 0
 
         tweets_prior_to_opening.append(run_up_count)
+        pos_tweets_prior_to_opening.append(pos_run_up_count)
+        neu_tweets_prior_to_opening.append(neu_run_up_count)
+        neg_tweets_prior_to_opening.append(neg_run_up_count)        
+        
         opening_weekend_tweets.append(opening_count)
+        pos_opening_weekend_tweets.append(pos_opening_count)
+        neu_opening_weekend_tweets.append(neu_opening_count)
+        neg_opening_weekend_tweets.append(neg_opening_count)
         
     movies_df['run_up_tweets'] = tweets_prior_to_opening
+    movies_df['run_up_tweets_pos'] = pos_tweets_prior_to_opening
+    movies_df['run_up_tweets_neu'] = neu_tweets_prior_to_opening
+    movies_df['run_up_tweets_neg'] = neg_tweets_prior_to_opening
+    
     movies_df['opening_tweets'] = opening_weekend_tweets
+    movies_df['opening_tweets_pos'] = pos_opening_weekend_tweets
+    movies_df['opening_tweets_neu'] = neu_opening_weekend_tweets
+    movies_df['opening_tweets_neg'] = neg_opening_weekend_tweets
     
     return movies_df
 
@@ -714,6 +748,39 @@ def get_weekend_tweets_takings_correltation(full_week=False, week_inc_weekend=Fa
     return results_df
         
 
+def get_tweet_senti_counts_by_class(movies_df, class_list, pos_col = "positive_tweets", neu_col = "neutral_tweets", neg_col = "negative_tweets"):
+    
+    results_df = pd.DataFrame()
+
+    for class_name in class_list:
+        pos_budget_df = movies_df.groupby([class_name])[pos_col].sum().reset_index(name="tweet_count")
+        pos_budget_df = pos_budget_df.rename(columns={class_name : 'class_val'})
+        pos_budget_df["senti_class"] = "positive"
+        pos_budget_df["class_name"] = class_name
+        
+        neg_budget_df = movies_df.groupby([class_name])[neu_col].sum().reset_index(name="tweet_count")
+        neg_budget_df = neg_budget_df.rename(columns={class_name : 'class_val'})
+        neg_budget_df["senti_class"] = "negative"
+        neg_budget_df["class_name"] = class_name
+        
+        neu_budget_df = movies_df.groupby([class_name])[neg_col].sum().reset_index(name="tweet_count")
+        neu_budget_df = neu_budget_df.rename(columns={class_name : 'class_val'})
+        neu_budget_df["senti_class"] = "neutral"
+        neu_budget_df["class_name"] = class_name
+        
+        
+        
+        results_df = results_df.append(pos_budget_df)
+        results_df = results_df.append(neg_budget_df)
+        results_df = results_df.append(neu_budget_df)
+
+    #get totals and percentage
+    grouped_sum = results_df.groupby(['class_val'])["tweet_count"].sum().reset_index(name="total")
+    results_df = results_df.merge(grouped_sum, on="class_val", how="left")
+    results_df["percentage"] = (results_df["tweet_count"] / results_df["total"]) * 100
+
+    return results_df
+
 def check_release_dates():
     movies_df = get_movies_df()
     movies_df["release_day"] = movies_df.apply(lambda row: row["ukReleaseDate"].weekday(), axis = 1)
@@ -752,4 +819,6 @@ def get_percentage_of_takings_in_first_weeks():
         updates = { "two_week_takings" : percentage }
         selects = {"movieId" : movie.movieId }
         database_helper.update_data("movies", update_params = updates, select_params = selects)
+
+
         

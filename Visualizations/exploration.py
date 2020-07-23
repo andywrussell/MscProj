@@ -564,7 +564,7 @@ def correlatte_movie_stats():
    # plt.show()
     
     generate_heatmap_from_df(df, columns)
-
+    
 
 def plot_df_as_table(df):
     #https://pythonmatplotlibtips.blogspot.com/2018/11/matplotlib-only-table.html
