@@ -742,13 +742,13 @@ def get_correlation_by_col(df, cor_col, col_list):
                 
     return pd.DataFrame(results)
 
-def get_weekend_tweets_takings_correltation(full_week=False, week_inc_weekend=False, senti_class = None):
+def get_weekend_tweets_takings_correltation(full_week=False, week_inc_weekend=False, senti_class = None, percentage = False):
     movies = get_movies()
     
     results_df = pd.DataFrame()
     
     for movie in movies:
-        correl_df = movie.corellate_weekend_takings_against_tweets(full_week=full_week, week_inc_weekend=week_inc_weekend, senti_class = senti_class)
+        correl_df = movie.corellate_weekend_takings_against_tweets(full_week=full_week, week_inc_weekend=week_inc_weekend, senti_class = senti_class, percentage = percentage)
         results_df = results_df.append(correl_df)
         
     return results_df

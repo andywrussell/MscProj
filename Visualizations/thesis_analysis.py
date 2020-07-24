@@ -260,8 +260,8 @@ def twitter_exploration(df):
     # return df
     return summary_df_t
 
-def get_correlation_for_tweets(full_week = False, week_inc_weekend = False, senti_class = None):
-    correl_df = movie_helper.get_weekend_tweets_takings_correltation(full_week=full_week, week_inc_weekend=week_inc_weekend, senti_class = senti_class)
+def get_correlation_for_tweets(full_week = False, week_inc_weekend = False, senti_class = None, percentage = False):
+    correl_df = movie_helper.get_weekend_tweets_takings_correltation(full_week=full_week, week_inc_weekend=week_inc_weekend, senti_class = senti_class, percentage = False)
     
     #only take perasons
     correl_df = correl_df[(correl_df["method"] == 'pearson') | (correl_df["method"] == 'NA')]
@@ -537,9 +537,20 @@ def analyse_tweet_sentiment():
     movies_df["critical_period_neg_percentage"] = (movies_df["critical_period_tweet_neg"] / movies_df["critical_period_tweet_count"]) * 100
 
     #print general spread of tweets
-    senti_df = [{"count" : movies_df["positive_tweets"].sum(), "class" : "positive"},
-              {"count" : movies_df["neutral_tweets"].sum(), "class" : "neutral"},
-              {"count" : movies_df["negative_tweets"].sum(), "class" : "negative"}]
+    total_pos =  movies_df["positive_tweets"].sum()
+    total_neu =  movies_df["neutral_tweets"].sum()
+    total_neg =  movies_df["negative_tweets"].sum()
+    
+    total_tweets = movies_df["tweet_count"].sum()
+    
+    print("{0} total tweets".format(total_tweets))
+    print("{0} positive tweets".format(total_pos))
+    print("{0} neutral tweets".format(total_neu))
+    print("{0} negative tweets".format(total_neg))
+    
+    senti_df = [{"count" : total_pos, "class" : "positive"},
+              {"count" : total_neu, "class" : "neutral"},
+              {"count" : total_neg, "class" : "negative"}]
     
     senti_df = pd.DataFrame(senti_df)
     ax = sns.barplot(x="class", y="count", data=senti_df, orient="v")
@@ -587,22 +598,33 @@ def analyse_tweet_sentiment():
     describe_df = movies_df[['movieId', 
                              'tweet_count',
                              'positive_tweets',
+                             'positive_tweets_percentage',
                              'neutral_tweets',
+                             'neutral_tweets_percentage',
                              'negative_tweets',
+                             'negative_tweets_percentage',
                              'critical_period_tweet_count', 
-                             'critical_period_tweet_pos', 
+                             'critical_period_tweet_pos',
+                             'critical_period_pos_percentage',
                              'critical_period_tweet_neu',
+                             'critical_period_neu_percentage',
                              'critical_period_tweet_neg',
+                             'critical_period_neg_percentage',
                              'run_up_tweets',
                              'run_up_tweets_pos',
+                             'run_up_pos_percentage',
                              'run_up_tweets_neu',
+                             'run_up_neu_percentage',
                              'run_up_tweets_neg',
+                             'run_up_neg_percentage',
                              'opening_tweets', 
-                             'opening_tweets_pos', 
-                             'opening_tweets_neu', 
-                             'opening_tweets_neg']]
-    
-    
+                             'opening_tweets_pos',
+                             'opening_pos_percentage',
+                             'opening_tweets_neu',
+                             'opening_neu_percentage',
+                             'opening_tweets_neg',
+                             'opening_pos_percentage']]
+
 
     summary_df = pd.DataFrame(describe_df.describe().round(2).drop(['count']))
     summary_df_t = summary_df.drop(columns=['movieId']).transpose()
@@ -614,35 +636,120 @@ def analyse_tweet_sentiment():
                             'return_percentage', 
                             'uk_gross_usd', 
                             'uk_percentage', 
-                             'critical_period_tweet_count', 
-                             'critical_period_tweet_pos', 
-                             'critical_period_tweet_neu', 
-                             'critical_period_tweet_neg',
-                             'opening_tweets', 
-                             'opening_tweets_pos', 
-                             'opening_tweets_neu', 
-                             'opening_tweets_neg']]
+                             'tweet_count', 
+                             'positive_tweets',
+                             'negative_tweets',
+                             'neutral_tweets',
+                             'positive_tweets_percentage',
+                             'negative_tweets_percentage',
+                             'neutral_tweets_percentage']]
 
-    exploration.generate_heatmap_from_df(correl_df, correl_df.columns, "TEST")
+    exploration.generate_heatmap_from_df(correl_df, correl_df.columns, "TEST")    
     
+    critical_correl_df = movies_df[['budget_usd',
+                           'gross_profit_usd', 
+                            'return_percentage', 
+                            'uk_gross_usd', 
+                            'uk_percentage', 
+                             'critical_period_tweet_count', 
+                             'critical_period_tweet_pos',
+                             'critical_period_tweet_neg',
+                             'critical_period_tweet_neu',
+                             'critical_period_pos_percentage',
+                             'critical_period_neg_percentage',
+                             'critical_period_neu_percentage']]
+
+    exploration.generate_heatmap_from_df(critical_correl_df, critical_correl_df.columns, "TEST")
+    
+    run_up_correl_df = movies_df[['budget_usd',
+                           'gross_profit_usd', 
+                            'return_percentage', 
+                            'uk_gross_usd', 
+                            'uk_percentage', 
+                            'run_up_tweets', 
+                             'run_up_tweets_pos',
+                             'run_up_tweets_neg',
+                             'run_up_tweets_neu',
+                             'run_up_pos_percentage',
+                             'run_up_neg_percentage',
+                             'run_up_neu_percentage']]
+    
+    exploration.generate_heatmap_from_df(run_up_correl_df, run_up_correl_df.columns, "TEST")    
+  
+  
+    opening_correl_df = movies_df[['budget_usd',
+                           'gross_profit_usd', 
+                            'return_percentage', 
+                            'uk_gross_usd', 
+                            'uk_percentage', 
+                            'opening_tweets', 
+                             'opening_tweets_pos',
+                             'opening_tweets_neg',
+                             'opening_tweets_neu',
+                             'opening_pos_percentage',
+                             'opening_neg_percentage',
+                             'opening_neu_percentage']]
+    
+    exploration.generate_heatmap_from_df(opening_correl_df, opening_correl_df.columns, "TEST")
+    
+    #positive tweet analysis
     weekend_tweet_cor_pos = get_correlation_for_tweets(senti_class = "positive")
+    weekend_tweet_cor_pos_sig = weekend_tweet_cor_pos[weekend_tweet_cor_pos["stat_significance"] == True]
+    weekend_tweet_cor_pos_sig_desc = weekend_tweet_cor_pos_sig.describe().drop(["count"])
+    weekend_tweet_cor_pos_sig_desc_t = weekend_tweet_cor_pos_sig_desc.transpose()
+    
     weekly_tweet_cor_pos = get_correlation_for_tweets(full_week=True, senti_class = "positive")
+    weekly_tweet_cor_pos_sig = weekly_tweet_cor_pos[weekly_tweet_cor_pos["stat_significance"] == True]
+    weekly_tweet_cor_pos_sig_desc = weekly_tweet_cor_pos_sig.describe().drop(["count"])
+    weekly_tweet_cor_pos_sig_desc_t = weekly_tweet_cor_pos_sig_desc.transpose()
     
+    
+    #negative tweet analysis
     weekend_tweet_cor_neg = get_correlation_for_tweets(senti_class = "negative")
-    weekly_tweet_cor_neg = get_correlation_for_tweets(full_week=True, senti_class = "negative")    
+    weekend_tweet_cor_neg_sig = weekend_tweet_cor_neg[weekend_tweet_cor_neg["stat_significance"] == True]
+    weekend_tweet_cor_neg_sig_desc = weekend_tweet_cor_neg_sig.describe().drop(["count"])
+    weekend_tweet_cor_neg_sig_desc_t = weekend_tweet_cor_neg_sig_desc.transpose() 
+        
+    weekly_tweet_cor_neg = get_correlation_for_tweets(full_week=True, senti_class = "negative")  
+    weekly_tweet_cor_neg_sig = weekly_tweet_cor_neg[weekly_tweet_cor_neg["stat_significance"] == True]
+    weekly_tweet_cor_neg_sig_desc = weekly_tweet_cor_neg_sig.describe().drop(["count"])
+    weekly_tweet_cor_neg_sig_desc_t = weekly_tweet_cor_neg_sig_desc.transpose()
     
+    
+    #neutral tweet analysis
     weekend_tweet_cor_neu = get_correlation_for_tweets(senti_class = "neutral")
+    weekend_tweet_cor_neu_sig = weekend_tweet_cor_neu[weekend_tweet_cor_neu["stat_significance"] == True]
+    weekend_tweet_cor_neu_sig_desc = weekend_tweet_cor_neu_sig.describe().drop(["count"])
+    weekend_tweet_cor_neu_sig_desc_t = weekend_tweet_cor_neu_sig_desc.transpose()  
+    
     weekly_tweet_cor_neu = get_correlation_for_tweets(full_week=True, senti_class = "neutral") 
+    weekly_tweet_cor_neu_sig = weekly_tweet_cor_neu[weekly_tweet_cor_neu["stat_significance"] == True]
+    weekly_tweet_cor_neu_sig_desc = weekly_tweet_cor_neu_sig.describe().drop(["count"])
+    weekly_tweet_cor_neu_sig_desc_t = weekly_tweet_cor_neu_sig_desc.transpose()
+        
     
     results = {"movies_df" : movies_df, 
                "class_sent_df" : class_sent_df,
                "summary_df_t" : summary_df_t,
                "correl_df" : correl_df,
                "weekend_tweet_cor_pos" : weekend_tweet_cor_pos,
+               "weekend_tweet_cor_pos_sig" : weekend_tweet_cor_pos_sig,
+               "weekend_tweet_cor_pos_sig_desc_t" : weekend_tweet_cor_pos_sig_desc_t,
                "weekly_tweet_cor_pos" : weekly_tweet_cor_pos,
+               "weekly_tweet_cor_pos_sig" : weekly_tweet_cor_pos_sig,
+               "weekly_tweet_cor_pos_sig_desc_t" : weekly_tweet_cor_pos_sig_desc_t,
                "weekend_tweet_cor_neg" : weekend_tweet_cor_neg,
+               "weekend_tweet_cor_neg_sig" : weekend_tweet_cor_neg_sig,
+               "weekend_tweet_cor_neg_sig_desc_t" : weekend_tweet_cor_neg_sig_desc_t,
                "weekly_tweet_cor_neg" : weekly_tweet_cor_neg,
-               "weekend_tweet_cor_neu" : weekend_tweet_cor_neu}
+               "weekly_tweet_cor_neg_sig" : weekly_tweet_cor_neg_sig,
+               "weekly_tweet_cor_neg_sig_desc_t" : weekly_tweet_cor_neg_sig_desc_t,
+               "weekend_tweet_cor_neu" : weekend_tweet_cor_neu,
+               "weekend_tweet_cor_neu_sig" : weekend_tweet_cor_neu_sig,
+               "weekend_tweet_cor_neu_desc_t" : weekend_tweet_cor_neu_sig_desc_t,
+               "weekly_tweet_cor_neu" : weekly_tweet_cor_neu,
+               "weekly_tweet_cor_neu_sig" : weekly_tweet_cor_neu_sig,
+               "weekly_tweet_cor_neu_sig_desc_t" : weekly_tweet_cor_neu_sig_desc_t}
     
     return results
     

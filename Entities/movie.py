@@ -198,7 +198,7 @@ class Movie:
         else: 
             return 100
         
-    def plot_weekend_revenue_mojo_vs_tweets(self, full_week = False, week_inc_weekend = False):
+    def plot_weekend_revenue_mojo_vs_tweets(self, full_week = False, week_inc_weekend = False, sentiment=False):
         self.mojo_box_office_df['weekend_gross_thou'] = self.mojo_box_office_df['weekend_gross_usd'].replace('[\£,]', '', regex=True).astype(float) / 1000
         self.mojo_box_office_df["weekend_tweet_count"] = self.mojo_box_office_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"], row["end_date"]), axis = 1)
         
@@ -287,7 +287,7 @@ class Movie:
         plt.title("{0} Weekend Rank vs Tweet Count".format(self.title))
         plt.show()
         
-    def corellate_weekend_takings_against_tweets(self, full_week = False, week_inc_weekend = False, first_run = False, critical_period = False, senti_class = None):
+    def corellate_weekend_takings_against_tweets(self, full_week = False, week_inc_weekend = False, first_run = False, critical_period = False, senti_class = None, percentage=False):
         mojo_df = self.mojo_box_office_df
         
         results = []
@@ -304,16 +304,32 @@ class Movie:
             
             mojo_df['weekend_gross_thou'] = mojo_df['weekend_gross_usd'].replace('[\£,]', '', regex=True).astype(float) / 1000
             mojo_df["weekend_tweet_count"] = mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"], row["end_date"], senti_class), axis = 1)
-              
-            
+                        
             tweet_col = "weekend_tweet_count"
+            
+            if (percentage and senti_class != None):
+                 mojo_df["weekend_tweet_total"] = mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"], row["end_date"]), axis = 1)
+                 mojo_df["weekend_tweet_percentage"] = (mojo_df["weekend_tweet_count"] / mojo_df["weekend_tweet_total"]) * 100
+                 tweet_col = "weekend_tweet_percentage"
+            
+            
             if full_week:
-                mojo_df["week_tweet_count"] = mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"] - timedelta(days=4), row["start_date"]), axis = 1)
+                mojo_df["week_tweet_count"] = mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"] - timedelta(days=4), row["start_date"], senti_class), axis = 1)
                 tweet_col = "week_tweet_count"
                 
+                if (percentage and senti_class != None):
+                    mojo_df["week_tweet_total"] = mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"] - timedelta(days=4), row["start_date"]), axis = 1)
+                    mojo_df["week_tweet_percentage"] = (mojo_df["week_tweet_count"] / mojo_df["week_tweet_total"]) * 100
+                    tweet_col = "week_tweet_percentage"
+                
             if week_inc_weekend:
-                mojo_df["week_tweet_count_weekend"] = mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"] - timedelta(days=4), row["end_date"]), axis = 1)
+                mojo_df["week_tweet_count_weekend"] = mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"] - timedelta(days=4), row["end_date"], senti_class), axis = 1)
                 tweet_col = "week_tweet_count_weekend"
+                
+                if (percentage and senti_class != None):
+                    mojo_df["week_tweet_total_weekend"] =  mojo_df.apply(lambda row: self.get_geotweet_count_by_dates(row["start_date"] - timedelta(days=4), row["end_date"]), axis = 1)
+                    mojo_df["week_tweet_percentage_weekend"] = (mojo_df["week_tweet_count_weekend"] / mojo_df["week_tweet_total_weekend"]) * 100
+                    tweet_col = "week_tweet_percentage_weekend"
             
             total_tweets = mojo_df[tweet_col].sum()
             
