@@ -199,6 +199,15 @@ def bulk_insert_df(table, df, cols):
     connection.close()
     
 
+def select_base_tweets():
+    sql = """SELECT id, wgslat, wgslng, geombng FROM tweets2019 """
+    df = get_geo_data(sql, "geombng")
+    return df
+
+def select_uk_fishnet():
+    sql = """SELECT * FROM uk_fishnet"""
+    df = get_geo_data(sql, 'geombng')
+    return df
     
 def select_geo_tweets(movieId, start_date = None, end_date = None, senti_class = None):
     sql = """
@@ -218,6 +227,60 @@ def select_geo_tweets(movieId, start_date = None, end_date = None, senti_class =
     
     df = get_geo_data(sql, 'geombng')
     return df
+
+def select_movie_fishnet_tweets(movieId = 0, start_date = None, end_date = None, senti_class = None):
+    sql = """select f.*, t.movieid from tweets_fishnet f 
+            inner join movie_tweets2019 t 
+            on t.id = f.id
+            where 1 = 1"""
+            
+    if movieId > 0:
+        sql += """ AND t.movieid = {0}""".format(movieId)
+        
+    if not start_date == None:
+        sql += """ AND "t.created_at" >= '{0}'""".format(start_date)
+        
+    if not end_date == None:
+        sql += """ AND "t.created_at" <= '{0}'""".format(end_date)
+    
+    if not senti_class == None:
+        sql += """ AND "t.senti_class" = '{0}'""".format(senti_class)
+        
+    return get_data(sql)
+
+def select_movie_region_tweets(movieId = 0, start_date = None, end_date = None, senti_class = None):
+    sql = """select f.*, t.movieid from tweets_region f 
+            inner join movie_tweets2019 t 
+            on t.id = f.id
+            where 1 = 1"""
+            
+    if movieId > 0:
+        sql += """ AND t.movieid = {0}""".format(movieId)
+        
+    if not start_date == None:
+        sql += """ AND "t.created_at" >= '{0}'""".format(start_date)
+        
+    if not end_date == None:
+        sql += """ AND "t.created_at" <= '{0}'""".format(end_date)
+    
+    if not senti_class == None:
+        sql += """ AND "t.senti_class" = '{0}'""".format(senti_class)
+        
+    return get_data(sql)
+
+def select_region_tweets(start_date = None, end_date = None):
+    sql = """ select count(*) as tweet_count, unit_id
+              from tweets_region """
+              
+    if not start_date == None:
+        sql += """ AND "created_at" >= '{0}'""".format(start_date)
+        
+    if not end_date == None:
+        sql += """ AND "created_at" <= '{0}'""".format(end_date)
+              
+    sql += "group by unit_id"
+    
+    return get_data(sql)
 
 def select_movies_by_genre(genre, investigate_only=True):
     sql = """

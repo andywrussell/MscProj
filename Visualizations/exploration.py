@@ -487,28 +487,50 @@ def generate_heatmap_from_df(df, columns, title):
     plt.show() 
                     
 def get_success_figure(class_col, order_list, dist_col, movies_df, title, money=True):
-    fig, axs = plt.subplots(figsize=(20, 10), ncols=3)
+   #  fig, axs = plt.subplots(figsize=(20, 10), ncols=3)
+    
+   #  xlabel = title + " ($mil)" if money else title
+    
+   #  #get box
+   #  box = sns.boxplot(x=movies_df[dist_col], data=movies_df, ax=axs[0])
+   #  box.set_title(title + " Box Plot")
+   #  box.set_xlabel(xlabel)
+    
+   #  #get dist
+   #  dist = sns.distplot(movies_df[dist_col], ax=axs[1])
+   #  dist.set_title(title + " Distribution")
+   #  dist.set_xlabel(xlabel)
+    
+   #  #show class plot
+   #  grouped_movies = movies_df.groupby([class_col]).size().reset_index(name = "counts")
+   #  bar = sns.barplot(x=class_col, y="counts", data=grouped_movies, order=order_list, ax=axs[2])
+   #  bar.set(xlabel=class_col, ylabel='Movie Count')
+   #  bar.set_title(title + " Class Counts")
+   #  bar.set_xticklabels(order_list, rotation=40)
+   # # plt.xticks(rotation=40)
+   #  plt.show()   
+    f, (ax_box, ax_dist, ax_bar) = plt.subplots(3, sharex=False, gridspec_kw={"height_ratios": (.15, .35, .50)}, figsize=(10, 10))
     
     xlabel = title + " ($mil)" if money else title
     
-    #get box
-    box = sns.boxplot(x=movies_df[dist_col], data=movies_df, ax=axs[0])
-    box.set_title(title + " Box Plot")
-    box.set_xlabel(xlabel)
+    ax_box.get_shared_x_axes().join(ax_box, ax_dist)
+    ax_box.set_xticklabels([])
     
-    #get dist
-    dist = sns.distplot(movies_df[dist_col], ax=axs[1])
-    dist.set_title(title + " Distribution")
-    dist.set_xlabel(xlabel)
+    # Add a graph in each part
+    sns.boxplot(movies_df[dist_col], ax=ax_box)
+    sns.distplot(movies_df[dist_col], ax=ax_dist)
     
-    #show class plot
+
+    
     grouped_movies = movies_df.groupby([class_col]).size().reset_index(name = "counts")
-    bar = sns.barplot(x=class_col, y="counts", data=grouped_movies, order=order_list, ax=axs[2])
-    bar.set(xlabel=class_col, ylabel='Movie Count')
-    bar.set_title(title + " Class Counts")
-    bar.set_xticklabels(order_list, rotation=40)
-   # plt.xticks(rotation=40)
-    plt.show()   
+    sns.barplot(x=class_col, y="counts", data=grouped_movies, order=order_list, ax=ax_bar)
+    ax_bar.set_xticklabels(order_list, rotation=40) 
+    ax_bar.set(xlabel=class_col, ylabel='Movie Count')
+
+    ax_box.set(xlabel='', title=title + " Summary")
+    ax_dist.set(xlabel=xlabel)
+    plt.show()
+   
     
 def get_dist_figure(col, df, title, money=True): 
     # https://python-graph-gallery.com/24-histogram-with-a-boxplot-on-top-seaborn/
@@ -641,7 +663,87 @@ def plot_dist_for_df(df):
             axs[pos].xaxis.label.set_size(12)           
 
     plt.show()
-   # plt.savefig('matplotlib-table.png', bbox_inches='tight', pad_inches=0.05)
+    
+def plot_movie_tweets_map(normalize=False, start_date=None, end_date=None):
+    #select movie tweets with region cell id and unit id attached
+    region_movie_tweets = database_helper.select_movie_region_tweets(start_date=start_date, end_date=end_date)
+    
+    #group by region unit_id to per region tweet count
+    tweet_freq = region_movie_tweets.drop(columns=['movieid'])
+    tweet_freq = region_movie_tweets.groupby(by="unit_id").size().reset_index(name="movie_tweet_count")
+    
+    map_col = "movie_tweet_count"
+    
+    title = "Regional Movie Tweets"
+    
+    #if normalize generate column (movie tweets per million tweets)
+    if normalize:
+        tweet_region_counts = database_helper.select_query("tweets_region_count")
+        tweet_freq = tweet_region_counts.merge(tweet_freq, on="unit_id", how="left")
+        
+        #fill na with 0
+        tweet_freq = tweet_freq.fillna(0)
+        tweet_freq["norm_count"] = (tweet_freq['movie_tweet_count'] / tweet_freq['tweet_count']) * 1000000
+        map_col = "norm_count"
+        
+        title = "Regional Movie Tweets (per million tweets)"
+    
+    #merge with shape file
+    gb = gpd.read_file("../../ProjectData/Data/GB/european_region_region.shp")
+    map_freq = gb.merge(tweet_freq, left_on='UNIT_ID', right_on='unit_id')
+    
+    
+    if (start_date != None) and (end_date != None):
+        title = "{0} ({1} - {2})".format(title, start_date.date(), end_date.date())
+    
+    #plot
+    fig, ax = plt.subplots(1, 1)
+    ax.axis('off')
+    ax.set_title(title)
+    fig.set_dpi(100)
+    map_freq.plot(column=map_col, ax=ax, legend=True, cmap='OrRd')
+    
+    return map_freq
+
+def plot_region_tweets_bar(normalize=False, start_date=None, end_date=None):
+    #select movie tweets with region cell id and unit id attached
+    region_movie_tweets = database_helper.select_movie_region_tweets(start_date=start_date, end_date=end_date)
+    
+    #group by region unit_id to per region tweet count
+    tweet_freq = region_movie_tweets.drop(columns=['movieid'])
+    tweet_freq = region_movie_tweets.groupby(by="unit_id").size().reset_index(name="movie_tweet_count")
+    
+    plot_col = "movie_tweet_count"
+    
+    title = "Regional Movie Tweets"
+    ylabel = "Movie Tweet"
+    
+    #if normalize generate column (movie tweets per million tweets)
+    tweet_region_counts = database_helper.select_query("tweets_region_count")
+    
+    if normalize:
+        tweet_freq = tweet_region_counts.merge(tweet_freq, on="unit_id", how="left")
+        
+        #fill na with 0
+        tweet_freq = tweet_freq.fillna(0)
+        tweet_freq["norm_count"] = (tweet_freq['movie_tweet_count'] / tweet_freq['tweet_count']) * 1000000
+        plot_col = "norm_count"
+        
+        title = "Regional Movie Tweets (per million tweets)"
+        ylabel = "Movie Tweets (per million tweets)"
+    else: 
+        regions = tweet_region_counts[["unit_id", "region"]]
+        tweet_freq = tweet_freq.merge(regions, on="unit_id", how="left")
+     
+
+    ax = sns.barplot(x="region", y=plot_col, data=tweet_freq)
+    ax.set(xlabel='Region', ylabel=ylabel)
+    plt.title(title)
+    plt.xticks(rotation=90)
+    plt.show()
+        
+    return tweet_freq
+
     
 
 

@@ -116,36 +116,36 @@ def define_success():
     
     #budget class
     budget_lst = ['< $10m (Small)', '$10m < $40m', '$40m < $100m', '$100m < $185m', '> 185m (Big)' ]
-   # exploration.get_success_figure("budget_class", budget_lst, "budget_usd", movies_df, "Budget")
-    exploration.plot_budget_classes()
-    exploration.get_dist_figure("budget_usd", movies_df, "Budget ")
+    exploration.get_success_figure("budget_class", budget_lst, "budget_usd", movies_df, "Budget")
+#    exploration.plot_budget_classes()
+  #  exploration.get_dist_figure("budget_usd", movies_df, "Budget ")
     
     #profit class
     profit_lst = ['< $0 (Flop)', '$0 < $90m', '$90m < $235m', '$235m < $700m', '> $700m (BlockBuster)' ]
-   # exploration.get_success_figure("profit_class", profit_lst, "gross_profit_usd", movies_df, "Gross Profit")    
-    exploration.plot_profit_classes()
-    exploration.get_dist_figure("gross_profit_usd", movies_df, "Gross Profit")
+    exploration.get_success_figure("profit_class", profit_lst, "gross_profit_usd", movies_df, "Gross Profit")    
+   # exploration.plot_profit_classes()
+  #  exploration.get_dist_figure("gross_profit_usd", movies_df, "Gross Profit")
    
     
     #uk gross class
     uk_lst =  ['< $1m (Small)', '$1m < $8m', '$8m < $20m', '$20m < $50m', '> $50m (Big)' ]
-    #exploration.get_success_figure("uk_gross_class", uk_lst, "uk_gross_usd", movies_df, "UK Takings")
-    exploration.plot_uk_taking_classes()
-    exploration.get_dist_figure("uk_gross_usd", movies_df, "UK Takings") 
+    exploration.get_success_figure("uk_gross_class", uk_lst, "uk_gross_usd", movies_df, "UK Takings")
+    #exploration.plot_uk_taking_classes()
+    #exploration.get_dist_figure("uk_gross_usd", movies_df, "UK Takings") 
     
     
     #return percentage
     return_lst = ['< %0 (Flop)', '0% - 290%', '100% - 540%', '540% - 1000%', '> 1000% (BlockBuster)']
-    #exploration.get_success_figure("return_class", return_lst, "return_percentage", movies_df, "Return Percentage", False)
-    exploration.plot_return_classes()
-    exploration.get_dist_figure("return_percentage", movies_df, "Return Percentage ")
+    exploration.get_success_figure("return_class", return_lst, "return_percentage", movies_df, "Return Percentage", False)
+    #exploration.plot_return_classes()
+    #exploration.get_dist_figure("return_percentage", movies_df, "Return Percentage ")
     
     
     #uk percentage
     uk_percentage_lst = ['0% - 1%', '1% - 4%', '4% - 6%', '6% - 12%', '> 12%']
-    #exploration.get_success_figure("uk_percentage_class", uk_percentage_lst, "uk_percentage", movies_df, "UK Percentage", False)
-    exploration.plot_uk_classes()
-    exploration.get_dist_figure("uk_percentage", movies_df, "UK Percentage")
+    exploration.get_success_figure("uk_percentage_class", uk_percentage_lst, "uk_percentage", movies_df, "UK Percentage", False)
+    #exploration.plot_uk_classes()
+    #exploration.get_dist_figure("uk_percentage", movies_df, "UK Percentage")
 
 
     #get bar distributions
@@ -754,6 +754,14 @@ def analyse_tweet_sentiment():
     return results
     
 
+def spatial_exploration():
+    #plot normalized and unormalized cholopleth of movie tweets
+    exploration.plot_movie_tweets_map()
+    exploration.plot_movie_tweets_map(True)
+    
+    #get bar charts to back up this 
+    exploration.plot_region_tweets_bar()
+    exploration.plot_region_tweets_bar(True)
     
   #   return weekend_tweet_cor_neg, weekly_tweet_cor_neg
 # def twitter_exploration():
