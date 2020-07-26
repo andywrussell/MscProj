@@ -744,7 +744,27 @@ def plot_region_tweets_bar(normalize=False, start_date=None, end_date=None):
         
     return tweet_freq
 
+def get_most_popular_movie_per_region(start_date=None, end_date=None, remove_star_wars = True):
+    region_movie_tweets = database_helper.select_movie_region_tweets(start_date=start_date, end_date=end_date)
+    region_movie_grouped = region_movie_tweets.groupby(by=["unit_id", "movieid"]).size().reset_index(name="tweet_count")
     
+    if remove_star_wars:
+        region_movie_grouped = region_movie_grouped[region_movie_grouped["movieid"] != 28]
+        
+    most_popular_per_region = region_movie_grouped.loc[region_movie_grouped.groupby(['unit_id'])['tweet_count'].idxmax()]   
+    
+    return most_popular_per_region
 
+def get_most_popular_per_region_by_success_class(start_date=None, end_date=None, remove_star_wars = True):
+    region_movie_tweets = database_helper.select_movie_region_tweets(start_date=start_date, end_date=end_date)
+    region_movie_grouped = region_movie_tweets.groupby(by=["unit_id", "movieid"]).size().reset_index(name="tweet_count")
+    
+    if remove_star_wars:
+        region_movie_grouped = region_movie_grouped[region_movie_grouped["movieid"] != 28]
+        
+    most_popular_per_region = region_movie_grouped.loc[region_movie_grouped.groupby(['unit_id'])['tweet_count'].idxmax()]   
+    
+    return most_popular_per_region
+    
 
 

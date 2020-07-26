@@ -403,9 +403,25 @@ def analyse_special_cases():
         
 def twitter_weekly():
     weekend_tweet_cor = get_correlation_for_tweets()
-    weekly_tweet_cor = get_correlation_for_tweets(full_week=True)
+    weekend_tweet_cor_sig = weekend_tweet_cor[weekend_tweet_cor["stat_significance"] == True]
+    weekend_tweet_cor_sig_desc = weekend_tweet_cor_sig.describe()
+    weekend_tweet_cor_sig_desc_t = weekend_tweet_cor_sig_desc.drop(columns=["movieId"]).transpose()
         
+    weekly_tweet_cor = get_correlation_for_tweets(full_week=True)   
+    weekly_tweet_cor_sig = weekly_tweet_cor[weekly_tweet_cor["stat_significance"] == True]
+    weekly_tweet_cor_sig_desc = weekly_tweet_cor_sig.describe()
+    weekly_tweet_cor_sig_desc_t = weekly_tweet_cor_sig_desc.drop(columns=["movieId"]).transpose()
     
+    results = {"weekend_tweet_cor" : weekend_tweet_cor,
+               "weekend_tweet_cor_sig" : weekend_tweet_cor_sig,
+               "weekend_tweet_cor_sig_desc" : weekend_tweet_cor_sig_desc,
+               "weekend_tweet_cor_sig_desc_t" : weekend_tweet_cor_sig_desc_t,
+               "weekly_tweet_cor" : weekly_tweet_cor,
+               "weekly_tweet_cor_sig" : weekly_tweet_cor_sig,
+               "weekly_tweet_cor_sig_desc" : weekly_tweet_cor_sig_desc,
+               "weekly_tweet_cor_sig_desc_t" : weekly_tweet_cor_sig_desc_t}
+
+    return results
 
 def event_peak_analysis():
     event_results = movie_helper.get_movie_tweet_events()

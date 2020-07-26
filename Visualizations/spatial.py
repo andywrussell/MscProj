@@ -129,7 +129,7 @@ def plot_chi_sqrd_surface(movieId, normalize_by="All", start_date = None, end_da
   #  plt.axis('equal')
   
     legend_elements = [Line2D([0], [0], marker='s', color='red', label='Above Expected', markerfacecolor='red', markersize=15),
-                       Line2D([0], [0], marker='s', edgecolor='black', color='white', label='At Expected', markerfacecolor='white', markersize=15),
+                       Line2D([0], [0], marker='s', color='white', label='At Expected', markerfacecolor='white', markersize=15),
                        Line2D([0], [0], marker='s', color='blue', label='Below Expected', markerfacecolor='blue', markersize=15)]
   
     ax.legend(handles=legend_elements, loc="upper left")
