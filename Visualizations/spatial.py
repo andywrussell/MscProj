@@ -54,7 +54,7 @@ def get_cell_label(surface_val):
     
     return "Expected"
 
-def plot_chi_sqrd_surface(movieId, normalize_by="All", start_date = None, end_date = None):
+def plot_chi_sqrd_surface(movieId = 0, normalize_by="All", start_date = None, end_date = None):
     #fix dates so we include start of start and end of end
     if not start_date == None:
         start_date = datetime.combine(start_date.date(), datetime.min.time())
@@ -77,7 +77,7 @@ def plot_chi_sqrd_surface(movieId, normalize_by="All", start_date = None, end_da
     total_gb_tweets = gb_regions_count["tweet_count"].sum()
 
     #first step get total tweets in uk fishnet
-    uk_fishnet_count = database_helper.select_query("tweets_fishnet_count")
+    uk_fishnet_count = database_helper.select_fishnet_count(start_date=start_date, end_date=end_date)
         
     #now get total movie tweets in uk fishnet
     movie_fishnet_tweets = database_helper.select_movie_fishnet_tweets(movieId, start_date=start_date, end_date=end_date)
@@ -113,24 +113,32 @@ def plot_chi_sqrd_surface(movieId, normalize_by="All", start_date = None, end_da
     uk_fishnet["color"] = uk_fishnet.apply(lambda row: get_cell_color(row["surf_expectation"]), axis = 1)
     uk_fishnet["label"] = uk_fishnet.apply(lambda row: get_cell_label(row["surf_expectation"]), axis = 1)
     
+    #return uk_fishnet
+    
     #now do plots     
     fig, ax = plt.subplots(1,figsize=(9,9))
+    
+    #this takes time, may be useful to create the overlay and store in db then use pandas join/merge to input expectation
     overlay = gpd.overlay(gb_regions, uk_fishnet, how='intersection')
     map_ax = overlay.plot(color=overlay['color'], ax=ax)
-    
+ 
+    title = "Movie Tweets Expectation Map"
+ 
     #get movie 
-    movies_df = database_helper.select_query("movies", {"movieId" : movieId})
-    title = movies_df.iloc[0]["title"] + " Tweet Expecation"
-    
+    if movieId > 0:
+        movies_df = database_helper.select_query("movies", {"movieId" : movieId})
+        title = movies_df.iloc[0]["title"] + " Tweet Expecation"  
+ 
+ 
     if (start_date != None) and (end_date != None):
         title = "{0} ({1} - {2})".format(title, start_date.date(), end_date.date())
-    
+ 
     ax.set_axis_off()
-  #  plt.axis('equal')
+    #plt.axis('equal')
   
     legend_elements = [Line2D([0], [0], marker='s', color='red', label='Above Expected', markerfacecolor='red', markersize=15),
-                       Line2D([0], [0], marker='s', color='white', label='At Expected', markerfacecolor='white', markersize=15),
-                       Line2D([0], [0], marker='s', color='blue', label='Below Expected', markerfacecolor='blue', markersize=15)]
+                     Line2D([0], [0], marker='s', color='white', label='At Expected', markerfacecolor='white', markersize=15),
+                     Line2D([0], [0], marker='s', color='blue', label='Below Expected', markerfacecolor='blue', markersize=15)]
   
     ax.legend(handles=legend_elements, loc="upper left")
     plt.title(title)
@@ -138,7 +146,7 @@ def plot_chi_sqrd_surface(movieId, normalize_by="All", start_date = None, end_da
     plt.clf()
     plt.cla()
     plt.close()
-    
+ 
     return overlay
         
 

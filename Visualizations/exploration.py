@@ -664,9 +664,40 @@ def plot_dist_for_df(df):
 
     plt.show()
     
-def plot_movie_tweets_map(normalize=False, start_date=None, end_date=None):
+def plot_movie_tweets_kde(movieId = 0, start_date=None, end_date=None, senti_class = None):
+    #http://darribas.org/gds_scipy16/ipynb_md/06_points.html
+    gb = gpd.read_file("../../ProjectData/Data/GB/european_region_region.shp")
+        
+    fig, ax = plt.subplots(1,figsize=(11,9))
+    
+    #no need to do slow spatial join
+    gb_tweets = database_helper.select_movie_region_tweets_with_geo()
+    gb_tweets["lat"] = gb_tweets["geombng"].y
+    gb_tweets["lng"] = gb_tweets["geombng"].x
+    
+    gb.plot(ax=ax)
+    
+    title = "Movie Tweet Hotspots"
+    
+    sns.kdeplot(gb_tweets['lng'], gb_tweets['lat'], 
+                shade=True, shade_lowest=False, cmap='viridis',
+                 ax=ax, bw=25000, legend=True)
+
+
+    
+    ax.set_axis_off()
+  #  plt.axis('equal')
+    plt.title(title)
+    plt.show()
+    plt.clf()
+    plt.cla()
+    plt.close()
+    
+def plot_movie_tweets_map(movieId = 0, normalize=False, start_date=None, end_date=None):
     #select movie tweets with region cell id and unit id attached
-    region_movie_tweets = database_helper.select_movie_region_tweets(start_date=start_date, end_date=end_date)
+    region_movie_tweets = database_helper.select_movie_region_tweets(movieId, start_date=start_date, end_date=end_date)
+    
+  
     
     #group by region unit_id to per region tweet count
     tweet_freq = region_movie_tweets.drop(columns=['movieid'])
@@ -675,6 +706,11 @@ def plot_movie_tweets_map(normalize=False, start_date=None, end_date=None):
     map_col = "movie_tweet_count"
     
     title = "Regional Movie Tweets"
+    movie_title = ""
+    if movieId > 0:
+        movies_df = database_helper.select_query("movies", {"movieId" : movieId})
+        movie_title = movies_df.iloc[0]["title"]
+        title = movie_title + " Tweets"
     
     #if normalize generate column (movie tweets per million tweets)
     if normalize:
@@ -687,27 +723,29 @@ def plot_movie_tweets_map(normalize=False, start_date=None, end_date=None):
         map_col = "norm_count"
         
         title = "Regional Movie Tweets (per million tweets)"
+        if movieId > 0:
+            title = movie_title + " Tweets (per million tweets)"
+            
+    if (start_date != None) and (end_date != None):
+        title = "{0} ({1} - {2})".format(title, start_date.date(), end_date.date())
     
     #merge with shape file
     gb = gpd.read_file("../../ProjectData/Data/GB/european_region_region.shp")
     map_freq = gb.merge(tweet_freq, left_on='UNIT_ID', right_on='unit_id')
     
-    
-    if (start_date != None) and (end_date != None):
-        title = "{0} ({1} - {2})".format(title, start_date.date(), end_date.date())
-    
     #plot
-    fig, ax = plt.subplots(1, 1)
+    fig, ax = plt.subplots(1, 1, figsize=(11, 9))
     ax.axis('off')
     ax.set_title(title)
     fig.set_dpi(100)
     map_freq.plot(column=map_col, ax=ax, legend=True, cmap='OrRd')
+    plt.show()
     
     return map_freq
 
-def plot_region_tweets_bar(normalize=False, start_date=None, end_date=None):
+def plot_region_tweets_bar(movieId = 0, normalize=False, start_date=None, end_date=None):
     #select movie tweets with region cell id and unit id attached
-    region_movie_tweets = database_helper.select_movie_region_tweets(start_date=start_date, end_date=end_date)
+    region_movie_tweets = database_helper.select_movie_region_tweets(movieId, start_date=start_date, end_date=end_date)
     
     #group by region unit_id to per region tweet count
     tweet_freq = region_movie_tweets.drop(columns=['movieid'])
@@ -717,6 +755,11 @@ def plot_region_tweets_bar(normalize=False, start_date=None, end_date=None):
     
     title = "Regional Movie Tweets"
     ylabel = "Movie Tweet"
+    movie_title = ""
+    if movieId > 0:
+        movies_df = database_helper.select_query("movies", {"movieId" : movieId})
+        movie_title = movies_df.iloc[0]["title"]
+        title = movie_title + " Tweets"
     
     #if normalize generate column (movie tweets per million tweets)
     tweet_region_counts = database_helper.select_query("tweets_region_count")
@@ -730,11 +773,16 @@ def plot_region_tweets_bar(normalize=False, start_date=None, end_date=None):
         plot_col = "norm_count"
         
         title = "Regional Movie Tweets (per million tweets)"
+        if movieId > 0:
+            title = movie_title + " Tweets (per million tweets)"
         ylabel = "Movie Tweets (per million tweets)"
     else: 
         regions = tweet_region_counts[["unit_id", "region"]]
         tweet_freq = tweet_freq.merge(regions, on="unit_id", how="left")
      
+
+    if (start_date != None) and (end_date != None):
+        title = "{0} ({1} - {2})".format(title, start_date.date(), end_date.date())
 
     ax = sns.barplot(x="region", y=plot_col, data=tweet_freq)
     ax.set(xlabel='Region', ylabel=ylabel)
@@ -744,27 +792,37 @@ def plot_region_tweets_bar(normalize=False, start_date=None, end_date=None):
         
     return tweet_freq
 
-def get_most_popular_movie_per_region(start_date=None, end_date=None, remove_star_wars = True):
-    region_movie_tweets = database_helper.select_movie_region_tweets(start_date=start_date, end_date=end_date)
+def get_most_popular_movie_per_region(start_date=None, end_date=None, senti_class=None, ignore_list = [28,121]):
+    region_movie_tweets = database_helper.select_movie_region_tweets(start_date=start_date, end_date=end_date, senti_class=senti_class)
     region_movie_grouped = region_movie_tweets.groupby(by=["unit_id", "movieid"]).size().reset_index(name="tweet_count")
-    
-    if remove_star_wars:
-        region_movie_grouped = region_movie_grouped[region_movie_grouped["movieid"] != 28]
+        
+    if len(ignore_list) > 0:
+        region_movie_grouped = region_movie_grouped[~region_movie_grouped["movieid"].isin(ignore_list)]
         
     most_popular_per_region = region_movie_grouped.loc[region_movie_grouped.groupby(['unit_id'])['tweet_count'].idxmax()]   
     
     return most_popular_per_region
 
-def get_most_popular_per_region_by_success_class(start_date=None, end_date=None, remove_star_wars = True):
-    region_movie_tweets = database_helper.select_movie_region_tweets(start_date=start_date, end_date=end_date)
+def get_most_popular_per_region_by_success_class(class_col, class_vals, start_date=None, end_date=None, senti_class=None, ignore_list = [28,121], find_min=False):
+    region_movie_tweets = database_helper.select_movie_region_tweets(start_date=start_date, end_date=end_date, senti_class=senti_class)
     region_movie_grouped = region_movie_tweets.groupby(by=["unit_id", "movieid"]).size().reset_index(name="tweet_count")
     
-    if remove_star_wars:
-        region_movie_grouped = region_movie_grouped[region_movie_grouped["movieid"] != 28]
+    #get list of movies which match the passed in class vals
+    movies_df = movie_helper.get_movies_df()
+    
+    filtered_df = movies_df[movies_df[class_col].isin(class_vals)]
+    
+    region_movie_grouped_filter = region_movie_grouped[region_movie_grouped["movieid"].isin(filtered_df["movieId"])]
+    
+    if len(ignore_list) > 0:
+        region_movie_grouped_filter = region_movie_grouped_filter[~region_movie_grouped_filter["movieid"].isin(ignore_list)]
         
-    most_popular_per_region = region_movie_grouped.loc[region_movie_grouped.groupby(['unit_id'])['tweet_count'].idxmax()]   
+    most_popular_per_region = region_movie_grouped_filter.loc[region_movie_grouped_filter.groupby(['unit_id'])['tweet_count'].idxmax()]   
+    if find_min:
+        most_popular_per_region = region_movie_grouped_filter.loc[region_movie_grouped_filter.groupby(['unit_id'])['tweet_count'].idxmin()]  
     
     return most_popular_per_region
+    #return most_popular_per_region
     
 
 

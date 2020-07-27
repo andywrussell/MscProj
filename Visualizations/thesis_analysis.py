@@ -19,6 +19,7 @@ import database_helper
 import movie_helper
 import tweet_helper
 import exploration
+import spatial
 import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import datetime
@@ -779,6 +780,102 @@ def spatial_exploration():
     exploration.plot_region_tweets_bar()
     exploration.plot_region_tweets_bar(True)
     
+    #show unnormalized kde
+    exploration.plot_movie_tweets_kde()
+    
+    #show expectation 
+    spatial.plot_chi_sqrd_surface()
+    
+def spatial_regional_best():
+    #all moivies 
+    movies_df = movie_helper.get_movies_df()
+    
+    #get most tweeted movie per region
+    most_per_region = exploration.get_most_popular_movie_per_region(ignore_list=[])   
+    #get most postivie tweets per region
+    most_pos_per_region = exploration.get_most_popular_movie_per_region(senti_class="positive", ignore_list=[])   
+    #get most negative per reigon
+    most_neg_per_region = exploration.get_most_popular_movie_per_region(senti_class="negative", ignore_list=[])   
+ 
+    exclude_values = [{"class_col" : "profit_class", "class_vals" : ["> $700m (BlockBuster)"], "reason" : "no blockbuster"},
+                      {"class_col" : "return_class", "class_vals" : ["> 1000% (BlockBuster)"], "reason" : "no blockbuster return"},
+                      {"class_col" : "profit_class",
+                      "class_vals" : ["> 185m (Big)"]},
+                      {"class_col" : "uk_gross_class",
+                      "class_vals" : ["> $50m (Big)"]},
+                      {"class_col" : "uk_percentage_class",
+                      "class_vals" : ["> 12%"]}]
+                      
+ 
+    
+    #now do this but exclude the top profitable movies
+    blockuster_df = movies_df[movies_df["profit_class"] == "> $700m (BlockBuster)"]
+    
+    most_per_region_no_block = exploration.get_most_popular_movie_per_region(ignore_list=blockuster_df["movieId"])
+    most_pos_per_region_no_block = exploration.get_most_popular_movie_per_region(senti_class="positive", ignore_list=blockuster_df["movieId"])
+    most_neg_per_region_no_block = exploration.get_most_popular_movie_per_region(senti_class="negative", ignore_list=blockuster_df["movieId"])
+    
+    #get most per reigon excluding star wars, avengers, spiderman, joker and captain marvel
+    
+    #now to do this but exclude top return movies 
+    return_df = movies_df[movies_df["return_class"] == "> 1000% (BlockBuster)"]
+    
+    most_per_region_no_return = exploration.get_most_popular_movie_per_region(ignore_list=return_df["movieId"])
+    most_pos_per_region_no_return = exploration.get_most_popular_movie_per_region(senti_class="positive", ignore_list=return_df["movieId"])
+    most_neg_per_region_no_return = exploration.get_most_popular_movie_per_region(senti_class="negative", ignore_list=return_df["movieId"])
+   
+    #now do this but exclude big budget movies
+    big_budget = movies_df[movies_df["budget_class"] == '> 185m (Big)']
+
+    most_per_region_no_big = exploration.get_most_popular_movie_per_region(ignore_list=big_budget["movieId"])
+    most_pos_per_region_no_big = exploration.get_most_popular_movie_per_region(senti_class="positive", ignore_list=big_budget["movieId"])
+    most_neg_per_region_no_big = exploration.get_most_popular_movie_per_region(senti_class="negative", ignore_list=big_budget["movieId"])
+   
+     
+    #now do this but exlude big uk return movies
+    
+    
+    most_per_region_ex = exploration.get_most_popular_movie_per_region(ignore_list=[28,121,20, 59, 130])
+    
+    
+    #regional differences for films which had good uk performance
+    # test = ['6% - 12%', '> 12%']
+    # most_per_region_uk_success = get_most_popular_per_region_by_success_class(class_col="uk_percentage", class_vals=test)
+    
+    results = {"most_per_region" : most_per_region,
+               "most_pos_per_region" : most_pos_per_region,
+               "most_neg_per_region" : most_neg_per_region,
+               "most_per_region_no_block" : most_per_region_no_block,
+               "most_pos_per_region_no_block" : most_pos_per_region_no_block,
+               "most_neg_per_region_no_block" : most_neg_per_region_no_block,
+               "most_per_region_no_return" : most_per_region_no_return,
+               "most_pos_per_region_no_return" : most_pos_per_region_no_return,
+               "most_neg_per_region_no_return" : most_pos_per_region_no_return,
+               "most_per_region_no_big" : most_per_region_no_big,
+               "most_pos_per_region_no_big" : most_pos_per_region_no_big,
+               "most_neg_per_region_no_big" : most_neg_per_region_no_big,
+               "most_per_region_ex" : most_per_region_ex}
+    
+    return results
+
+def spatial_analyse_interesting_cases():
+    special_cases_df = get_interesting_cases()
+    unique_df = special_cases_df.drop_duplicates(subset="movieId", inplace=False, keep="first")
+    
+    for index, row in unique_df.iterrows():
+        #plot movie map and bar general and critical 
+        exploration.plot_region_tweets_bar(movieId=row["movieId"], normalize=False)
+        exploration.plot_region_tweets_bar(movieId=row["movieId"], normalize=True)
+        exploration.plot_region_tweets_bar(movieId=row["movieId"], normalize=False, start_date=row["critical_start"], end_date=row["critical_end"])
+        exploration.plot_region_tweets_bar(movieId=row["movieId"], normalize=True, start_date=row["critical_start"], end_date=row["critical_end"])
+        
+        exploration.plot_movie_tweets_map(movieId=row["movieId"], normalize=False)
+        exploration.plot_movie_tweets_map(movieId=row["movieId"], normalize=True)
+        exploration.plot_movie_tweets_map(movieId=row["movieId"], normalize=False, start_date=row["critical_start"], end_date=row["critical_end"])
+        exploration.plot_movie_tweets_map(movieId=row["movieId"], normalize=True, start_date=row["critical_start"], end_date=row["critical_end"])
+        
+        spatial.plot_chi_sqrd_surface(movieId=row["movieId"])
+        spatial.plot_chi_sqrd_surface(movieId=row["movieId"], start_date=row["critical_start"], end_date=row["critical_end"])
   #   return weekend_tweet_cor_neg, weekly_tweet_cor_neg
 # def twitter_exploration():
     

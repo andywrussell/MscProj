@@ -209,12 +209,28 @@ def select_uk_fishnet():
     df = get_geo_data(sql, 'geombng')
     return df
     
-def select_geo_tweets(movieId, start_date = None, end_date = None, senti_class = None):
+def select_fishnet_count(start_date = None, end_date = None):
+    if (not start_date == None) and (not end_date == None):
+        #need to count on the fly
+        sql = """SELECT count(*) as tweet_count, cellid
+                FROM tweets_fishnet
+                WHERE created_at >= '{0}' AND created_at <= '{1}'
+                GROUP BY cellid""".format(start_date, end_date)
+                
+        return get_data(sql)
+        
+    else:
+        return select_query("tweets_fishnet_count")
+
+def select_geo_tweets(movieId = 0, start_date = None, end_date = None, senti_class = None):
     sql = """
         SELECT geombng, movieid, msg, wgslat, wgslng, created_at, id, senti_class
         FROM movie_tweets2019
-        WHERE "movieid" = {0}
+        WHERE 1 = 1
     """.format(movieId)
+    
+    if movieId > 0:
+        sql += """ AND movieid = {0}""".format(movieId)    
     
     if not start_date == None:
         sql += """ AND "created_at" >= '{0}'""".format(start_date)
@@ -238,13 +254,13 @@ def select_movie_fishnet_tweets(movieId = 0, start_date = None, end_date = None,
         sql += """ AND t.movieid = {0}""".format(movieId)
         
     if not start_date == None:
-        sql += """ AND "t.created_at" >= '{0}'""".format(start_date)
+        sql += """ AND t.created_at >= '{0}'""".format(start_date)
         
     if not end_date == None:
-        sql += """ AND "t.created_at" <= '{0}'""".format(end_date)
+        sql += """ AND t.created_at <= '{0}'""".format(end_date)
     
     if not senti_class == None:
-        sql += """ AND "t.senti_class" = '{0}'""".format(senti_class)
+        sql += """ AND t.senti_class = '{0}'""".format(senti_class)
         
     return get_data(sql)
 
@@ -258,19 +274,40 @@ def select_movie_region_tweets(movieId = 0, start_date = None, end_date = None, 
         sql += """ AND t.movieid = {0}""".format(movieId)
         
     if not start_date == None:
-        sql += """ AND "t.created_at" >= '{0}'""".format(start_date)
+        sql += """ AND t.created_at >= '{0}'""".format(start_date)
         
     if not end_date == None:
-        sql += """ AND "t.created_at" <= '{0}'""".format(end_date)
+        sql += """ AND t.created_at <= '{0}'""".format(end_date)
     
     if not senti_class == None:
-        sql += """ AND "t.senti_class" = '{0}'""".format(senti_class)
-        
+        sql += """ AND t.senti_class = '{0}'""".format(senti_class)
+       
     return get_data(sql)
+
+def select_movie_region_tweets_with_geo(movieId = 0, start_date = None, end_date = None, senti_class = None):
+    sql = """select f.*, t.movieid, t.geombng from tweets_region f 
+            inner join movie_tweets2019 t 
+            on t.id = f.id
+            where 1 = 1"""
+            
+    if movieId > 0:
+        sql += """ AND t.movieid = {0}""".format(movieId)
+        
+    if not start_date == None:
+        sql += """ AND t.created_at >= '{0}'""".format(start_date)
+        
+    if not end_date == None:
+        sql += """ AND t.created_at <= '{0}'""".format(end_date)
+    
+    if not senti_class == None:
+        sql += """ AND t.senti_class = '{0}'""".format(senti_class)
+        
+    df = get_geo_data(sql, 'geombng')
+    return df
 
 def select_region_tweets(start_date = None, end_date = None):
     sql = """ select count(*) as tweet_count, unit_id
-              from tweets_region """
+              from tweets_region WHERE 1 = 1"""
               
     if not start_date == None:
         sql += """ AND "created_at" >= '{0}'""".format(start_date)
