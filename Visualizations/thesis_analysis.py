@@ -797,66 +797,73 @@ def spatial_regional_best():
     #get most negative per reigon
     most_neg_per_region = exploration.get_most_popular_movie_per_region(senti_class="negative", ignore_list=[])   
  
-    exclude_values = [{"class_col" : "profit_class", "class_vals" : ["> $700m (BlockBuster)"], "reason" : "no blockbuster"},
-                      {"class_col" : "return_class", "class_vals" : ["> 1000% (BlockBuster)"], "reason" : "no blockbuster return"},
-                      {"class_col" : "profit_class",
-                      "class_vals" : ["> 185m (Big)"]},
-                      {"class_col" : "uk_gross_class",
-                      "class_vals" : ["> $50m (Big)"]},
-                      {"class_col" : "uk_percentage_class",
-                      "class_vals" : ["> 12%"]}]
+    exclude_values = [{"class_col" : None, "class_vals" : [], "reason" : "all movies"},
+                      {"class_col" : "profit_class", "class_vals" : ["> $700m (BlockBuster)"], "reason" : "no blockbuster (profit)"},
+                      {"class_col" : "profit_class", "class_vals" : ['< $0 (Flop)', '$0 < $90m', '$90m < $235m', '$235m < $700m'], "reason" : "only blockbuster (profit)"},
+                      {"class_col" : "return_class", "class_vals" : ["> 1000% (BlockBuster)"], "reason" : "no blockbuster (return)"},
+                      {"class_col" : "return_class", "class_vals" : ['< %0 (Flop)', '0% - 290%', '100% - 540%', '540% - 1000%'], "reason" : "only blockbuster (return)"},
+                      {"class_col" : "budget_class", "class_vals" : ["> 185m (Big)"], "reason" : "no big budget"},
+                      {"class_col" : "budget_class", "class_vals" : ['< $10m (Small)', '$10m < $40m', '$40m < $100m', '$100m < $185m'], "reason" : "only big budget"},
+                      {"class_col" : "uk_gross_class", "class_vals" : ["> $50m (Big)"], "reason" : "no top uk takings"},
+                      {"class_col" : "uk_gross_class", "class_vals" : ['< $1m (Small)', '$1m < $8m', '$8m < $20m', '$20m < $50m'], "reason" : "only top uk takings"},
+                      {"class_col" : "uk_percentage_class", "class_vals" : ["> 12%"], "reason" : "no top uk (percentage)"},
+                      {"class_col" : "uk_percentage_class", "class_vals" : ['0% - 1%', '1% - 4%', '4% - 6%', '6% - 12%'], "reason" : "only top uk (percentage)"}]
                       
  
+    exclude_vals_df = pd.DataFrame(exclude_values)
+    results_df = pd.DataFrame()
     
-    #now do this but exclude the top profitable movies
-    blockuster_df = movies_df[movies_df["profit_class"] == "> $700m (BlockBuster)"]
-    
-    most_per_region_no_block = exploration.get_most_popular_movie_per_region(ignore_list=blockuster_df["movieId"])
-    most_pos_per_region_no_block = exploration.get_most_popular_movie_per_region(senti_class="positive", ignore_list=blockuster_df["movieId"])
-    most_neg_per_region_no_block = exploration.get_most_popular_movie_per_region(senti_class="negative", ignore_list=blockuster_df["movieId"])
-    
-    #get most per reigon excluding star wars, avengers, spiderman, joker and captain marvel
-    
-    #now to do this but exclude top return movies 
-    return_df = movies_df[movies_df["return_class"] == "> 1000% (BlockBuster)"]
-    
-    most_per_region_no_return = exploration.get_most_popular_movie_per_region(ignore_list=return_df["movieId"])
-    most_pos_per_region_no_return = exploration.get_most_popular_movie_per_region(senti_class="positive", ignore_list=return_df["movieId"])
-    most_neg_per_region_no_return = exploration.get_most_popular_movie_per_region(senti_class="negative", ignore_list=return_df["movieId"])
-   
-    #now do this but exclude big budget movies
-    big_budget = movies_df[movies_df["budget_class"] == '> 185m (Big)']
+    for index, row in exclude_vals_df.iterrows(): 
+        ignore_list = [28]
+        
+        if not row["class_col"] == None:
+            ignore_df = movies_df[movies_df[row["class_col"]].isin(row["class_vals"])]
+            ignore_list.extend(list(ignore_df["movieId"]))
+        
+        most_all = exploration.get_most_popular_movie_per_region(ignore_list=ignore_list)
+        most_all["senti_class"] = "All"
+        most_all["reason"] = row["reason"]
+        
+        exploration.plot_favourites_map(most_all, annotate_col="tweet_count", title = "Most Tweeted ({0})".format(row["reason"]))
+        results_df = results_df.append(most_all)
+        
+        #do positive tweets only
+        most_pos = exploration.get_most_popular_movie_per_region(senti_class = "positive", ignore_list=ignore_list)
+        most_pos["senti_class"] = "positive"
+        most_pos["reason"] = row["reason"]
+        
+        exploration.plot_favourites_map(most_pos, annotate_col="tweet_count", title = "Most Positive Tweets ({0})".format(row["reason"]))
+        results_df = results_df.append(most_pos)
+        
+        #do positive tweets percentage
+        most_pos_percentage = exploration.get_most_popular_movie_per_region(senti_class = "positive", ignore_list=ignore_list, senti_percentage=True)
+        most_pos_percentage["senti_class"] = "positive (Percentage)"
+        most_pos_percentage["percentage_string"] = most_pos_percentage.apply(lambda row: "{0}%".format(round(row["senti_percentage"], 2)), axis=1)
+        most_pos_percentage["reason"] = row["reason"]
+        
+        exploration.plot_favourites_map(most_pos_percentage, annotate_col="percentage_string", title = "Highest Rate of Positive Tweets ({0})".format(row["reason"]))
+        results_df = results_df.append(most_pos_percentage)
+                
+        #do negative tweets only
+        most_neg = exploration.get_most_popular_movie_per_region(senti_class = "negative", ignore_list=ignore_list)
+        most_neg["senti_class"] = "negative"
+        most_neg["reason"] = row["reason"]
+        
+        exploration.plot_favourites_map(most_neg, annotate_col="tweet_count", title = "Most Negative Tweets ({0})".format(row["reason"]))
+        results_df = results_df.append(most_neg)
+        
+        #do negative tweets percentage
+        most_neg_percentage = exploration.get_most_popular_movie_per_region(senti_class = "negative", ignore_list=ignore_list, senti_percentage=True)
+        most_neg_percentage["percentage_string"] = most_neg_percentage.apply(lambda row: "{0}%".format(round(row["senti_percentage"], 2)), axis=1)
+        most_neg_percentage["senti_class"] = "negative (Percentage)"
+        most_neg_percentage["reason"] = row["reason"]
+        
+        exploration.plot_favourites_map(most_neg_percentage, annotate_col="percentage_string", title = "Highest Rate of Negative Tweets ({0})".format(row["reason"]))
+        results_df = results_df.append(most_neg_percentage)
+        
 
-    most_per_region_no_big = exploration.get_most_popular_movie_per_region(ignore_list=big_budget["movieId"])
-    most_pos_per_region_no_big = exploration.get_most_popular_movie_per_region(senti_class="positive", ignore_list=big_budget["movieId"])
-    most_neg_per_region_no_big = exploration.get_most_popular_movie_per_region(senti_class="negative", ignore_list=big_budget["movieId"])
-   
-     
-    #now do this but exlude big uk return movies
-    
-    
-    most_per_region_ex = exploration.get_most_popular_movie_per_region(ignore_list=[28,121,20, 59, 130])
-    
-    
-    #regional differences for films which had good uk performance
-    # test = ['6% - 12%', '> 12%']
-    # most_per_region_uk_success = get_most_popular_per_region_by_success_class(class_col="uk_percentage", class_vals=test)
-    
-    results = {"most_per_region" : most_per_region,
-               "most_pos_per_region" : most_pos_per_region,
-               "most_neg_per_region" : most_neg_per_region,
-               "most_per_region_no_block" : most_per_region_no_block,
-               "most_pos_per_region_no_block" : most_pos_per_region_no_block,
-               "most_neg_per_region_no_block" : most_neg_per_region_no_block,
-               "most_per_region_no_return" : most_per_region_no_return,
-               "most_pos_per_region_no_return" : most_pos_per_region_no_return,
-               "most_neg_per_region_no_return" : most_pos_per_region_no_return,
-               "most_per_region_no_big" : most_per_region_no_big,
-               "most_pos_per_region_no_big" : most_pos_per_region_no_big,
-               "most_neg_per_region_no_big" : most_neg_per_region_no_big,
-               "most_per_region_ex" : most_per_region_ex}
-    
-    return results
+    return results_df[["region", "unit_id", "title", "movieid", "tweet_count", "reason", "senti_class", "senti_percentage"]]
+
 
 def spatial_analyse_interesting_cases():
     special_cases_df = get_interesting_cases()
@@ -876,19 +883,6 @@ def spatial_analyse_interesting_cases():
         
         spatial.plot_chi_sqrd_surface(movieId=row["movieId"])
         spatial.plot_chi_sqrd_surface(movieId=row["movieId"], start_date=row["critical_start"], end_date=row["critical_end"])
-  #   return weekend_tweet_cor_neg, weekly_tweet_cor_neg
-# def twitter_exploration():
-    
-#     exploration.gen_top_20_tweet_count()
-#     exploration.gen_bottom_20_tweet_count()
-    
-#     #tweets vs budget 
-#     exploration.plot_tweets_vs_finance("budget_usd", "Tweets vs Budget", "Budget ($mil)", "Tweets", logx=True)
-#     #tweets vs profit
-#     exploration.plot_tweets_vs_finance("gross_profit_usd", "Tweets vs Profit", "Profit ($mil)", "Tweets", logx=True)
-#     #tweets vs uk
-#     exploration.plot_tweets_vs_ratio("uk_percentage", "Tweets vs UK Revenue", "UK Percentage", "Tweets")
-#     #tweets vs return
-#     exploration.plot_tweets_vs_ratio("return_percentage", "Tweets vs Return", "Return Percentage", "Tweets")
+
     
     

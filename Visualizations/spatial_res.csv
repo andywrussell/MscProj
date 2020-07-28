@@ -1,0 +1,606 @@
+,region,unit_id,title,movieid,tweet_count,reason,senti_class,senti_percentage
+0,South East,41421,Avengers: Endgame,121,786,all movies,All,
+1,North East,41422,Avengers: Endgame,121,374,all movies,All,
+2,East Midlands,41423,Avengers: Endgame,121,375,all movies,All,
+3,Wales,41424,Spider-Man: Far From Home,20,351,all movies,All,
+4,East,41425,Avengers: Endgame,121,568,all movies,All,
+5,West Midlands,41426,Avengers: Endgame,121,630,all movies,All,
+6,South West,41427,Avengers: Endgame,121,553,all movies,All,
+7,London,41428,Avengers: Endgame,121,1941,all movies,All,
+8,Scotland,41429,Avengers: Endgame,121,711,all movies,All,
+9,Yorkshire and the Humber,41430,Avengers: Endgame,121,623,all movies,All,
+10,North West,41431,Avengers: Endgame,121,930,all movies,All,
+11,South East,41421,Avengers: Endgame,121,344,all movies,positive,
+12,North East,41422,Joker,59,165,all movies,positive,
+13,East Midlands,41423,Avengers: Endgame,121,179,all movies,positive,
+14,Wales,41424,Spider-Man: Far From Home,20,160,all movies,positive,
+15,East,41425,Avengers: Endgame,121,258,all movies,positive,
+16,West Midlands,41426,Avengers: Endgame,121,324,all movies,positive,
+17,South West,41427,Spider-Man: Far From Home,20,296,all movies,positive,
+18,London,41428,Avengers: Endgame,121,839,all movies,positive,
+19,Scotland,41429,Avengers: Endgame,121,356,all movies,positive,
+20,Yorkshire and the Humber,41430,Avengers: Endgame,121,281,all movies,positive,
+21,North West,41431,Avengers: Endgame,121,416,all movies,positive,
+22,South East,41421,Green Book,142,63,all movies,positive (Percentage),77.77777777777779
+23,North East,41422,Alita: Battle Angel,147,19,all movies,positive (Percentage),82.6086956521739
+24,East Midlands,41423,Green Book,142,25,all movies,positive (Percentage),80.64516129032258
+25,Wales,41424,Last Christmas,37,18,all movies,positive (Percentage),66.66666666666666
+26,East,41425,Green Book,142,47,all movies,positive (Percentage),78.33333333333333
+27,West Midlands,41426,Knives Out,35,35,all movies,positive (Percentage),76.08695652173914
+28,South West,41427,Green Book,142,31,all movies,positive (Percentage),83.78378378378379
+29,London,41428,Instant Family,139,41,all movies,positive (Percentage),74.54545454545455
+30,Scotland,41429,Instant Family,139,30,all movies,positive (Percentage),78.94736842105263
+31,Yorkshire and the Humber,41430,Fighting With My Family,134,53,all movies,positive (Percentage),79.1044776119403
+32,North West,41431,Green Book,142,55,all movies,positive (Percentage),78.57142857142857
+33,South East,41421,Avengers: Endgame,121,124,all movies,negative,
+34,North East,41422,Avengers: Endgame,121,65,all movies,negative,
+35,East Midlands,41423,Avengers: Endgame,121,59,all movies,negative,
+36,Wales,41424,Avengers: Endgame,121,52,all movies,negative,
+37,East,41425,Avengers: Endgame,121,88,all movies,negative,
+38,West Midlands,41426,Avengers: Endgame,121,95,all movies,negative,
+39,South West,41427,Avengers: Endgame,121,87,all movies,negative,
+40,London,41428,Avengers: Endgame,121,319,all movies,negative,
+41,Scotland,41429,Avengers: Endgame,121,138,all movies,negative,
+42,Yorkshire and the Humber,41430,Avengers: Endgame,121,116,all movies,negative,
+43,North West,41431,Avengers: Endgame,121,158,all movies,negative,
+44,South East,41421,The Curse of La Llorona,248,17,all movies,negative (Percentage),54.83870967741935
+45,North East,41422,Us,131,11,all movies,negative (Percentage),31.428571428571427
+46,East Midlands,41423,Us,131,9,all movies,negative (Percentage),40.909090909090914
+47,Wales,41424,X-Men: Dark Phoenix,205,12,all movies,negative (Percentage),34.285714285714285
+48,East,41425,Hellboy,228,11,all movies,negative (Percentage),36.666666666666664
+49,West Midlands,41426,Pet Sematary,220,13,all movies,negative (Percentage),28.26086956521739
+50,South West,41427,John Wick: Chapter 3 - Parabellum,119,7,all movies,negative (Percentage),29.166666666666668
+51,London,41428,Scary Stories To Tell In The Dark,22,11,all movies,negative (Percentage),37.93103448275862
+52,Scotland,41429,Hellboy,228,20,all movies,negative (Percentage),29.411764705882355
+53,Yorkshire and the Humber,41430,Pet Sematary,220,9,all movies,negative (Percentage),31.03448275862069
+54,North West,41431,Hellboy,228,32,all movies,negative (Percentage),35.16483516483517
+55,South East,41421,Rocketman,117,285,no blockbuster (profit),All,
+56,North East,41422,Rocketman,117,71,no blockbuster (profit),All,
+57,East Midlands,41423,Rocketman,117,132,no blockbuster (profit),All,
+58,Wales,41424,It: Chapter Two,5,148,no blockbuster (profit),All,
+59,East,41425,Fighting With My Family,134,201,no blockbuster (profit),All,
+60,West Midlands,41426,Rocketman,117,143,no blockbuster (profit),All,
+61,South West,41427,Shazam!,219,231,no blockbuster (profit),All,
+62,London,41428,Rocketman,117,692,no blockbuster (profit),All,
+63,Scotland,41429,Rocketman,117,247,no blockbuster (profit),All,
+64,Yorkshire and the Humber,41430,Downton Abbey,1,156,no blockbuster (profit),All,
+65,North West,41431,Rocketman,117,273,no blockbuster (profit),All,
+66,South East,41421,Rocketman,117,185,no blockbuster (profit),positive,
+67,North East,41422,Rocketman,117,53,no blockbuster (profit),positive,
+68,East Midlands,41423,Rocketman,117,88,no blockbuster (profit),positive,
+69,Wales,41424,Rocketman,117,80,no blockbuster (profit),positive,
+70,East,41425,Rocketman,117,118,no blockbuster (profit),positive,
+71,West Midlands,41426,Rocketman,117,100,no blockbuster (profit),positive,
+72,South West,41427,Rocketman,117,123,no blockbuster (profit),positive,
+73,London,41428,Rocketman,117,430,no blockbuster (profit),positive,
+74,Scotland,41429,Rocketman,117,174,no blockbuster (profit),positive,
+75,Yorkshire and the Humber,41430,Rocketman,117,101,no blockbuster (profit),positive,
+76,North West,41431,Rocketman,117,170,no blockbuster (profit),positive,
+77,South East,41421,Green Book,142,63,no blockbuster (profit),positive (Percentage),77.77777777777779
+78,North East,41422,Alita: Battle Angel,147,19,no blockbuster (profit),positive (Percentage),82.6086956521739
+79,East Midlands,41423,Green Book,142,25,no blockbuster (profit),positive (Percentage),80.64516129032258
+80,Wales,41424,Last Christmas,37,18,no blockbuster (profit),positive (Percentage),66.66666666666666
+81,East,41425,Green Book,142,47,no blockbuster (profit),positive (Percentage),78.33333333333333
+82,West Midlands,41426,Knives Out,35,35,no blockbuster (profit),positive (Percentage),76.08695652173914
+83,South West,41427,Green Book,142,31,no blockbuster (profit),positive (Percentage),83.78378378378379
+84,London,41428,Instant Family,139,41,no blockbuster (profit),positive (Percentage),74.54545454545455
+85,Scotland,41429,Instant Family,139,30,no blockbuster (profit),positive (Percentage),78.94736842105263
+86,Yorkshire and the Humber,41430,Fighting With My Family,134,53,no blockbuster (profit),positive (Percentage),79.1044776119403
+87,North West,41431,Green Book,142,55,no blockbuster (profit),positive (Percentage),78.57142857142857
+88,South East,41421,Cats,32,39,no blockbuster (profit),negative,
+89,North East,41422,Us,131,11,no blockbuster (profit),negative,
+90,East Midlands,41423,Countdown,110,17,no blockbuster (profit),negative,
+91,Wales,41424,It: Chapter Two,5,36,no blockbuster (profit),negative,
+92,East,41425,Cats,32,22,no blockbuster (profit),negative,
+93,West Midlands,41426,Terminator: Dark Fate,108,16,no blockbuster (profit),negative,
+94,South West,41427,Cats,32,20,no blockbuster (profit),negative,
+95,London,41428,Cats,32,66,no blockbuster (profit),negative,
+96,Scotland,41429,Hellboy,228,20,no blockbuster (profit),negative,
+97,Yorkshire and the Humber,41430,Rambo: Last Blood,7,24,no blockbuster (profit),negative,
+98,North West,41431,Cats,32,35,no blockbuster (profit),negative,
+99,South East,41421,The Curse of La Llorona,248,17,no blockbuster (profit),negative (Percentage),54.83870967741935
+100,North East,41422,Us,131,11,no blockbuster (profit),negative (Percentage),31.428571428571427
+101,East Midlands,41423,Us,131,9,no blockbuster (profit),negative (Percentage),40.909090909090914
+102,Wales,41424,X-Men: Dark Phoenix,205,12,no blockbuster (profit),negative (Percentage),34.285714285714285
+103,East,41425,Hellboy,228,11,no blockbuster (profit),negative (Percentage),36.666666666666664
+104,West Midlands,41426,Pet Sematary,220,13,no blockbuster (profit),negative (Percentage),28.26086956521739
+105,South West,41427,John Wick: Chapter 3 - Parabellum,119,7,no blockbuster (profit),negative (Percentage),29.166666666666668
+106,London,41428,Scary Stories To Tell In The Dark,22,11,no blockbuster (profit),negative (Percentage),37.93103448275862
+107,Scotland,41429,Hellboy,228,20,no blockbuster (profit),negative (Percentage),29.411764705882355
+108,Yorkshire and the Humber,41430,Pet Sematary,220,9,no blockbuster (profit),negative (Percentage),31.03448275862069
+109,North West,41431,Hellboy,228,32,no blockbuster (profit),negative (Percentage),35.16483516483517
+110,South East,41421,Avengers: Endgame,121,786,only blockbuster (profit),All,
+111,North East,41422,Avengers: Endgame,121,374,only blockbuster (profit),All,
+112,East Midlands,41423,Avengers: Endgame,121,375,only blockbuster (profit),All,
+113,Wales,41424,Spider-Man: Far From Home,20,351,only blockbuster (profit),All,
+114,East,41425,Avengers: Endgame,121,568,only blockbuster (profit),All,
+115,West Midlands,41426,Avengers: Endgame,121,630,only blockbuster (profit),All,
+116,South West,41427,Avengers: Endgame,121,553,only blockbuster (profit),All,
+117,London,41428,Avengers: Endgame,121,1941,only blockbuster (profit),All,
+118,Scotland,41429,Avengers: Endgame,121,711,only blockbuster (profit),All,
+119,Yorkshire and the Humber,41430,Avengers: Endgame,121,623,only blockbuster (profit),All,
+120,North West,41431,Avengers: Endgame,121,930,only blockbuster (profit),All,
+121,South East,41421,Avengers: Endgame,121,344,only blockbuster (profit),positive,
+122,North East,41422,Joker,59,165,only blockbuster (profit),positive,
+123,East Midlands,41423,Avengers: Endgame,121,179,only blockbuster (profit),positive,
+124,Wales,41424,Spider-Man: Far From Home,20,160,only blockbuster (profit),positive,
+125,East,41425,Avengers: Endgame,121,258,only blockbuster (profit),positive,
+126,West Midlands,41426,Avengers: Endgame,121,324,only blockbuster (profit),positive,
+127,South West,41427,Spider-Man: Far From Home,20,296,only blockbuster (profit),positive,
+128,London,41428,Avengers: Endgame,121,839,only blockbuster (profit),positive,
+129,Scotland,41429,Avengers: Endgame,121,356,only blockbuster (profit),positive,
+130,Yorkshire and the Humber,41430,Avengers: Endgame,121,281,only blockbuster (profit),positive,
+131,North West,41431,Avengers: Endgame,121,416,only blockbuster (profit),positive,
+132,South East,41421,Aladdin,254,194,only blockbuster (profit),positive (Percentage),61.980830670926515
+133,North East,41422,The Lion King,8,53,only blockbuster (profit),positive (Percentage),71.62162162162163
+134,East Midlands,41423,Aladdin,254,86,only blockbuster (profit),positive (Percentage),68.25396825396825
+135,Wales,41424,Captain Marvel,130,112,only blockbuster (profit),positive (Percentage),59.893048128342244
+136,East,41425,Aladdin,254,138,only blockbuster (profit),positive (Percentage),63.30275229357798
+137,West Midlands,41426,Aladdin,254,102,only blockbuster (profit),positive (Percentage),62.57668711656442
+138,South West,41427,Aladdin,254,161,only blockbuster (profit),positive (Percentage),73.51598173515981
+139,London,41428,Aladdin,254,497,only blockbuster (profit),positive (Percentage),59.87951807228916
+140,Scotland,41429,Aladdin,254,119,only blockbuster (profit),positive (Percentage),59.20398009950249
+141,Yorkshire and the Humber,41430,Captain Marvel,130,164,only blockbuster (profit),positive (Percentage),61.886792452830186
+142,North West,41431,Aladdin,254,184,only blockbuster (profit),positive (Percentage),58.0441640378549
+143,South East,41421,Avengers: Endgame,121,124,only blockbuster (profit),negative,
+144,North East,41422,Avengers: Endgame,121,65,only blockbuster (profit),negative,
+145,East Midlands,41423,Avengers: Endgame,121,59,only blockbuster (profit),negative,
+146,Wales,41424,Avengers: Endgame,121,52,only blockbuster (profit),negative,
+147,East,41425,Avengers: Endgame,121,88,only blockbuster (profit),negative,
+148,West Midlands,41426,Avengers: Endgame,121,95,only blockbuster (profit),negative,
+149,South West,41427,Avengers: Endgame,121,87,only blockbuster (profit),negative,
+150,London,41428,Avengers: Endgame,121,319,only blockbuster (profit),negative,
+151,Scotland,41429,Avengers: Endgame,121,138,only blockbuster (profit),negative,
+152,Yorkshire and the Humber,41430,Avengers: Endgame,121,116,only blockbuster (profit),negative,
+153,North West,41431,Avengers: Endgame,121,158,only blockbuster (profit),negative,
+154,South East,41421,Joker,59,87,only blockbuster (profit),negative (Percentage),16.051660516605164
+155,North East,41422,Avengers: Endgame,121,65,only blockbuster (profit),negative (Percentage),17.379679144385026
+156,East Midlands,41423,Avengers: Endgame,121,59,only blockbuster (profit),negative (Percentage),15.733333333333333
+157,Wales,41424,Joker,59,47,only blockbuster (profit),negative (Percentage),16.319444444444446
+158,East,41425,Avengers: Endgame,121,88,only blockbuster (profit),negative (Percentage),15.492957746478872
+159,West Midlands,41426,The Lion King,8,25,only blockbuster (profit),negative (Percentage),15.625
+160,South West,41427,Avengers: Endgame,121,87,only blockbuster (profit),negative (Percentage),15.732368896925857
+161,London,41428,Joker,59,222,only blockbuster (profit),negative (Percentage),17.076923076923077
+162,Scotland,41429,Avengers: Endgame,121,138,only blockbuster (profit),negative (Percentage),19.40928270042194
+163,Yorkshire and the Humber,41430,Avengers: Endgame,121,116,only blockbuster (profit),negative (Percentage),18.619582664526487
+164,North West,41431,Avengers: Endgame,121,158,only blockbuster (profit),negative (Percentage),16.989247311827956
+165,South East,41421,Avengers: Endgame,121,786,no blockbuster (return),All,
+166,North East,41422,Avengers: Endgame,121,374,no blockbuster (return),All,
+167,East Midlands,41423,Avengers: Endgame,121,375,no blockbuster (return),All,
+168,Wales,41424,Spider-Man: Far From Home,20,351,no blockbuster (return),All,
+169,East,41425,Avengers: Endgame,121,568,no blockbuster (return),All,
+170,West Midlands,41426,Avengers: Endgame,121,630,no blockbuster (return),All,
+171,South West,41427,Avengers: Endgame,121,553,no blockbuster (return),All,
+172,London,41428,Avengers: Endgame,121,1941,no blockbuster (return),All,
+173,Scotland,41429,Avengers: Endgame,121,711,no blockbuster (return),All,
+174,Yorkshire and the Humber,41430,Avengers: Endgame,121,623,no blockbuster (return),All,
+175,North West,41431,Avengers: Endgame,121,930,no blockbuster (return),All,
+176,South East,41421,Avengers: Endgame,121,344,no blockbuster (return),positive,
+177,North East,41422,Avengers: Endgame,121,142,no blockbuster (return),positive,
+178,East Midlands,41423,Avengers: Endgame,121,179,no blockbuster (return),positive,
+179,Wales,41424,Spider-Man: Far From Home,20,160,no blockbuster (return),positive,
+180,East,41425,Avengers: Endgame,121,258,no blockbuster (return),positive,
+181,West Midlands,41426,Avengers: Endgame,121,324,no blockbuster (return),positive,
+182,South West,41427,Spider-Man: Far From Home,20,296,no blockbuster (return),positive,
+183,London,41428,Avengers: Endgame,121,839,no blockbuster (return),positive,
+184,Scotland,41429,Avengers: Endgame,121,356,no blockbuster (return),positive,
+185,Yorkshire and the Humber,41430,Avengers: Endgame,121,281,no blockbuster (return),positive,
+186,North West,41431,Avengers: Endgame,121,416,no blockbuster (return),positive,
+187,South East,41421,Le Mans '66,45,48,no blockbuster (return),positive (Percentage),75.0
+188,North East,41422,Alita: Battle Angel,147,19,no blockbuster (return),positive (Percentage),82.6086956521739
+189,East Midlands,41423,Le Mans '66,45,23,no blockbuster (return),positive (Percentage),69.6969696969697
+190,Wales,41424,Last Christmas,37,18,no blockbuster (return),positive (Percentage),66.66666666666666
+191,East,41425,Ready Or Not,4,16,no blockbuster (return),positive (Percentage),72.72727272727273
+192,West Midlands,41426,Knives Out,35,35,no blockbuster (return),positive (Percentage),76.08695652173914
+193,South West,41427,Men In Black International,211,73,no blockbuster (return),positive (Percentage),82.95454545454545
+194,London,41428,Instant Family,139,41,no blockbuster (return),positive (Percentage),74.54545454545455
+195,Scotland,41429,Instant Family,139,30,no blockbuster (return),positive (Percentage),78.94736842105263
+196,Yorkshire and the Humber,41430,Fighting With My Family,134,53,no blockbuster (return),positive (Percentage),79.1044776119403
+197,North West,41431,Little Women,30,32,no blockbuster (return),positive (Percentage),72.72727272727273
+198,South East,41421,Avengers: Endgame,121,124,no blockbuster (return),negative,
+199,North East,41422,Avengers: Endgame,121,65,no blockbuster (return),negative,
+200,East Midlands,41423,Avengers: Endgame,121,59,no blockbuster (return),negative,
+201,Wales,41424,Avengers: Endgame,121,52,no blockbuster (return),negative,
+202,East,41425,Avengers: Endgame,121,88,no blockbuster (return),negative,
+203,West Midlands,41426,Avengers: Endgame,121,95,no blockbuster (return),negative,
+204,South West,41427,Avengers: Endgame,121,87,no blockbuster (return),negative,
+205,London,41428,Avengers: Endgame,121,319,no blockbuster (return),negative,
+206,Scotland,41429,Avengers: Endgame,121,138,no blockbuster (return),negative,
+207,Yorkshire and the Humber,41430,Avengers: Endgame,121,116,no blockbuster (return),negative,
+208,North West,41431,Avengers: Endgame,121,158,no blockbuster (return),negative,
+209,South East,41421,Cats,32,39,no blockbuster (return),negative (Percentage),27.083333333333332
+210,North East,41422,X-Men: Dark Phoenix,205,4,no blockbuster (return),negative (Percentage),17.391304347826086
+211,East Midlands,41423,John Wick: Chapter 3 - Parabellum,119,8,no blockbuster (return),negative (Percentage),28.57142857142857
+212,Wales,41424,X-Men: Dark Phoenix,205,12,no blockbuster (return),negative (Percentage),34.285714285714285
+213,East,41425,Hellboy,228,11,no blockbuster (return),negative (Percentage),36.666666666666664
+214,West Midlands,41426,Pet Sematary,220,13,no blockbuster (return),negative (Percentage),28.26086956521739
+215,South West,41427,John Wick: Chapter 3 - Parabellum,119,7,no blockbuster (return),negative (Percentage),29.166666666666668
+216,London,41428,Scary Stories To Tell In The Dark,22,11,no blockbuster (return),negative (Percentage),37.93103448275862
+217,Scotland,41429,Hellboy,228,20,no blockbuster (return),negative (Percentage),29.411764705882355
+218,Yorkshire and the Humber,41430,Pet Sematary,220,9,no blockbuster (return),negative (Percentage),31.03448275862069
+219,North West,41431,Hellboy,228,32,no blockbuster (return),negative (Percentage),35.16483516483517
+220,South East,41421,Joker,59,542,only blockbuster (return),All,
+221,North East,41422,Joker,59,268,only blockbuster (return),All,
+222,East Midlands,41423,Joker,59,316,only blockbuster (return),All,
+223,Wales,41424,Joker,59,288,only blockbuster (return),All,
+224,East,41425,Joker,59,421,only blockbuster (return),All,
+225,West Midlands,41426,Joker,59,431,only blockbuster (return),All,
+226,South West,41427,Joker,59,437,only blockbuster (return),All,
+227,London,41428,Joker,59,1300,only blockbuster (return),All,
+228,Scotland,41429,Joker,59,529,only blockbuster (return),All,
+229,Yorkshire and the Humber,41430,Joker,59,433,only blockbuster (return),All,
+230,North West,41431,Joker,59,738,only blockbuster (return),All,
+231,South East,41421,Joker,59,286,only blockbuster (return),positive,
+232,North East,41422,Joker,59,165,only blockbuster (return),positive,
+233,East Midlands,41423,Joker,59,169,only blockbuster (return),positive,
+234,Wales,41424,Joker,59,150,only blockbuster (return),positive,
+235,East,41425,Joker,59,232,only blockbuster (return),positive,
+236,West Midlands,41426,Joker,59,249,only blockbuster (return),positive,
+237,South West,41427,Joker,59,226,only blockbuster (return),positive,
+238,London,41428,Joker,59,661,only blockbuster (return),positive,
+239,Scotland,41429,Joker,59,287,only blockbuster (return),positive,
+240,Yorkshire and the Humber,41430,Joker,59,199,only blockbuster (return),positive,
+241,North West,41431,Joker,59,385,only blockbuster (return),positive,
+242,South East,41421,Green Book,142,63,only blockbuster (return),positive (Percentage),77.77777777777779
+243,North East,41422,Green Book,142,17,only blockbuster (return),positive (Percentage),80.95238095238095
+244,East Midlands,41423,Green Book,142,25,only blockbuster (return),positive (Percentage),80.64516129032258
+245,Wales,41424,Green Book,142,21,only blockbuster (return),positive (Percentage),60.0
+246,East,41425,Green Book,142,47,only blockbuster (return),positive (Percentage),78.33333333333333
+247,West Midlands,41426,Green Book,142,27,only blockbuster (return),positive (Percentage),62.7906976744186
+248,South West,41427,Green Book,142,31,only blockbuster (return),positive (Percentage),83.78378378378379
+249,London,41428,Green Book,142,165,only blockbuster (return),positive (Percentage),68.75
+250,Scotland,41429,Glass,83,19,only blockbuster (return),positive (Percentage),65.51724137931035
+251,Yorkshire and the Humber,41430,Green Book,142,27,only blockbuster (return),positive (Percentage),72.97297297297297
+252,North West,41431,Green Book,142,55,only blockbuster (return),positive (Percentage),78.57142857142857
+253,South East,41421,Joker,59,87,only blockbuster (return),negative,
+254,North East,41422,Joker,59,31,only blockbuster (return),negative,
+255,East Midlands,41423,Joker,59,45,only blockbuster (return),negative,
+256,Wales,41424,Joker,59,47,only blockbuster (return),negative,
+257,East,41425,Joker,59,65,only blockbuster (return),negative,
+258,West Midlands,41426,Joker,59,66,only blockbuster (return),negative,
+259,South West,41427,Joker,59,66,only blockbuster (return),negative,
+260,London,41428,Joker,59,222,only blockbuster (return),negative,
+261,Scotland,41429,Joker,59,63,only blockbuster (return),negative,
+262,Yorkshire and the Humber,41430,Joker,59,71,only blockbuster (return),negative,
+263,North West,41431,Joker,59,121,only blockbuster (return),negative,
+264,South East,41421,The Curse of La Llorona,248,17,only blockbuster (return),negative (Percentage),54.83870967741935
+265,North East,41422,Us,131,11,only blockbuster (return),negative (Percentage),31.428571428571427
+266,East Midlands,41423,Us,131,9,only blockbuster (return),negative (Percentage),40.909090909090914
+267,Wales,41424,Us,131,7,only blockbuster (return),negative (Percentage),24.137931034482758
+268,East,41425,Us,131,9,only blockbuster (return),negative (Percentage),23.684210526315788
+269,West Midlands,41426,Us,131,9,only blockbuster (return),negative (Percentage),20.930232558139537
+270,South West,41427,Joker,59,66,only blockbuster (return),negative (Percentage),15.102974828375288
+271,London,41428,Five Feet Apart,141,9,only blockbuster (return),negative (Percentage),31.03448275862069
+272,Scotland,41429,Us,131,19,only blockbuster (return),negative (Percentage),22.89156626506024
+273,Yorkshire and the Humber,41430,Us,131,6,only blockbuster (return),negative (Percentage),16.666666666666664
+274,North West,41431,Us,131,22,only blockbuster (return),negative (Percentage),23.655913978494624
+275,South East,41421,Spider-Man: Far From Home,20,603,no big budget,All,
+276,North East,41422,Spider-Man: Far From Home,20,314,no big budget,All,
+277,East Midlands,41423,Joker,59,316,no big budget,All,
+278,Wales,41424,Spider-Man: Far From Home,20,351,no big budget,All,
+279,East,41425,Spider-Man: Far From Home,20,442,no big budget,All,
+280,West Midlands,41426,Spider-Man: Far From Home,20,473,no big budget,All,
+281,South West,41427,Spider-Man: Far From Home,20,461,no big budget,All,
+282,London,41428,Spider-Man: Far From Home,20,1377,no big budget,All,
+283,Scotland,41429,Spider-Man: Far From Home,20,547,no big budget,All,
+284,Yorkshire and the Humber,41430,Joker,59,433,no big budget,All,
+285,North West,41431,Spider-Man: Far From Home,20,798,no big budget,All,
+286,South East,41421,Spider-Man: Far From Home,20,307,no big budget,positive,
+287,North East,41422,Joker,59,165,no big budget,positive,
+288,East Midlands,41423,Joker,59,169,no big budget,positive,
+289,Wales,41424,Spider-Man: Far From Home,20,160,no big budget,positive,
+290,East,41425,Joker,59,232,no big budget,positive,
+291,West Midlands,41426,Spider-Man: Far From Home,20,252,no big budget,positive,
+292,South West,41427,Spider-Man: Far From Home,20,296,no big budget,positive,
+293,London,41428,Joker,59,661,no big budget,positive,
+294,Scotland,41429,Spider-Man: Far From Home,20,290,no big budget,positive,
+295,Yorkshire and the Humber,41430,Spider-Man: Far From Home,20,226,no big budget,positive,
+296,North West,41431,Spider-Man: Far From Home,20,396,no big budget,positive,
+297,South East,41421,Green Book,142,63,no big budget,positive (Percentage),77.77777777777779
+298,North East,41422,Alita: Battle Angel,147,19,no big budget,positive (Percentage),82.6086956521739
+299,East Midlands,41423,Green Book,142,25,no big budget,positive (Percentage),80.64516129032258
+300,Wales,41424,Last Christmas,37,18,no big budget,positive (Percentage),66.66666666666666
+301,East,41425,Green Book,142,47,no big budget,positive (Percentage),78.33333333333333
+302,West Midlands,41426,Knives Out,35,35,no big budget,positive (Percentage),76.08695652173914
+303,South West,41427,Green Book,142,31,no big budget,positive (Percentage),83.78378378378379
+304,London,41428,Instant Family,139,41,no big budget,positive (Percentage),74.54545454545455
+305,Scotland,41429,Instant Family,139,30,no big budget,positive (Percentage),78.94736842105263
+306,Yorkshire and the Humber,41430,Fighting With My Family,134,53,no big budget,positive (Percentage),79.1044776119403
+307,North West,41431,Green Book,142,55,no big budget,positive (Percentage),78.57142857142857
+308,South East,41421,Joker,59,87,no big budget,negative,
+309,North East,41422,Joker,59,31,no big budget,negative,
+310,East Midlands,41423,Joker,59,45,no big budget,negative,
+311,Wales,41424,Spider-Man: Far From Home,20,51,no big budget,negative,
+312,East,41425,Joker,59,65,no big budget,negative,
+313,West Midlands,41426,Joker,59,66,no big budget,negative,
+314,South West,41427,Joker,59,66,no big budget,negative,
+315,London,41428,Joker,59,222,no big budget,negative,
+316,Scotland,41429,Joker,59,63,no big budget,negative,
+317,Yorkshire and the Humber,41430,Joker,59,71,no big budget,negative,
+318,North West,41431,Joker,59,121,no big budget,negative,
+319,South East,41421,The Curse of La Llorona,248,17,no big budget,negative (Percentage),54.83870967741935
+320,North East,41422,Us,131,11,no big budget,negative (Percentage),31.428571428571427
+321,East Midlands,41423,Us,131,9,no big budget,negative (Percentage),40.909090909090914
+322,Wales,41424,It: Chapter Two,5,36,no big budget,negative (Percentage),24.324324324324326
+323,East,41425,Hellboy,228,11,no big budget,negative (Percentage),36.666666666666664
+324,West Midlands,41426,Pet Sematary,220,13,no big budget,negative (Percentage),28.26086956521739
+325,South West,41427,John Wick: Chapter 3 - Parabellum,119,7,no big budget,negative (Percentage),29.166666666666668
+326,London,41428,Scary Stories To Tell In The Dark,22,11,no big budget,negative (Percentage),37.93103448275862
+327,Scotland,41429,Hellboy,228,20,no big budget,negative (Percentage),29.411764705882355
+328,Yorkshire and the Humber,41430,Pet Sematary,220,9,no big budget,negative (Percentage),31.03448275862069
+329,North West,41431,Hellboy,228,32,no big budget,negative (Percentage),35.16483516483517
+330,South East,41421,Avengers: Endgame,121,786,only budget,All,
+331,North East,41422,Avengers: Endgame,121,374,only budget,All,
+332,East Midlands,41423,Avengers: Endgame,121,375,only budget,All,
+333,Wales,41424,Avengers: Endgame,121,335,only budget,All,
+334,East,41425,Avengers: Endgame,121,568,only budget,All,
+335,West Midlands,41426,Avengers: Endgame,121,630,only budget,All,
+336,South West,41427,Avengers: Endgame,121,553,only budget,All,
+337,London,41428,Avengers: Endgame,121,1941,only budget,All,
+338,Scotland,41429,Avengers: Endgame,121,711,only budget,All,
+339,Yorkshire and the Humber,41430,Avengers: Endgame,121,623,only budget,All,
+340,North West,41431,Avengers: Endgame,121,930,only budget,All,
+341,South East,41421,Avengers: Endgame,121,344,only budget,positive,
+342,North East,41422,Avengers: Endgame,121,142,only budget,positive,
+343,East Midlands,41423,Avengers: Endgame,121,179,only budget,positive,
+344,Wales,41424,Avengers: Endgame,121,130,only budget,positive,
+345,East,41425,Avengers: Endgame,121,258,only budget,positive,
+346,West Midlands,41426,Avengers: Endgame,121,324,only budget,positive,
+347,South West,41427,Avengers: Endgame,121,253,only budget,positive,
+348,London,41428,Avengers: Endgame,121,839,only budget,positive,
+349,Scotland,41429,Avengers: Endgame,121,356,only budget,positive,
+350,Yorkshire and the Humber,41430,Avengers: Endgame,121,281,only budget,positive,
+351,North West,41431,Avengers: Endgame,121,416,only budget,positive,
+352,South East,41421,Fast & Furious: Hobbs & Shaw,17,40,only budget,positive (Percentage),54.794520547945204
+353,North East,41422,The Lion King,8,53,only budget,positive (Percentage),71.62162162162163
+354,East Midlands,41423,The Lion King,8,41,only budget,positive (Percentage),59.42028985507246
+355,Wales,41424,Fast & Furious: Hobbs & Shaw,17,22,only budget,positive (Percentage),57.89473684210527
+356,East,41425,Toy Story 4,11,125,only budget,positive (Percentage),54.347826086956516
+357,West Midlands,41426,Fast & Furious: Hobbs & Shaw,17,33,only budget,positive (Percentage),57.89473684210527
+358,South West,41427,Fast & Furious: Hobbs & Shaw,17,21,only budget,positive (Percentage),65.625
+359,London,41428,Toy Story 4,11,231,only budget,positive (Percentage),52.73972602739726
+360,Scotland,41429,Fast & Furious: Hobbs & Shaw,17,39,only budget,positive (Percentage),54.166666666666664
+361,Yorkshire and the Humber,41430,X-Men: Dark Phoenix,205,24,only budget,positive (Percentage),68.57142857142857
+362,North West,41431,Fast & Furious: Hobbs & Shaw,17,48,only budget,positive (Percentage),56.470588235294116
+363,South East,41421,Avengers: Endgame,121,124,only budget,negative,
+364,North East,41422,Avengers: Endgame,121,65,only budget,negative,
+365,East Midlands,41423,Avengers: Endgame,121,59,only budget,negative,
+366,Wales,41424,Avengers: Endgame,121,52,only budget,negative,
+367,East,41425,Avengers: Endgame,121,88,only budget,negative,
+368,West Midlands,41426,Avengers: Endgame,121,95,only budget,negative,
+369,South West,41427,Avengers: Endgame,121,87,only budget,negative,
+370,London,41428,Avengers: Endgame,121,319,only budget,negative,
+371,Scotland,41429,Avengers: Endgame,121,138,only budget,negative,
+372,Yorkshire and the Humber,41430,Avengers: Endgame,121,116,only budget,negative,
+373,North West,41431,Avengers: Endgame,121,158,only budget,negative,
+374,South East,41421,X-Men: Dark Phoenix,205,11,only budget,negative (Percentage),17.1875
+375,North East,41422,X-Men: Dark Phoenix,205,4,only budget,negative (Percentage),17.391304347826086
+376,East Midlands,41423,X-Men: Dark Phoenix,205,15,only budget,negative (Percentage),20.0
+377,Wales,41424,X-Men: Dark Phoenix,205,12,only budget,negative (Percentage),34.285714285714285
+378,East,41425,Fast & Furious: Hobbs & Shaw,17,12,only budget,negative (Percentage),22.641509433962266
+379,West Midlands,41426,The Lion King,8,25,only budget,negative (Percentage),15.625
+380,South West,41427,Avengers: Endgame,121,87,only budget,negative (Percentage),15.732368896925857
+381,London,41428,X-Men: Dark Phoenix,205,34,only budget,negative (Percentage),17.616580310880828
+382,Scotland,41429,Avengers: Endgame,121,138,only budget,negative (Percentage),19.40928270042194
+383,Yorkshire and the Humber,41430,X-Men: Dark Phoenix,205,7,only budget,negative (Percentage),20.0
+384,North West,41431,X-Men: Dark Phoenix,205,14,only budget,negative (Percentage),20.0
+385,South East,41421,Spider-Man: Far From Home,20,603,no big uk,All,
+386,North East,41422,Spider-Man: Far From Home,20,314,no big uk,All,
+387,East Midlands,41423,Spider-Man: Far From Home,20,295,no big uk,All,
+388,Wales,41424,Spider-Man: Far From Home,20,351,no big uk,All,
+389,East,41425,Spider-Man: Far From Home,20,442,no big uk,All,
+390,West Midlands,41426,Spider-Man: Far From Home,20,473,no big uk,All,
+391,South West,41427,Spider-Man: Far From Home,20,461,no big uk,All,
+392,London,41428,Spider-Man: Far From Home,20,1377,no big uk,All,
+393,Scotland,41429,Spider-Man: Far From Home,20,547,no big uk,All,
+394,Yorkshire and the Humber,41430,Spider-Man: Far From Home,20,425,no big uk,All,
+395,North West,41431,Spider-Man: Far From Home,20,798,no big uk,All,
+396,South East,41421,Spider-Man: Far From Home,20,307,no big uk,positive,
+397,North East,41422,Spider-Man: Far From Home,20,134,no big uk,positive,
+398,East Midlands,41423,Spider-Man: Far From Home,20,143,no big uk,positive,
+399,Wales,41424,Spider-Man: Far From Home,20,160,no big uk,positive,
+400,East,41425,Spider-Man: Far From Home,20,188,no big uk,positive,
+401,West Midlands,41426,Spider-Man: Far From Home,20,252,no big uk,positive,
+402,South West,41427,Spider-Man: Far From Home,20,296,no big uk,positive,
+403,London,41428,Spider-Man: Far From Home,20,633,no big uk,positive,
+404,Scotland,41429,Spider-Man: Far From Home,20,290,no big uk,positive,
+405,Yorkshire and the Humber,41430,Spider-Man: Far From Home,20,226,no big uk,positive,
+406,North West,41431,Spider-Man: Far From Home,20,396,no big uk,positive,
+407,South East,41421,Green Book,142,63,no big uk,positive (Percentage),77.77777777777779
+408,North East,41422,Alita: Battle Angel,147,19,no big uk,positive (Percentage),82.6086956521739
+409,East Midlands,41423,Green Book,142,25,no big uk,positive (Percentage),80.64516129032258
+410,Wales,41424,Last Christmas,37,18,no big uk,positive (Percentage),66.66666666666666
+411,East,41425,Green Book,142,47,no big uk,positive (Percentage),78.33333333333333
+412,West Midlands,41426,Knives Out,35,35,no big uk,positive (Percentage),76.08695652173914
+413,South West,41427,Green Book,142,31,no big uk,positive (Percentage),83.78378378378379
+414,London,41428,Instant Family,139,41,no big uk,positive (Percentage),74.54545454545455
+415,Scotland,41429,Instant Family,139,30,no big uk,positive (Percentage),78.94736842105263
+416,Yorkshire and the Humber,41430,Fighting With My Family,134,53,no big uk,positive (Percentage),79.1044776119403
+417,North West,41431,Green Book,142,55,no big uk,positive (Percentage),78.57142857142857
+418,South East,41421,Spider-Man: Far From Home,20,62,no big uk,negative,
+419,North East,41422,Spider-Man: Far From Home,20,26,no big uk,negative,
+420,East Midlands,41423,Spider-Man: Far From Home,20,32,no big uk,negative,
+421,Wales,41424,Spider-Man: Far From Home,20,51,no big uk,negative,
+422,East,41425,Spider-Man: Far From Home,20,39,no big uk,negative,
+423,West Midlands,41426,Spider-Man: Far From Home,20,59,no big uk,negative,
+424,South West,41427,Spider-Man: Far From Home,20,46,no big uk,negative,
+425,London,41428,Spider-Man: Far From Home,20,149,no big uk,negative,
+426,Scotland,41429,Spider-Man: Far From Home,20,48,no big uk,negative,
+427,Yorkshire and the Humber,41430,Spider-Man: Far From Home,20,49,no big uk,negative,
+428,North West,41431,Spider-Man: Far From Home,20,101,no big uk,negative,
+429,South East,41421,The Curse of La Llorona,248,17,no big uk,negative (Percentage),54.83870967741935
+430,North East,41422,Us,131,11,no big uk,negative (Percentage),31.428571428571427
+431,East Midlands,41423,Us,131,9,no big uk,negative (Percentage),40.909090909090914
+432,Wales,41424,X-Men: Dark Phoenix,205,12,no big uk,negative (Percentage),34.285714285714285
+433,East,41425,Hellboy,228,11,no big uk,negative (Percentage),36.666666666666664
+434,West Midlands,41426,Pet Sematary,220,13,no big uk,negative (Percentage),28.26086956521739
+435,South West,41427,John Wick: Chapter 3 - Parabellum,119,7,no big uk,negative (Percentage),29.166666666666668
+436,London,41428,Scary Stories To Tell In The Dark,22,11,no big uk,negative (Percentage),37.93103448275862
+437,Scotland,41429,Hellboy,228,20,no big uk,negative (Percentage),29.411764705882355
+438,Yorkshire and the Humber,41430,Pet Sematary,220,9,no big uk,negative (Percentage),31.03448275862069
+439,North West,41431,Hellboy,228,32,no big uk,negative (Percentage),35.16483516483517
+440,South East,41421,Avengers: Endgame,121,786,only big uk,All,
+441,North East,41422,Avengers: Endgame,121,374,only big uk,All,
+442,East Midlands,41423,Avengers: Endgame,121,375,only big uk,All,
+443,Wales,41424,Avengers: Endgame,121,335,only big uk,All,
+444,East,41425,Avengers: Endgame,121,568,only big uk,All,
+445,West Midlands,41426,Avengers: Endgame,121,630,only big uk,All,
+446,South West,41427,Avengers: Endgame,121,553,only big uk,All,
+447,London,41428,Avengers: Endgame,121,1941,only big uk,All,
+448,Scotland,41429,Avengers: Endgame,121,711,only big uk,All,
+449,Yorkshire and the Humber,41430,Avengers: Endgame,121,623,only big uk,All,
+450,North West,41431,Avengers: Endgame,121,930,only big uk,All,
+451,South East,41421,Avengers: Endgame,121,344,only big uk,positive,
+452,North East,41422,Joker,59,165,only big uk,positive,
+453,East Midlands,41423,Avengers: Endgame,121,179,only big uk,positive,
+454,Wales,41424,Joker,59,150,only big uk,positive,
+455,East,41425,Avengers: Endgame,121,258,only big uk,positive,
+456,West Midlands,41426,Avengers: Endgame,121,324,only big uk,positive,
+457,South West,41427,Avengers: Endgame,121,253,only big uk,positive,
+458,London,41428,Avengers: Endgame,121,839,only big uk,positive,
+459,Scotland,41429,Avengers: Endgame,121,356,only big uk,positive,
+460,Yorkshire and the Humber,41430,Avengers: Endgame,121,281,only big uk,positive,
+461,North West,41431,Avengers: Endgame,121,416,only big uk,positive,
+462,South East,41421,Frozen 2,31,111,only big uk,positive (Percentage),54.41176470588235
+463,North East,41422,The Lion King,8,53,only big uk,positive (Percentage),71.62162162162163
+464,East Midlands,41423,Frozen 2,31,54,only big uk,positive (Percentage),60.67415730337079
+465,Wales,41424,Captain Marvel,130,112,only big uk,positive (Percentage),59.893048128342244
+466,East,41425,Joker,59,232,only big uk,positive (Percentage),55.10688836104512
+467,West Midlands,41426,Captain Marvel,130,144,only big uk,positive (Percentage),61.016949152542374
+468,South West,41427,Captain Marvel,130,185,only big uk,positive (Percentage),65.14084507042254
+469,London,41428,Frozen 2,31,252,only big uk,positive (Percentage),56.25
+470,Scotland,41429,Joker,59,287,only big uk,positive (Percentage),54.25330812854442
+471,Yorkshire and the Humber,41430,Captain Marvel,130,164,only big uk,positive (Percentage),61.886792452830186
+472,North West,41431,The Lion King,8,102,only big uk,positive (Percentage),56.353591160220994
+473,South East,41421,Avengers: Endgame,121,124,only big uk,negative,
+474,North East,41422,Avengers: Endgame,121,65,only big uk,negative,
+475,East Midlands,41423,Avengers: Endgame,121,59,only big uk,negative,
+476,Wales,41424,Avengers: Endgame,121,52,only big uk,negative,
+477,East,41425,Avengers: Endgame,121,88,only big uk,negative,
+478,West Midlands,41426,Avengers: Endgame,121,95,only big uk,negative,
+479,South West,41427,Avengers: Endgame,121,87,only big uk,negative,
+480,London,41428,Avengers: Endgame,121,319,only big uk,negative,
+481,Scotland,41429,Avengers: Endgame,121,138,only big uk,negative,
+482,Yorkshire and the Humber,41430,Avengers: Endgame,121,116,only big uk,negative,
+483,North West,41431,Avengers: Endgame,121,158,only big uk,negative,
+484,South East,41421,Joker,59,87,only big uk,negative (Percentage),16.051660516605164
+485,North East,41422,Avengers: Endgame,121,65,only big uk,negative (Percentage),17.379679144385026
+486,East Midlands,41423,Avengers: Endgame,121,59,only big uk,negative (Percentage),15.733333333333333
+487,Wales,41424,Joker,59,47,only big uk,negative (Percentage),16.319444444444446
+488,East,41425,Avengers: Endgame,121,88,only big uk,negative (Percentage),15.492957746478872
+489,West Midlands,41426,The Lion King,8,25,only big uk,negative (Percentage),15.625
+490,South West,41427,Avengers: Endgame,121,87,only big uk,negative (Percentage),15.732368896925857
+491,London,41428,Joker,59,222,only big uk,negative (Percentage),17.076923076923077
+492,Scotland,41429,Avengers: Endgame,121,138,only big uk,negative (Percentage),19.40928270042194
+493,Yorkshire and the Humber,41430,Avengers: Endgame,121,116,only big uk,negative (Percentage),18.619582664526487
+494,North West,41431,Avengers: Endgame,121,158,only big uk,negative (Percentage),16.989247311827956
+495,South East,41421,Avengers: Endgame,121,786,no big uk (percentage),All,
+496,North East,41422,Avengers: Endgame,121,374,no big uk (percentage),All,
+497,East Midlands,41423,Avengers: Endgame,121,375,no big uk (percentage),All,
+498,Wales,41424,Spider-Man: Far From Home,20,351,no big uk (percentage),All,
+499,East,41425,Avengers: Endgame,121,568,no big uk (percentage),All,
+500,West Midlands,41426,Avengers: Endgame,121,630,no big uk (percentage),All,
+501,South West,41427,Avengers: Endgame,121,553,no big uk (percentage),All,
+502,London,41428,Avengers: Endgame,121,1941,no big uk (percentage),All,
+503,Scotland,41429,Avengers: Endgame,121,711,no big uk (percentage),All,
+504,Yorkshire and the Humber,41430,Avengers: Endgame,121,623,no big uk (percentage),All,
+505,North West,41431,Avengers: Endgame,121,930,no big uk (percentage),All,
+506,South East,41421,Avengers: Endgame,121,344,no big uk (percentage),positive,
+507,North East,41422,Joker,59,165,no big uk (percentage),positive,
+508,East Midlands,41423,Avengers: Endgame,121,179,no big uk (percentage),positive,
+509,Wales,41424,Spider-Man: Far From Home,20,160,no big uk (percentage),positive,
+510,East,41425,Avengers: Endgame,121,258,no big uk (percentage),positive,
+511,West Midlands,41426,Avengers: Endgame,121,324,no big uk (percentage),positive,
+512,South West,41427,Spider-Man: Far From Home,20,296,no big uk (percentage),positive,
+513,London,41428,Avengers: Endgame,121,839,no big uk (percentage),positive,
+514,Scotland,41429,Avengers: Endgame,121,356,no big uk (percentage),positive,
+515,Yorkshire and the Humber,41430,Avengers: Endgame,121,281,no big uk (percentage),positive,
+516,North West,41431,Avengers: Endgame,121,416,no big uk (percentage),positive,
+517,South East,41421,Green Book,142,63,no big uk (percentage),positive (Percentage),77.77777777777779
+518,North East,41422,Alita: Battle Angel,147,19,no big uk (percentage),positive (Percentage),82.6086956521739
+519,East Midlands,41423,Green Book,142,25,no big uk (percentage),positive (Percentage),80.64516129032258
+520,Wales,41424,Knives Out,35,19,no big uk (percentage),positive (Percentage),61.29032258064516
+521,East,41425,Green Book,142,47,no big uk (percentage),positive (Percentage),78.33333333333333
+522,West Midlands,41426,Knives Out,35,35,no big uk (percentage),positive (Percentage),76.08695652173914
+523,South West,41427,Green Book,142,31,no big uk (percentage),positive (Percentage),83.78378378378379
+524,London,41428,Instant Family,139,41,no big uk (percentage),positive (Percentage),74.54545454545455
+525,Scotland,41429,Instant Family,139,30,no big uk (percentage),positive (Percentage),78.94736842105263
+526,Yorkshire and the Humber,41430,Green Book,142,27,no big uk (percentage),positive (Percentage),72.97297297297297
+527,North West,41431,Green Book,142,55,no big uk (percentage),positive (Percentage),78.57142857142857
+528,South East,41421,Avengers: Endgame,121,124,no big uk (percentage),negative,
+529,North East,41422,Avengers: Endgame,121,65,no big uk (percentage),negative,
+530,East Midlands,41423,Avengers: Endgame,121,59,no big uk (percentage),negative,
+531,Wales,41424,Avengers: Endgame,121,52,no big uk (percentage),negative,
+532,East,41425,Avengers: Endgame,121,88,no big uk (percentage),negative,
+533,West Midlands,41426,Avengers: Endgame,121,95,no big uk (percentage),negative,
+534,South West,41427,Avengers: Endgame,121,87,no big uk (percentage),negative,
+535,London,41428,Avengers: Endgame,121,319,no big uk (percentage),negative,
+536,Scotland,41429,Avengers: Endgame,121,138,no big uk (percentage),negative,
+537,Yorkshire and the Humber,41430,Avengers: Endgame,121,116,no big uk (percentage),negative,
+538,North West,41431,Avengers: Endgame,121,158,no big uk (percentage),negative,
+539,South East,41421,The Curse of La Llorona,248,17,no big uk (percentage),negative (Percentage),54.83870967741935
+540,North East,41422,Us,131,11,no big uk (percentage),negative (Percentage),31.428571428571427
+541,East Midlands,41423,Us,131,9,no big uk (percentage),negative (Percentage),40.909090909090914
+542,Wales,41424,X-Men: Dark Phoenix,205,12,no big uk (percentage),negative (Percentage),34.285714285714285
+543,East,41425,Hellboy,228,11,no big uk (percentage),negative (Percentage),36.666666666666664
+544,West Midlands,41426,Pet Sematary,220,13,no big uk (percentage),negative (Percentage),28.26086956521739
+545,South West,41427,John Wick: Chapter 3 - Parabellum,119,7,no big uk (percentage),negative (Percentage),29.166666666666668
+546,London,41428,Scary Stories To Tell In The Dark,22,11,no big uk (percentage),negative (Percentage),37.93103448275862
+547,Scotland,41429,Hellboy,228,20,no big uk (percentage),negative (Percentage),29.411764705882355
+548,Yorkshire and the Humber,41430,Pet Sematary,220,9,no big uk (percentage),negative (Percentage),31.03448275862069
+549,North West,41431,Hellboy,228,32,no big uk (percentage),negative (Percentage),35.16483516483517
+550,South East,41421,Rocketman,117,285,only big uk (percentage),All,
+551,North East,41422,Rocketman,117,71,only big uk (percentage),All,
+552,East Midlands,41423,Rocketman,117,132,only big uk (percentage),All,
+553,Wales,41424,Rocketman,117,120,only big uk (percentage),All,
+554,East,41425,Fighting With My Family,134,201,only big uk (percentage),All,
+555,West Midlands,41426,Rocketman,117,143,only big uk (percentage),All,
+556,South West,41427,Rocketman,117,183,only big uk (percentage),All,
+557,London,41428,Rocketman,117,692,only big uk (percentage),All,
+558,Scotland,41429,Rocketman,117,247,only big uk (percentage),All,
+559,Yorkshire and the Humber,41430,Downton Abbey,1,156,only big uk (percentage),All,
+560,North West,41431,Rocketman,117,273,only big uk (percentage),All,
+561,South East,41421,Rocketman,117,185,only big uk (percentage),positive,
+562,North East,41422,Rocketman,117,53,only big uk (percentage),positive,
+563,East Midlands,41423,Rocketman,117,88,only big uk (percentage),positive,
+564,Wales,41424,Rocketman,117,80,only big uk (percentage),positive,
+565,East,41425,Rocketman,117,118,only big uk (percentage),positive,
+566,West Midlands,41426,Rocketman,117,100,only big uk (percentage),positive,
+567,South West,41427,Rocketman,117,123,only big uk (percentage),positive,
+568,London,41428,Rocketman,117,430,only big uk (percentage),positive,
+569,Scotland,41429,Rocketman,117,174,only big uk (percentage),positive,
+570,Yorkshire and the Humber,41430,Rocketman,117,101,only big uk (percentage),positive,
+571,North West,41431,Rocketman,117,170,only big uk (percentage),positive,
+572,South East,41421,Fighting With My Family,134,54,only big uk (percentage),positive (Percentage),65.06024096385542
+573,North East,41422,Little Women,30,16,only big uk (percentage),positive (Percentage),76.19047619047619
+574,East Midlands,41423,Last Christmas,37,26,only big uk (percentage),positive (Percentage),68.42105263157895
+575,Wales,41424,Last Christmas,37,18,only big uk (percentage),positive (Percentage),66.66666666666666
+576,East,41425,Little Women,30,17,only big uk (percentage),positive (Percentage),68.0
+577,West Midlands,41426,Fighting With My Family,134,40,only big uk (percentage),positive (Percentage),71.42857142857143
+578,South West,41427,Last Christmas,37,25,only big uk (percentage),positive (Percentage),67.56756756756756
+579,London,41428,Fighting With My Family,134,85,only big uk (percentage),positive (Percentage),66.40625
+580,Scotland,41429,Last Christmas,37,27,only big uk (percentage),positive (Percentage),77.14285714285715
+581,Yorkshire and the Humber,41430,Fighting With My Family,134,53,only big uk (percentage),positive (Percentage),79.1044776119403
+582,North West,41431,Little Women,30,32,only big uk (percentage),positive (Percentage),72.72727272727273
+583,South East,41421,Cats,32,39,only big uk (percentage),negative,
+584,North East,41422,Downton Abbey,1,5,only big uk (percentage),negative,
+585,East Midlands,41423,Cats,32,11,only big uk (percentage),negative,
+586,Wales,41424,Rocketman,117,11,only big uk (percentage),negative,
+587,East,41425,Cats,32,22,only big uk (percentage),negative,
+588,West Midlands,41426,Cats,32,14,only big uk (percentage),negative,
+589,South West,41427,Cats,32,20,only big uk (percentage),negative,
+590,London,41428,Cats,32,66,only big uk (percentage),negative,
+591,Scotland,41429,Cats,32,16,only big uk (percentage),negative,
+592,Yorkshire and the Humber,41430,Cats,32,16,only big uk (percentage),negative,
+593,North West,41431,Cats,32,35,only big uk (percentage),negative,
+594,South East,41421,Cats,32,39,only big uk (percentage),negative (Percentage),27.083333333333332
+595,North East,41422,Little Women,30,2,only big uk (percentage),negative (Percentage),9.523809523809524
+596,East Midlands,41423,Cats,32,11,only big uk (percentage),negative (Percentage),16.176470588235293
+597,Wales,41424,Cats,32,10,only big uk (percentage),negative (Percentage),18.867924528301888
+598,East,41425,Cats,32,22,only big uk (percentage),negative (Percentage),23.404255319148938
+599,West Midlands,41426,Cats,32,14,only big uk (percentage),negative (Percentage),20.8955223880597
+600,South West,41427,Cats,32,20,only big uk (percentage),negative (Percentage),28.985507246376812
+601,London,41428,Cats,32,66,only big uk (percentage),negative (Percentage),18.96551724137931
+602,Scotland,41429,Little Women,30,7,only big uk (percentage),negative (Percentage),21.21212121212121
+603,Yorkshire and the Humber,41430,Cats,32,16,only big uk (percentage),negative (Percentage),28.07017543859649
+604,North West,41431,Cats,32,35,only big uk (percentage),negative (Percentage),19.774011299435028

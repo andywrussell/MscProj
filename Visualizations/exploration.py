@@ -792,37 +792,74 @@ def plot_region_tweets_bar(movieId = 0, normalize=False, start_date=None, end_da
         
     return tweet_freq
 
-def get_most_popular_movie_per_region(start_date=None, end_date=None, senti_class=None, ignore_list = [28,121]):
+def get_most_popular_movie_per_region(start_date=None, end_date=None, senti_class=None, ignore_list = [28,121], senti_percentage = False):
     region_movie_tweets = database_helper.select_movie_region_tweets(start_date=start_date, end_date=end_date, senti_class=senti_class)
     region_movie_grouped = region_movie_tweets.groupby(by=["unit_id", "movieid"]).size().reset_index(name="tweet_count")
+       
+    group_col = "tweet_count"
+    if (senti_percentage) and (not senti_class == None):
+        #calculate sentiment tweets as percentage
+        region_movie_all = database_helper.select_movie_region_tweets(start_date=start_date, end_date=end_date)
+        region_movie_all_grouped = region_movie_all.groupby(by=["unit_id", "movieid"]).size().reset_index(name="tweet_count_all")  
         
+        #use threshold of 20 tweets per region?
+        region_movie_all_grouped = region_movie_all_grouped[region_movie_all_grouped["tweet_count_all"] >= 20]
+        
+        region_movie_grouped = region_movie_grouped.merge(region_movie_all_grouped, how="left", on=["unit_id", "movieid"])
+        
+        region_movie_grouped["senti_percentage"] = (region_movie_grouped["tweet_count"] / region_movie_grouped["tweet_count_all"]) * 100
+        group_col = "senti_percentage"
+    
     if len(ignore_list) > 0:
         region_movie_grouped = region_movie_grouped[~region_movie_grouped["movieid"].isin(ignore_list)]
         
-    most_popular_per_region = region_movie_grouped.loc[region_movie_grouped.groupby(['unit_id'])['tweet_count'].idxmax()]   
+    most_popular_per_region = region_movie_grouped.loc[region_movie_grouped.groupby(['unit_id'])[group_col].idxmax()]   
     
-    return most_popular_per_region
-
-def get_most_popular_per_region_by_success_class(class_col, class_vals, start_date=None, end_date=None, senti_class=None, ignore_list = [28,121], find_min=False):
-    region_movie_tweets = database_helper.select_movie_region_tweets(start_date=start_date, end_date=end_date, senti_class=senti_class)
-    region_movie_grouped = region_movie_tweets.groupby(by=["unit_id", "movieid"]).size().reset_index(name="tweet_count")
-    
-    #get list of movies which match the passed in class vals
+    #this is slow but really helps with generating the figures
     movies_df = movie_helper.get_movies_df()
-    
-    filtered_df = movies_df[movies_df[class_col].isin(class_vals)]
-    
-    region_movie_grouped_filter = region_movie_grouped[region_movie_grouped["movieid"].isin(filtered_df["movieId"])]
-    
-    if len(ignore_list) > 0:
-        region_movie_grouped_filter = region_movie_grouped_filter[~region_movie_grouped_filter["movieid"].isin(ignore_list)]
-        
-    most_popular_per_region = region_movie_grouped_filter.loc[region_movie_grouped_filter.groupby(['unit_id'])['tweet_count'].idxmax()]   
-    if find_min:
-        most_popular_per_region = region_movie_grouped_filter.loc[region_movie_grouped_filter.groupby(['unit_id'])['tweet_count'].idxmin()]  
-    
+    movie_titles = movies_df[["movieId", "title"]]
+ 
+    gb_regions = database_helper.select_query("tweets_region_count")
+    gb_regions = gb_regions[["unit_id", "region"]]
+ 
+    most_popular_per_region = most_popular_per_region.merge(gb_regions, how="left", on="unit_id")  
+    most_popular_per_region = most_popular_per_region.merge(movie_titles, how="left", left_on="movieid", right_on="movieId").drop(columns="movieId")
+ 
     return most_popular_per_region
-    #return most_popular_per_region
-    
 
+
+def plot_favourites_map(favs_df, annotate_col, title):
+    gb = gpd.read_file("../../ProjectData/Data/GB/european_region_region.shp")
+    favs_map = gb.merge(favs_df, how="left", left_on="UNIT_ID", right_on="unit_id")
+    #plot
+    fig, ax = plt.subplots(1, 1, figsize=(11, 9))
+    ax.axis('off')
+    ax.set_title(title)
+    fig.set_dpi(100)
+    favs_map.plot(column="title", legend=True, ax=ax)
+    
+    scotland = favs_map[favs_map["unit_id"] == 41429]
+    max_area = scotland.loc[scotland["AREA"].idxmax()].NUMBER
+    
+    for index, row in favs_map.iterrows(): 
+        #scotland has tonnes of polygons
+        if row["UNIT_ID"] == 41429:
+            if row["NUMBER"] == max_area:
+                plt.annotate(s=row[annotate_col], xy=row.geometry.centroid.coords[0], horizontalalignment='center') 
+        else:
+            plt.annotate(s=row[annotate_col], xy=row.geometry.centroid.coords[0], horizontalalignment='center') 
+    
+   # favs_map.apply(lambda x: ax.annotate(s=x.title, xy=x.geometry.centroid.coords[0], ha='center'),axis=1)
+    plt.show()
+
+  
+# region_movie_grouped = region_movie_grouped.merge(region_movie_all_grouped, how="left", on=["unit_id", "movieid"])
+
+# region_movie_grouped["senti_percentage"] = (region_movie_grouped["tweet_count"] / region_movie_grouped["tweet_count_all"]) * 100
+# group_col = "senti_percentage"
+
+# if len([28]) > 0:
+#     region_movie_grouped = region_movie_grouped[~region_movie_grouped["movieid"].isin([28])]
+    
+# most_popular_per_region = region_movie_grouped.loc[region_movie_grouped.groupby(['unit_id'])[group_col].idxmax()]   
 
