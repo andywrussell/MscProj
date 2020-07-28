@@ -487,28 +487,6 @@ def generate_heatmap_from_df(df, columns, title):
     plt.show() 
                     
 def get_success_figure(class_col, order_list, dist_col, movies_df, title, money=True):
-   #  fig, axs = plt.subplots(figsize=(20, 10), ncols=3)
-    
-   #  xlabel = title + " ($mil)" if money else title
-    
-   #  #get box
-   #  box = sns.boxplot(x=movies_df[dist_col], data=movies_df, ax=axs[0])
-   #  box.set_title(title + " Box Plot")
-   #  box.set_xlabel(xlabel)
-    
-   #  #get dist
-   #  dist = sns.distplot(movies_df[dist_col], ax=axs[1])
-   #  dist.set_title(title + " Distribution")
-   #  dist.set_xlabel(xlabel)
-    
-   #  #show class plot
-   #  grouped_movies = movies_df.groupby([class_col]).size().reset_index(name = "counts")
-   #  bar = sns.barplot(x=class_col, y="counts", data=grouped_movies, order=order_list, ax=axs[2])
-   #  bar.set(xlabel=class_col, ylabel='Movie Count')
-   #  bar.set_title(title + " Class Counts")
-   #  bar.set_xticklabels(order_list, rotation=40)
-   # # plt.xticks(rotation=40)
-   #  plt.show()   
     f, (ax_box, ax_dist, ax_bar) = plt.subplots(3, sharex=False, gridspec_kw={"height_ratios": (.15, .35, .50)}, figsize=(10, 10))
     
     xlabel = title + " ($mil)" if money else title
@@ -519,9 +497,7 @@ def get_success_figure(class_col, order_list, dist_col, movies_df, title, money=
     # Add a graph in each part
     sns.boxplot(movies_df[dist_col], ax=ax_box)
     sns.distplot(movies_df[dist_col], ax=ax_dist)
-    
-
-    
+     
     grouped_movies = movies_df.groupby([class_col]).size().reset_index(name = "counts")
     sns.barplot(x=class_col, y="counts", data=grouped_movies, order=order_list, ax=ax_bar)
     ax_bar.set_xticklabels(order_list, rotation=40) 
@@ -529,6 +505,7 @@ def get_success_figure(class_col, order_list, dist_col, movies_df, title, money=
 
     ax_box.set(xlabel='', title=title + " Summary")
     ax_dist.set(xlabel=xlabel)
+    plt.rcParams.update({'font.size': 20})
     plt.show()
    
     
@@ -544,6 +521,7 @@ def get_dist_figure(col, df, title, money=True):
 
     ax_box.set(xlabel='', title=title)
     ax_hist.set(xlabel=xlabel)
+    plt.rcParams.update({'font.size': 20})
     plt.show()
 
 def correlatte_movie_stats():
