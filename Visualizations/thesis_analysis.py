@@ -135,7 +135,7 @@ def define_success():
     uk_percentage_lst = ['0% - 1%', '1% - 4%', '4% - 6%', '6% - 12%', '> 12%']
     exploration.get_success_figure("uk_percentage_class", uk_percentage_lst, "uk_percentage", movies_df, "UK Percentage", False)
     
-def twitter_exploration(df):
+def analyse_tweets(df):
     df["tweet_count"] = df.apply(lambda row: movie_helper.count_tweets(row.movieId)['count'], axis = 1)
     df["critical_period_tweet_count"] = df.apply(lambda row: movie_helper.count_tweets(row["movieId"], row["critical_start"], row["critical_end"])['count'], axis = 1)
 
@@ -162,87 +162,6 @@ def twitter_exploration(df):
     exploration.get_dist_figure("run_up_tweets", describe_df, "Run Up Tweets", money=False)
     exploration.get_dist_figure("opening_tweets", describe_df, "Opening Weekend Tweets", money=False)
     
-   # g = sns.lmplot(x="uk_gross_usd", y="tweet_count", hue="profit_class", data=df)
-    #profit class
-    # g = sns.lmplot(x="uk_gross_usd", y="tweet_count", hue="profit_class", data=df, fit_reg=False)
-    # sns.regplot(x="uk_gross_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-    
-    # g = sns.lmplot(x="budget_usd", y="tweet_count", hue="profit_class", data=df, fit_reg=False)
-    # sns.regplot(x="budget_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-    
-    # g = sns.lmplot(x="gross_profit_usd", y="tweet_count", hue="profit_class", data=df, fit_reg=False)
-    # sns.regplot(x="gross_profit_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-    
-    # g = sns.lmplot(x="return_percentage", y="tweet_count", hue="profit_class", data=df, fit_reg=False)
-    # sns.regplot(x="return_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-       
-    # g = sns.lmplot(x="uk_percentage", y="tweet_count", hue="profit_class", data=df, fit_reg=False)
-    # sns.regplot(x="uk_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-    
-    # #return class
-    # g = sns.lmplot(x="uk_gross_usd", y="tweet_count", hue="return_class", data=df, fit_reg=False)
-    # sns.regplot(x="uk_gross_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-    
-    # g = sns.lmplot(x="budget_usd", y="tweet_count", hue="return_class", data=df, fit_reg=False)
-    # sns.regplot(x="budget_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-    
-    # g = sns.lmplot(x="gross_profit_usd", y="tweet_count", hue="return_class", data=df, fit_reg=False)
-    # sns.regplot(x="gross_profit_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-    
-    # g = sns.lmplot(x="return_percentage", y="tweet_count", hue="return_class", data=df, fit_reg=False)
-    # sns.regplot(x="return_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-       
-    # g = sns.lmplot(x="uk_percentage", y="tweet_count", hue="return_class", data=df, fit_reg=False)
-    # sns.regplot(x="uk_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-    
-    # #uk percentage class
-    # g = sns.lmplot(x="uk_gross_usd", y="tweet_count", hue="uk_percentage_class", data=df, fit_reg=False)
-    # sns.regplot(x="uk_gross_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-    
-    # g = sns.lmplot(x="budget_usd", y="tweet_count", hue="uk_percentage_class", data=df, fit_reg=False)
-    # sns.regplot(x="budget_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-    
-    # g = sns.lmplot(x="gross_profit_usd", y="tweet_count", hue="uk_percentage_class", data=df, fit_reg=False)
-    # sns.regplot(x="gross_profit_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-    
-    # g = sns.lmplot(x="return_percentage", y="tweet_count", hue="uk_percentage_class", data=df, fit_reg=False)
-    # sns.regplot(x="return_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-       
-    # g = sns.lmplot(x="uk_percentage", y="tweet_count", hue="uk_percentage_class", data=df, fit_reg=False)
-    # sns.regplot(x="uk_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-    
-    # #budget_class
-    # g = sns.lmplot(x="uk_gross_usd", y="tweet_count", hue="budget_class", data=df, fit_reg=False)
-    # sns.regplot(x="uk_gross_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-    
-    # g = sns.lmplot(x="budget_usd", y="tweet_count", hue="budget_class", data=df, fit_reg=False)
-    # sns.regplot(x="budget_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-    
-    # g = sns.lmplot(x="gross_profit_usd", y="tweet_count", hue="budget_class", data=df, fit_reg=False)
-    # sns.regplot(x="gross_profit_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-    
-    # g = sns.lmplot(x="return_percentage", y="tweet_count", hue="budget_class", data=df, fit_reg=False)
-    # sns.regplot(x="return_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-       
-    # g = sns.lmplot(x="uk_percentage", y="tweet_count", hue="budget_class", data=df, fit_reg=False)
-    # sns.regplot(x="uk_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-    
-    # #uk gross class
-    # g = sns.lmplot(x="uk_gross_usd", y="tweet_count", hue="uk_gross_class", data=df, fit_reg=False)
-    # sns.regplot(x="uk_gross_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-    
-    # g = sns.lmplot(x="budget_usd", y="tweet_count", hue="uk_gross_class", data=df, fit_reg=False)
-    # sns.regplot(x="budget_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-    
-    # g = sns.lmplot(x="gross_profit_usd", y="tweet_count", hue="uk_gross_class", data=df, fit_reg=False)
-    # sns.regplot(x="gross_profit_usd", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-    
-    # g = sns.lmplot(x="return_percentage", y="tweet_count", hue="uk_gross_class", data=df, fit_reg=False)
-    # sns.regplot(x="return_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])
-       
-    # g = sns.lmplot(x="uk_percentage", y="tweet_count", hue="uk_gross_class", data=df, fit_reg=False)
-    # sns.regplot(x="uk_percentage", y="tweet_count", data=df, scatter=False, ax=g.axes[0, 0])   
-    # return df
     return summary_df_t
 
 def get_correlation_for_tweets(full_week = False, week_inc_weekend = False, senti_class = None, percentage = False):
@@ -527,7 +446,7 @@ def analyse_tweet_sentiment():
     movies_df["neutral_tweets"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId, senti_class = 'neutral')['count'], axis= 1)  
     movies_df["neutral_tweets_percentage"] = (movies_df["neutral_tweets"] / movies_df["tweet_count"]) * 100
     movies_df["negative_tweets"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId, senti_class = 'negative')['count'], axis = 1)  
-    movies_df[""] = (movies_df["negative_tweets"] / movies_df["tweet_count"]) * 100
+    movies_df["negative_tweets_percentage"] = (movies_df["negative_tweets"] / movies_df["tweet_count"]) * 100
 
     movies_df["critical_period_tweet_count"] = movies_df.apply(lambda row: movie_helper.count_tweets(row["movieId"], row["critical_start"], row["critical_end"])['count'], axis = 1)
     movies_df["critical_period_tweet_pos"] = movies_df.apply(lambda row: movie_helper.count_tweets(row["movieId"], row["critical_start"], row["critical_end"], senti_class = 'positive')['count'], axis = 1)
@@ -559,6 +478,12 @@ def analyse_tweet_sentiment():
     ax.set_title("Movie Tweets Sentiment Class")
     plt.show()
     
+    #get top pos and neg for total and critical period
+    exploration.get_top_percentage_tweets(movies_df, "positive_tweets_percentage", "Top Percentage of Positive Tweets", "Positive Tweet Percentage")
+    exploration.get_top_percentage_tweets(movies_df, "negative_tweets_percentage", "Top Percentage of Negative Tweets", "Negative Tweet Percentage")
+    exploration.get_top_percentage_tweets(movies_df, "critical_period_pos_percentage", "Top Percentage of Positive Tweets (Critical Period)", "Positive Tweet Percentage")
+    exploration.get_top_percentage_tweets(movies_df, "critical_period_neg_percentage", "Top Percentage of Negative Tweets (Critical Period)", "Negative Tweet Percentage")
+    
     class_order_df = get_class_order_df()
     
     class_sent_df = movie_helper.get_tweet_senti_counts_by_class(movies_df, class_list=class_order_df["class_name"])
@@ -583,7 +508,7 @@ def analyse_tweet_sentiment():
         plt.show()
 
         #plot percentage stacked bar 
-        data = class_df.pivot(index="class_val", columns="senti_class", values="percentage")
+        data = class_df.pivot(index="class_val", columns="senti_class", values="tweet_count")
         data = data.reindex(class_order)
         data = data[["positive", "negative", "neutral"]]
         
@@ -753,6 +678,111 @@ def analyse_tweet_sentiment():
                "weekly_tweet_cor_neu_sig_desc_t" : weekly_tweet_cor_neu_sig_desc_t}
     
     return results
+
+def analyse_sentiment_special():
+    plot_tweets = pd.DataFrame()
+    run_up_tweets = pd.DataFrame()
+    week1_tweets = pd.DataFrame()
+    week2_tweets = pd.DataFrame()
+    
+    avengers = movie_helper.get_movie_by_id(121)
+    avengers_grped_tweets = avengers.get_grouped_tweets(critical_period=True, group_size=7)
+    avengers_grped_tweets["title"] = avengers.title
+    
+    avengers_run_up = avengers_grped_tweets[avengers_grped_tweets["group"] == "Run Up Week"]
+    avengers_run_up["day"] = avengers_run_up.apply(lambda row: "Day {0}".format((row["date"] - avengers_run_up["date"].min()).days + 1), axis=1)
+ 
+    avengers_week_1 = avengers_grped_tweets[avengers_grped_tweets["group"] == "Release Week 1"]
+    avengers_week_1["day"] = avengers_week_1.apply(lambda row: "Day {0}".format((row["date"] - avengers_week_1["date"].min()).days + 1), axis=1)
+   
+    avengers_week_2 = avengers_grped_tweets[avengers_grped_tweets["group"] == "Release Week 2"]
+    avengers_week_2["day"] = avengers_week_2.apply(lambda row: "Day {0}".format((row["date"] - avengers_week_2["date"].min()).days + 1), axis=1)     
+    
+    plot_tweets = plot_tweets.append(avengers_grped_tweets[["title", "compound_scr", "group"]])
+    run_up_tweets = run_up_tweets.append(avengers_run_up[["title", "compound_scr", "day"]])
+    week1_tweets = week1_tweets.append(avengers_week_1[["title", "compound_scr", "day"]])
+    week2_tweets = week2_tweets.append(avengers_week_2[["title", "compound_scr", "day"]])
+    
+    #PET CEMETERY
+    cats = movie_helper.get_movie_by_id(32)
+    cats_grped_tweets = cats.get_grouped_tweets(critical_period=True, group_size=7)
+    cats_grped_tweets["title"] = cats.title
+    
+    cats_run_up = cats_grped_tweets[cats_grped_tweets["group"] == "Run Up Week"]
+    cats_run_up["day"] = cats_run_up.apply(lambda row: "Day {0}".format((row["date"] - cats_run_up["date"].min()).days + 1), axis=1)
+ 
+    cats_week_1 = cats_grped_tweets[cats_grped_tweets["group"] == "Release Week 1"]
+    cats_week_1["day"] = cats_week_1.apply(lambda row: "Day {0}".format((row["date"] - cats_week_1["date"].min()).days + 1), axis=1)
+   
+    cats_week_2 = cats_grped_tweets[cats_grped_tweets["group"] == "Release Week 2"]
+    cats_week_2["day"] = cats_week_2.apply(lambda row: "Day {0}".format((row["date"] - cats_week_2["date"].min()).days + 1), axis=1)   
+    
+    plot_tweets = plot_tweets.append(cats_grped_tweets[["title", "compound_scr", "group"]])
+    run_up_tweets = run_up_tweets.append(cats_run_up[["title", "compound_scr", "day"]])
+    week1_tweets = week1_tweets.append(cats_week_1[["title", "compound_scr", "day"]])
+    week2_tweets = week2_tweets.append(cats_week_2[["title", "compound_scr", "day"]])
+    
+    #GREEN BOOK
+    green_book = movie_helper.get_movie_by_id(142)
+    green_book_grped_tweets = green_book.get_grouped_tweets(critical_period=True, group_size=7)
+    green_book_grped_tweets["title"] = green_book.title
+    
+    green_book_run_up = green_book_grped_tweets[green_book_grped_tweets["group"] == "Run Up Week"]
+    green_book_run_up["day"] = green_book_run_up.apply(lambda row: "Day {0}".format((row["date"] - green_book_run_up["date"].min()).days + 1), axis=1)
+ 
+    green_book_week_1 = green_book_grped_tweets[green_book_grped_tweets["group"] == "Release Week 1"]
+    green_book_week_1["day"] = green_book_week_1.apply(lambda row: "Day {0}".format((row["date"] - green_book_week_1["date"].min()).days + 1), axis=1)
+   
+    green_book_week_2 = green_book_grped_tweets[green_book_grped_tweets["group"] == "Release Week 2"]
+    green_book_week_2["day"] = green_book_week_2.apply(lambda row: "Day {0}".format((row["date"] - green_book_week_2["date"].min()).days + 1), axis=1)     
+    
+    plot_tweets = plot_tweets.append(green_book_grped_tweets[["title", "compound_scr", "group"]])
+    run_up_tweets = run_up_tweets.append(green_book_run_up[["title", "compound_scr", "day"]])
+    week1_tweets = week1_tweets.append(green_book_week_1[["title", "compound_scr", "day"]])
+    week2_tweets = week2_tweets.append(green_book_week_2[["title", "compound_scr", "day"]])    
+        
+    #plt.figure(figsize=(20,5))
+    g = sns.catplot(x="day", y="compound_scr", data=run_up_tweets, hue="title", kind="boxen", legend_out = False, height=5, aspect=1.5)  
+    
+    fig = g.fig
+    g.set_ylabels("Compound Score")
+    g.set_xlabels("Days")
+    g.set_xticklabels(rotation=40, ha="right")
+    fig.subplots_adjust(top=0.9)
+    fig.suptitle("Run Up Week Sentiment", fontsize=16)
+    plt.show()
+    
+    g = sns.catplot(x="day", y="compound_scr", data=week1_tweets, hue="title", kind="boxen", legend_out = False, height=5, aspect=1.5)  
+    
+    fig = g.fig
+    g.set_ylabels("Compound Score")
+    g.set_xlabels("Days")
+    g.set_xticklabels(rotation=40, ha="right")
+    fig.subplots_adjust(top=0.9)
+    fig.suptitle("Release Week 1 Sentiment", fontsize=16)
+    plt.show()
+    
+    g = sns.catplot(x="day", y="compound_scr", data=week2_tweets, hue="title", kind="boxen", legend_out = False, height=5, aspect=1.5)  
+    
+    fig = g.fig
+    g.set_ylabels("Tweet Sentiment")
+    g.set_xlabels("Days")
+    g.set_xticklabels(rotation=40, ha="right")
+    fig.subplots_adjust(top=0.9)
+    fig.suptitle("Release Week 2 Sentiment", fontsize=16)
+    plt.show()
+    
+    g = sns.catplot(x="group", y="compound_scr", data=plot_tweets, hue="title", kind="boxen", legend_out = False, height=5, aspect=1.5)  
+    
+    fig = g.fig
+    g.set_ylabels("Tweet Sentiment")
+    g.set_xlabels("Date")
+    g.set_xticklabels(rotation=40, ha="right")
+    fig.subplots_adjust(top=0.9)
+    fig.suptitle("Critical Period Sentiment", fontsize=16)
+    plt.show()
+    
+    
     
 
 def spatial_exploration():

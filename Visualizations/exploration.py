@@ -473,6 +473,22 @@ def plot_genre_movie_counts():
     plt.show()
   
     
+def get_top_percentage_tweets(movies_df, percentage_col, title, ylabel, num_movies=10, tweet_threshold=100):
+    filtered_movies = movies_df[movies_df["tweet_count"] >= tweet_threshold]
+    
+    sorted_movies = filtered_movies.sort_values(by=percentage_col, ascending=False).head(n=10)
+
+    fig = plt.figure()
+    ax = fig.add_axes([0,0,1,1])
+    
+    ax.bar(sorted_movies["title"], sorted_movies[percentage_col])
+    ax.set_ylabel(ylabel)
+    ax.set_xlabel("Movie TItle")
+    ax.set_title(title)
+    plt.xticks(rotation=90)
+    plt.show() 
+    
+    
 def generate_heatmap_from_df(df, columns, title):
     f, ax = plt.subplots(figsize=(11, 9))
     
@@ -484,6 +500,7 @@ def generate_heatmap_from_df(df, columns, title):
             square=True, annot = True, linewidths=.5)
     
    # plt.title(title)
+    plt.rcParams.update({'font.size': 12})
     plt.show() 
                     
 def get_success_figure(class_col, order_list, dist_col, movies_df, title, money=True):

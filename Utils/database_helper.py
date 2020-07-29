@@ -224,7 +224,7 @@ def select_fishnet_count(start_date = None, end_date = None):
 
 def select_geo_tweets(movieId = 0, start_date = None, end_date = None, senti_class = None):
     sql = """
-        SELECT geombng, movieid, msg, wgslat, wgslng, created_at, id, senti_class
+        SELECT geombng, movieid, msg, wgslat, wgslng, created_at, id, senti_class, compound_scr
         FROM movie_tweets2019
         WHERE 1 = 1
     """.format(movieId)

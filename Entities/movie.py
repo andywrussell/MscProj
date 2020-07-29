@@ -632,6 +632,45 @@ class Movie:
         plt.xticks(rotation=40)
         plt.show()
 
+
+    def get_grouped_tweets(self, cinema_run = False, critical_period = False, group_size=3):
+        tweets = self.get_geotweets_by_dates() if cinema_run else database_helper.select_geo_tweets(self.movieId)
+        tweets =  database_helper.select_geo_tweets(self.movieId, self.critical_start, self.critical_end) if critical_period else tweets
+        
+        tweets["date"] = pd.to_datetime(tweets["created_at"].dt.date, errors="coerce")
+        tweets = tweets.sort_values(by="date").reset_index()
+        
+        group_days = "{0}D".format(group_size)
+        
+        group_res = tweets.groupby(pd.Grouper(key="date", freq=group_days, closed="left")).indices
+        
+        tweets["group"] = "EMPTY"
+        counter = 0;
+        for key, value in group_res.items():
+            label = "Run Up Week" if counter == 0 else "Release Week {0}".format(counter)
+            
+            tweets["group"] = tweets.apply(lambda row: label if row.name in value else row["group"], axis = 1)  
+            counter = counter + 1
+    
+        #drop extra group at end 
+        tweets = tweets[tweets["group"] != "Release Week 3"]
+        
+        return tweets
+
+    def plot_tweet_sentiment_over_time_box(self, cinema_run = False, critical_period = False, group_size=3):
+        tweets = get_grouped_tweets(cinema_run = cinema_run, critical_period=critical_period, group_size=group_size)
+            
+        
+        g = sns.catplot(x="group", y="compound_scr", data=tweets, kind="violin")  
+        
+        fig = g.fig
+        g.set_ylabels("Tweet Sentiment")
+        g.set_xlabels("Date")
+        g.set_xticklabels(rotation=40, ha="right")
+        fig.subplots_adjust(top=0.9)
+        fig.suptitle(self.title + "Tweet Sentiment", fontsize=16)
+        plt.show()
+        
         
     def get_tweet_peak_dates(self):
         tweets = database_helper.select_geo_tweets(self.movieId)
