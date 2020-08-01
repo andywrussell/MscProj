@@ -54,7 +54,7 @@ def get_cell_label(surface_val):
     
     return "Expected"
 
-def plot_chi_sqrd_surface(movieId = 0, normalize_by="All", start_date = None, end_date = None):
+def plot_chi_sqrd_surface(movieId = 0, normalize_by="All", start_date = None, end_date = None, critical_period=False):
     #fix dates so we include start of start and end of end
     if not start_date == None:
         start_date = datetime.combine(start_date.date(), datetime.min.time())
@@ -130,7 +130,9 @@ def plot_chi_sqrd_surface(movieId = 0, normalize_by="All", start_date = None, en
         title = movies_df.iloc[0]["title"] + " Tweet Expecation"  
  
  
-    if (start_date != None) and (end_date != None):
+    if critical_period:
+        title = "{0} (Critical Period)".format(title)
+    elif (start_date != None) and (end_date != None):
         title = "{0} ({1} - {2})".format(title, start_date.date(), end_date.date())
  
     ax.set_axis_off()

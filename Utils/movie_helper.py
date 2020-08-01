@@ -426,6 +426,64 @@ def get_end_weekend_for_first_run(df):
             
     return end_weekend
 
+def get_trailer_tweets(movieId, most_tweeted = False, senti_class=None, time_period=1):
+    trailers_df = database_helper.select_query("trailers", { "movieId" : int(movieId) })
+    
+    trailers_df["start_date"] = trailers_df.apply(lambda row: datetime.combine(row["publishDate"], datetime.min.time()), axis=1)
+    trailers_df["end_date"] = trailers_df.apply(lambda row: datetime.combine((row["publishDate"] + timedelta(days=time_period)), datetime.max.time()), axis=1)
+    
+    tweets = pd.DataFrame()
+    
+    for index, row in trailers_df.iterrows():
+        trailer_tweets = database_helper.select_geo_tweets(movieId, start_date = row["start_date"], end_date = row["end_date"], senti_class = senti_class)
+        trailer_tweets["trailerId"] = row["id"]
+        trailer_tweets["youtubeId"] = row["youtubeId"]
+        
+        tweets = tweets.append(trailer_tweets)
+        
+        
+    #if most tweeted only return the tweets for the most tweeted film
+    if most_tweeted:
+        trailer_counts = tweets.groupby(by="trailerId").size().reset_index(name="tweet_count")
+        most_tweeted_id = trailer_counts.loc[trailer_counts["tweet_count"].idxmax()]["trailerId"]
+        
+        tweets = tweets[tweets["trailerId"] == most_tweeted_id]
+
+    return tweets.reset_index()
+
+def get_trailer_tweet_count(movieId, most_tweeted = False, senti_class=None):
+    trailer_tweets = get_trailer_tweets(movieId, most_tweeted, senti_class)
+
+    return trailer_tweets.shape[0]
+
+def get_movies_df_with_sentiment_summaryies(movies_df, most_tweeted_trailer=False):
+    
+    movies_df["tweet_count"] = movies_df.apply(lambda row: count_tweets(row.movieId)['count'], axis = 1)
+    movies_df["positive_tweets"] = movies_df.apply(lambda row: count_tweets(row.movieId, senti_class = 'positive')['count'], axis = 1)
+    movies_df["positive_tweets_percentage"] = (movies_df["positive_tweets"] / movies_df["tweet_count"]) * 100   
+    movies_df["neutral_tweets"] = movies_df.apply(lambda row: count_tweets(row.movieId, senti_class = 'neutral')['count'], axis= 1)  
+    movies_df["neutral_tweets_percentage"] = (movies_df["neutral_tweets"] / movies_df["tweet_count"]) * 100
+    movies_df["negative_tweets"] = movies_df.apply(lambda row: count_tweets(row.movieId, senti_class = 'negative')['count'], axis = 1)  
+    movies_df["negative_tweets_percentage"] = (movies_df["negative_tweets"] / movies_df["tweet_count"]) * 100
+
+    movies_df["critical_period_tweet_count"] = movies_df.apply(lambda row: count_tweets(row["movieId"], row["critical_start"], row["critical_end"])['count'], axis = 1)
+    movies_df["critical_period_tweet_pos"] = movies_df.apply(lambda row: count_tweets(row["movieId"], row["critical_start"], row["critical_end"], senti_class = 'positive')['count'], axis = 1)
+    movies_df["critical_period_pos_percentage"] = (movies_df["critical_period_tweet_pos"] / movies_df["critical_period_tweet_count"]) * 100
+    movies_df["critical_period_tweet_neu"] = movies_df.apply(lambda row: count_tweets(row["movieId"], row["critical_start"], row["critical_end"], senti_class = 'neutral')['count'], axis = 1)
+    movies_df["critical_period_neu_percentage"] = (movies_df["critical_period_tweet_neu"] / movies_df["critical_period_tweet_count"]) * 100
+    movies_df["critical_period_tweet_neg"] = movies_df.apply(lambda row: count_tweets(row["movieId"], row["critical_start"], row["critical_end"], senti_class = 'negative')['count'], axis = 1)
+    movies_df["critical_period_neg_percentage"] = (movies_df["critical_period_tweet_neg"] / movies_df["critical_period_tweet_count"]) * 100
+    
+    movies_df["trailer_tweet_count"] = movies_df.apply(lambda row: get_trailer_tweet_count(row["movieId"], most_tweeted=most_tweeted_trailer), axis = 1)
+    movies_df["trailer_tweet_pos"] = movies_df.apply(lambda row: get_trailer_tweet_count(row["movieId"], most_tweeted=most_tweeted_trailer, senti_class = 'positive'), axis = 1)
+    movies_df["trailer_pos_percentage"] = (movies_df["trailer_tweet_pos"] / movies_df["trailer_tweet_count"]) * 100
+    movies_df["trailer_tweet_neu"] = movies_df.apply(lambda row: get_trailer_tweet_count(row["movieId"], most_tweeted=most_tweeted_trailer, senti_class = 'neutral'), axis = 1)
+    movies_df["trailer_neu_percentage"] = (movies_df["trailer_tweet_neu"] / movies_df["trailer_tweet_count"]) * 100
+    movies_df["trailer_tweet_neg"] = movies_df.apply(lambda row: get_trailer_tweet_count(row["movieId"], most_tweeted=most_tweeted_trailer, senti_class = 'negative'), axis = 1)
+    movies_df["trailer_neg_percentage"] = (movies_df["trailer_tweet_neg"] / movies_df["trailer_tweet_count"]) * 100
+    
+    return movies_df
+
 def get_movie_run_info():
     movies_df = get_movies_df()
     

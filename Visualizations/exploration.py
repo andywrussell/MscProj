@@ -206,7 +206,7 @@ def plot_top10_uk(percentage=False):
     ax.set_ylabel("Uk percentage")
     ax.set_xlabel("Movie TItle")
     ax.set_title("Percentage Of Takings in UK")
-    plt.xticks(rotation=40)
+    plt.xticks(rotation=90)
     plt.show()
     
 def plot_top10_profit():
@@ -221,23 +221,26 @@ def plot_top10_profit():
     ax.set_ylabel("Gross Profit $mil")
     ax.set_xlabel("Movie TItle")
     ax.set_title("Worldwide Gross Profit")
-    plt.xticks(rotation=40)
+    plt.xticks(rotation=90)
     plt.show()
     
     
 def plot_top10_roi(percentage=False):
     column = "return_percentage"
     
-    sorted_movies = movies_df.sort_values(by=column, ascending=False).head(n=10)
+    data = movies_df
+    data[column] = data[column].replace('[\£,]', '', regex=True).astype(float) / 1000000
+    
+    sorted_movies = data.sort_values(by=column, ascending=False).head(n=10)
 
     fig = plt.figure()
     ax = fig.add_axes([0,0,1,1])
     
     ax.bar(sorted_movies["title"], sorted_movies[column])
-    ax.set_ylabel("Return percentage")
+    ax.set_ylabel("Return Percentage")
     ax.set_xlabel("Movie TItle")
-    ax.set_title("Return On Investment")
-    plt.xticks(rotation=40)
+    ax.set_title("Top 10 Return Percentage")
+    plt.xticks(rotation=90)
     plt.show()    
     
 def plot_financial_distribution(column, title, xlabel):
@@ -688,7 +691,7 @@ def plot_movie_tweets_kde(movieId = 0, start_date=None, end_date=None, senti_cla
     plt.cla()
     plt.close()
     
-def plot_movie_tweets_map(movieId = 0, normalize=False, start_date=None, end_date=None):
+def plot_movie_tweets_map(movieId = 0, normalize=False, start_date=None, end_date=None, critical_period = False):
     #select movie tweets with region cell id and unit id attached
     region_movie_tweets = database_helper.select_movie_region_tweets(movieId, start_date=start_date, end_date=end_date)
     
@@ -717,11 +720,13 @@ def plot_movie_tweets_map(movieId = 0, normalize=False, start_date=None, end_dat
         tweet_freq["norm_count"] = (tweet_freq['movie_tweet_count'] / tweet_freq['tweet_count']) * 1000000
         map_col = "norm_count"
         
-        title = "Regional Movie Tweets (per million tweets)"
-        if movieId > 0:
-            title = movie_title + " Tweets (per million tweets)"
-            
-    if (start_date != None) and (end_date != None):
+        #title = "Regional Movie Tweets (per million tweets)"
+        #if movieId > 0:
+            #title = movie_title + " Tweets (per million tweets)"
+      
+    if critical_period:
+        title = "{0} (Critical Period)".format(title)
+    elif (start_date != None) and (end_date != None):
         title = "{0} ({1} - {2})".format(title, start_date.date(), end_date.date())
     
     #merge with shape file
@@ -738,7 +743,7 @@ def plot_movie_tweets_map(movieId = 0, normalize=False, start_date=None, end_dat
     
     return map_freq
 
-def plot_region_tweets_bar(movieId = 0, normalize=False, start_date=None, end_date=None):
+def plot_region_tweets_bar(movieId = 0, normalize=False, start_date=None, end_date=None, critical_period=True):
     #select movie tweets with region cell id and unit id attached
     region_movie_tweets = database_helper.select_movie_region_tweets(movieId, start_date=start_date, end_date=end_date)
     
@@ -776,8 +781,12 @@ def plot_region_tweets_bar(movieId = 0, normalize=False, start_date=None, end_da
         tweet_freq = tweet_freq.merge(regions, on="unit_id", how="left")
      
 
-    if (start_date != None) and (end_date != None):
+    if critical_period:
+        title = "{0} (Critical Period)".format(title)
+    elif (start_date != None) and (end_date != None):
         title = "{0} ({1} - {2})".format(title, start_date.date(), end_date.date())
+        
+    
 
     ax = sns.barplot(x="region", y=plot_col, data=tweet_freq)
     ax.set(xlabel='Region', ylabel=ylabel)
@@ -787,14 +796,34 @@ def plot_region_tweets_bar(movieId = 0, normalize=False, start_date=None, end_da
         
     return tweet_freq
 
-def get_most_popular_movie_per_region(start_date=None, end_date=None, senti_class=None, ignore_list = [28,121], senti_percentage = False):
+def get_most_popular_movie_per_region(start_date=None, end_date=None, senti_class=None, ignore_list = [28,121], senti_percentage = False, critical_period=False):
     region_movie_tweets = database_helper.select_movie_region_tweets(start_date=start_date, end_date=end_date, senti_class=senti_class)
+    
+    #check if we need to filter by the crticial period
+    if critical_period:
+        movies_df = movie_helper.get_movies_df()
+        small_movies_df = movies_df[["movieId", "critical_start", "critical_end"]]
+        small_movies_df = small_movies_df.rename(columns={"movieId" : "movieid"})
+        region_movie_tweets = region_movie_tweets.merge(small_movies_df, how="left", on="movieid")
+        region_movie_tweets = region_movie_tweets[(region_movie_tweets["created_at"] >= region_movie_tweets["critical_start"]) 
+                                                     & (region_movie_tweets["created_at"] <= region_movie_tweets["critical_end"])]
+    
     region_movie_grouped = region_movie_tweets.groupby(by=["unit_id", "movieid"]).size().reset_index(name="tweet_count")
-       
+    
+    
     group_col = "tweet_count"
     if (senti_percentage) and (not senti_class == None):
         #calculate sentiment tweets as percentage
         region_movie_all = database_helper.select_movie_region_tweets(start_date=start_date, end_date=end_date)
+        
+        if critical_period:
+            movies_df = movie_helper.get_movies_df()
+            small_movies_df = movies_df[["movieId", "critical_start", "critical_end"]]
+            small_movies_df = small_movies_df.rename(columns={"movieId" : "movieid"})
+            region_movie_all = region_movie_all.merge(small_movies_df, how="left", on="movieid")
+            region_movie_all = region_movie_all[(region_movie_all["created_at"] >= region_movie_all["critical_start"]) 
+                                                         & (region_movie_all["created_at"] <= region_movie_all["critical_end"])]
+        
         region_movie_all_grouped = region_movie_all.groupby(by=["unit_id", "movieid"]).size().reset_index(name="tweet_count_all")  
         
         #use threshold of 20 tweets per region?

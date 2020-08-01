@@ -438,23 +438,7 @@ def get_class_order_df():
 def analyse_tweet_sentiment():
     movies_df = movie_helper.get_movies_df_with_opening_weekend()
     movies_df = movie_helper.convert_financial_to_mil(movies_df)           
-    
-    #total tweets
-    movies_df["tweet_count"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId)['count'], axis = 1)
-    movies_df["positive_tweets"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId, senti_class = 'positive')['count'], axis = 1)
-    movies_df["positive_tweets_percentage"] = (movies_df["positive_tweets"] / movies_df["tweet_count"]) * 100   
-    movies_df["neutral_tweets"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId, senti_class = 'neutral')['count'], axis= 1)  
-    movies_df["neutral_tweets_percentage"] = (movies_df["neutral_tweets"] / movies_df["tweet_count"]) * 100
-    movies_df["negative_tweets"] = movies_df.apply(lambda row: movie_helper.count_tweets(row.movieId, senti_class = 'negative')['count'], axis = 1)  
-    movies_df["negative_tweets_percentage"] = (movies_df["negative_tweets"] / movies_df["tweet_count"]) * 100
-
-    movies_df["critical_period_tweet_count"] = movies_df.apply(lambda row: movie_helper.count_tweets(row["movieId"], row["critical_start"], row["critical_end"])['count'], axis = 1)
-    movies_df["critical_period_tweet_pos"] = movies_df.apply(lambda row: movie_helper.count_tweets(row["movieId"], row["critical_start"], row["critical_end"], senti_class = 'positive')['count'], axis = 1)
-    movies_df["critical_period_pos_percentage"] = (movies_df["critical_period_tweet_pos"] / movies_df["critical_period_tweet_count"]) * 100
-    movies_df["critical_period_tweet_neu"] = movies_df.apply(lambda row: movie_helper.count_tweets(row["movieId"], row["critical_start"], row["critical_end"], senti_class = 'neutral')['count'], axis = 1)
-    movies_df["critical_period_neu_percentage"] = (movies_df["critical_period_tweet_neu"] / movies_df["critical_period_tweet_count"]) * 100
-    movies_df["critical_period_tweet_neg"] = movies_df.apply(lambda row: movie_helper.count_tweets(row["movieId"], row["critical_start"], row["critical_end"], senti_class = 'negative')['count'], axis = 1)
-    movies_df["critical_period_neg_percentage"] = (movies_df["critical_period_tweet_neg"] / movies_df["critical_period_tweet_count"]) * 100
+    movies_df = movie_helper.get_movies_df_with_sentiment_summaryies(movies_df)
 
     #print general spread of tweetsnegative_tweets_percentage
     total_pos =  movies_df["positive_tweets"].sum()
@@ -478,12 +462,15 @@ def analyse_tweet_sentiment():
     ax.set_title("Movie Tweets Sentiment Class")
     plt.show()
     
-    #get top pos and neg for total and critical period
+    #get top pos and neg for total and critical period and trailers
     exploration.get_top_percentage_tweets(movies_df, "positive_tweets_percentage", "Top Percentage of Positive Tweets", "Positive Tweet Percentage")
     exploration.get_top_percentage_tweets(movies_df, "negative_tweets_percentage", "Top Percentage of Negative Tweets", "Negative Tweet Percentage")
     exploration.get_top_percentage_tweets(movies_df, "critical_period_pos_percentage", "Top Percentage of Positive Tweets (Critical Period)", "Positive Tweet Percentage")
     exploration.get_top_percentage_tweets(movies_df, "critical_period_neg_percentage", "Top Percentage of Negative Tweets (Critical Period)", "Negative Tweet Percentage")
+    exploration.get_top_percentage_tweets(movies_df, "trailer_pos_percentage", "Top Percentage of Positive Tweets (Trailers)", "Positive Tweet Percentage")
+    exploration.get_top_percentage_tweets(movies_df, "trailer_neg_percentage", "Top Percentage of Negative Tweets (Trailers)", "Negative Tweet Percentage")
     
+   
     class_order_df = get_class_order_df()
     
     class_sent_df = movie_helper.get_tweet_senti_counts_by_class(movies_df, class_list=class_order_df["class_name"])
@@ -549,7 +536,14 @@ def analyse_tweet_sentiment():
                              'opening_tweets_neu',
                              'opening_neu_percentage',
                              'opening_tweets_neg',
-                             'opening_pos_percentage']]
+                             'opening_pos_percentage',
+                             'trailer_tweet_count', 
+                             'trailer_tweet_pos',
+                             'trailer_pos_percentage',
+                             'trailer_tweet_neu',
+                             'trailer_neu_percentage',
+                             'trailer_tweet_neg',
+                             'trailer_pos_percentage']]
 
 
     summary_df = pd.DataFrame(describe_df.describe().round(2).drop(['count']))
@@ -618,6 +612,21 @@ def analyse_tweet_sentiment():
     
     exploration.generate_heatmap_from_df(opening_correl_df, opening_correl_df.columns, "TEST")
     
+    trailer_correl_df = movies_df[['budget_usd',
+                           'gross_profit_usd', 
+                            'return_percentage', 
+                            'uk_gross_usd', 
+                            'uk_percentage', 
+                             'trailer_tweet_count', 
+                             'trailer_tweet_pos',
+                             'trailer_pos_percentage',
+                             'trailer_tweet_neu',
+                             'trailer_neu_percentage',
+                             'trailer_tweet_neg',
+                             'trailer_pos_percentage']]
+    
+    exploration.generate_heatmap_from_df(trailer_correl_df, trailer_correl_df.columns, "TEST")
+    
     #positive tweet analysis
     weekend_tweet_cor_pos = get_correlation_for_tweets(senti_class = "positive")
     weekend_tweet_cor_pos_sig = weekend_tweet_cor_pos[weekend_tweet_cor_pos["stat_significance"] == True]
@@ -681,6 +690,7 @@ def analyse_tweet_sentiment():
 
 def analyse_sentiment_special():
     plot_tweets = pd.DataFrame()
+    trailer_tweets = pd.DataFrame()
     run_up_tweets = pd.DataFrame()
     week1_tweets = pd.DataFrame()
     week2_tweets = pd.DataFrame()
@@ -697,13 +707,24 @@ def analyse_sentiment_special():
    
     avengers_week_2 = avengers_grped_tweets[avengers_grped_tweets["group"] == "Release Week 2"]
     avengers_week_2["day"] = avengers_week_2.apply(lambda row: "Day {0}".format((row["date"] - avengers_week_2["date"].min()).days + 1), axis=1)     
+
+    #do trailer tweets
+    avengers_trailer_tweets = movie_helper.get_trailer_tweets(121, most_tweeted=True)
+    print("Avengers Trailer Tweets {0}".format(avengers_trailer_tweets.shape[0]))
+    avengers_trailer_tweets["title"] = avengers.title
+    avengers_trailer_tweets["date"] = pd.to_datetime(avengers_trailer_tweets["created_at"].dt.date, errors="coerce")
+    avengers_trailer_tweets["day"] = avengers_trailer_tweets.apply(lambda row: "Day {0}".format((row["date"] - avengers_trailer_tweets["date"].min()).days + 1), axis=1)
+    avengers_trailer_tweets["group"] = "Trailer Release"
     
+
+    plot_tweets = plot_tweets.append(avengers_trailer_tweets[["title", "compound_scr", "group"]])
     plot_tweets = plot_tweets.append(avengers_grped_tweets[["title", "compound_scr", "group"]])
+    trailer_tweets = trailer_tweets.append(avengers_trailer_tweets[["title", "compound_scr", "day"]])    
     run_up_tweets = run_up_tweets.append(avengers_run_up[["title", "compound_scr", "day"]])
     week1_tweets = week1_tweets.append(avengers_week_1[["title", "compound_scr", "day"]])
     week2_tweets = week2_tweets.append(avengers_week_2[["title", "compound_scr", "day"]])
     
-    #PET CEMETERY
+    #CATS
     cats = movie_helper.get_movie_by_id(32)
     cats_grped_tweets = cats.get_grouped_tweets(critical_period=True, group_size=7)
     cats_grped_tweets["title"] = cats.title
@@ -716,8 +737,18 @@ def analyse_sentiment_special():
    
     cats_week_2 = cats_grped_tweets[cats_grped_tweets["group"] == "Release Week 2"]
     cats_week_2["day"] = cats_week_2.apply(lambda row: "Day {0}".format((row["date"] - cats_week_2["date"].min()).days + 1), axis=1)   
-    
+  
+    #do trailer tweets
+    cats_trailer_tweets = movie_helper.get_trailer_tweets(32, most_tweeted=True)
+    print("Cats Trailer Tweets {0}".format(cats_trailer_tweets.shape[0]))
+    cats_trailer_tweets["title"] = cats.title
+    cats_trailer_tweets["date"] = pd.to_datetime(cats_trailer_tweets["created_at"].dt.date, errors="coerce")
+    cats_trailer_tweets["day"] = cats_trailer_tweets.apply(lambda row: "Day {0}".format((row["date"] - cats_trailer_tweets["date"].min()).days + 1), axis=1)
+    cats_trailer_tweets["group"] = "Trailer Release"   
+
+    plot_tweets = plot_tweets.append(cats_trailer_tweets[["title", "compound_scr", "group"]])
     plot_tweets = plot_tweets.append(cats_grped_tweets[["title", "compound_scr", "group"]])
+    trailer_tweets = trailer_tweets.append(cats_trailer_tweets[["title", "compound_scr", "day"]])    
     run_up_tweets = run_up_tweets.append(cats_run_up[["title", "compound_scr", "day"]])
     week1_tweets = week1_tweets.append(cats_week_1[["title", "compound_scr", "day"]])
     week2_tweets = week2_tweets.append(cats_week_2[["title", "compound_scr", "day"]])
@@ -736,7 +767,16 @@ def analyse_sentiment_special():
     green_book_week_2 = green_book_grped_tweets[green_book_grped_tweets["group"] == "Release Week 2"]
     green_book_week_2["day"] = green_book_week_2.apply(lambda row: "Day {0}".format((row["date"] - green_book_week_2["date"].min()).days + 1), axis=1)     
     
+    #do trailer tweets
+    # green_book_trailer_tweets = movie_helper.get_trailer_tweets(142, most_tweeted=True)
+    # green_book_trailer_tweets["title"] = green_book.title
+    # green_book_trailer_tweets["date"] = pd.to_datetime(green_book_trailer_tweets["created_at"].dt.date, errors="coerce")
+    # green_book_trailer_tweets["day"] = green_book_trailer_tweets.apply(lambda row: "Day {0}".format((row["date"] - green_book_trailer_tweets["date"].min()).days + 1), axis=1)
+    # green_book_trailer_tweets["group"] = "Best Trailer"       
+    
     plot_tweets = plot_tweets.append(green_book_grped_tweets[["title", "compound_scr", "group"]])
+    #plot_tweets = plot_tweets.append(green_book_trailer_tweets[["title", "compound_scr", "group"]])
+   # trailer_tweets = trailer_tweets.append(green_book_trailer_tweets[["title", "compound_scr", "day"]])   
     run_up_tweets = run_up_tweets.append(green_book_run_up[["title", "compound_scr", "day"]])
     week1_tweets = week1_tweets.append(green_book_week_1[["title", "compound_scr", "day"]])
     week2_tweets = week2_tweets.append(green_book_week_2[["title", "compound_scr", "day"]])    
@@ -781,8 +821,16 @@ def analyse_sentiment_special():
     fig.subplots_adjust(top=0.9)
     fig.suptitle("Critical Period Sentiment", fontsize=16)
     plt.show()
+        
+    g = sns.catplot(x="day", y="compound_scr", data=trailer_tweets, hue="title", kind="boxen", legend_out = False, height=5, aspect=1.5)  
     
-    
+    fig = g.fig
+    g.set_ylabels("Tweet Sentiment")
+    g.set_xlabels("Date")
+    g.set_xticklabels(rotation=40, ha="right")
+    fig.subplots_adjust(top=0.9)
+    fig.suptitle("Trailer Sentiment", fontsize=16)
+    plt.show()
     
 
 def spatial_exploration():
@@ -800,16 +848,16 @@ def spatial_exploration():
     #show expectation 
     spatial.plot_chi_sqrd_surface()
     
-def spatial_regional_best():
+def spatial_regional_best(critical_period=True):
     #all moivies 
     movies_df = movie_helper.get_movies_df()
     
     #get most tweeted movie per region
-    most_per_region = exploration.get_most_popular_movie_per_region(ignore_list=[])   
+    most_per_region = exploration.get_most_popular_movie_per_region(ignore_list=[], critical_period=critical_period)   
     #get most postivie tweets per region
-    most_pos_per_region = exploration.get_most_popular_movie_per_region(senti_class="positive", ignore_list=[])   
+    most_pos_per_region = exploration.get_most_popular_movie_per_region(senti_class="positive", ignore_list=[], critical_period=critical_period)      
     #get most negative per reigon
-    most_neg_per_region = exploration.get_most_popular_movie_per_region(senti_class="negative", ignore_list=[])   
+    most_neg_per_region = exploration.get_most_popular_movie_per_region(senti_class="negative", ignore_list=[], critical_period=critical_period)      
  
     exclude_values = [{"class_col" : None, "class_vals" : [], "reason" : "all movies"},
                       {"class_col" : "profit_class", "class_vals" : ["> $700m (BlockBuster)"], "reason" : "no blockbuster (profit)"},
@@ -834,7 +882,7 @@ def spatial_regional_best():
             ignore_df = movies_df[movies_df[row["class_col"]].isin(row["class_vals"])]
             ignore_list.extend(list(ignore_df["movieId"]))
         
-        most_all = exploration.get_most_popular_movie_per_region(ignore_list=ignore_list)
+        most_all = exploration.get_most_popular_movie_per_region(ignore_list=ignore_list, critical_period=critical_period)   
         most_all["senti_class"] = "All"
         most_all["reason"] = row["reason"]
         
@@ -842,7 +890,7 @@ def spatial_regional_best():
         results_df = results_df.append(most_all)
         
         #do positive tweets only
-        most_pos = exploration.get_most_popular_movie_per_region(senti_class = "positive", ignore_list=ignore_list)
+        most_pos = exploration.get_most_popular_movie_per_region(senti_class = "positive", ignore_list=ignore_list, critical_period=critical_period)   
         most_pos["senti_class"] = "positive"
         most_pos["reason"] = row["reason"]
         
@@ -850,7 +898,7 @@ def spatial_regional_best():
         results_df = results_df.append(most_pos)
         
         #do positive tweets percentage
-        most_pos_percentage = exploration.get_most_popular_movie_per_region(senti_class = "positive", ignore_list=ignore_list, senti_percentage=True)
+        most_pos_percentage = exploration.get_most_popular_movie_per_region(senti_class = "positive", ignore_list=ignore_list, senti_percentage=True, critical_period=critical_period)   
         most_pos_percentage["senti_class"] = "positive (Percentage)"
         most_pos_percentage["percentage_string"] = most_pos_percentage.apply(lambda row: "{0}%".format(round(row["senti_percentage"], 2)), axis=1)
         most_pos_percentage["reason"] = row["reason"]
@@ -859,7 +907,7 @@ def spatial_regional_best():
         results_df = results_df.append(most_pos_percentage)
                 
         #do negative tweets only
-        most_neg = exploration.get_most_popular_movie_per_region(senti_class = "negative", ignore_list=ignore_list)
+        most_neg = exploration.get_most_popular_movie_per_region(senti_class = "negative", ignore_list=ignore_list, critical_period=critical_period)   
         most_neg["senti_class"] = "negative"
         most_neg["reason"] = row["reason"]
         
@@ -867,7 +915,7 @@ def spatial_regional_best():
         results_df = results_df.append(most_neg)
         
         #do negative tweets percentage
-        most_neg_percentage = exploration.get_most_popular_movie_per_region(senti_class = "negative", ignore_list=ignore_list, senti_percentage=True)
+        most_neg_percentage = exploration.get_most_popular_movie_per_region(senti_class = "negative", ignore_list=ignore_list, senti_percentage=True, critical_period=critical_period)   
         most_neg_percentage["percentage_string"] = most_neg_percentage.apply(lambda row: "{0}%".format(round(row["senti_percentage"], 2)), axis=1)
         most_neg_percentage["senti_class"] = "negative (Percentage)"
         most_neg_percentage["reason"] = row["reason"]
@@ -883,20 +931,22 @@ def spatial_analyse_interesting_cases():
     special_cases_df = get_interesting_cases()
     unique_df = special_cases_df.drop_duplicates(subset="movieId", inplace=False, keep="first")
     
+    unique_df = unique_df[(unique_df["movieId"] == 121) | (unique_df["movieId"] == 32) | (unique_df["movieId"] == 142)] 
+    
     for index, row in unique_df.iterrows():
         #plot movie map and bar general and critical 
-        exploration.plot_region_tweets_bar(movieId=row["movieId"], normalize=False)
-        exploration.plot_region_tweets_bar(movieId=row["movieId"], normalize=True)
-        exploration.plot_region_tweets_bar(movieId=row["movieId"], normalize=False, start_date=row["critical_start"], end_date=row["critical_end"])
-        exploration.plot_region_tweets_bar(movieId=row["movieId"], normalize=True, start_date=row["critical_start"], end_date=row["critical_end"])
+      #  exploration.plot_region_tweets_bar(movieId=row["movieId"], normalize=False)
+      #  exploration.plot_region_tweets_bar(movieId=row["movieId"], normalize=True)
+        exploration.plot_region_tweets_bar(movieId=row["movieId"], normalize=False, start_date=row["critical_start"], end_date=row["critical_end"], critical_period=True)
+        exploration.plot_region_tweets_bar(movieId=row["movieId"], normalize=True, start_date=row["critical_start"], end_date=row["critical_end"], critical_period=True)
         
-        exploration.plot_movie_tweets_map(movieId=row["movieId"], normalize=False)
-        exploration.plot_movie_tweets_map(movieId=row["movieId"], normalize=True)
-        exploration.plot_movie_tweets_map(movieId=row["movieId"], normalize=False, start_date=row["critical_start"], end_date=row["critical_end"])
-        exploration.plot_movie_tweets_map(movieId=row["movieId"], normalize=True, start_date=row["critical_start"], end_date=row["critical_end"])
+     #   exploration.plot_movie_tweets_map(movieId=row["movieId"], normalize=False)
+     #   exploration.plot_movie_tweets_map(movieId=row["movieId"], normalize=True)
+        exploration.plot_movie_tweets_map(movieId=row["movieId"], normalize=False, start_date=row["critical_start"], end_date=row["critical_end"], critical_period=True)
+        exploration.plot_movie_tweets_map(movieId=row["movieId"], normalize=True, start_date=row["critical_start"], end_date=row["critical_end"], critical_period=True)
         
-        spatial.plot_chi_sqrd_surface(movieId=row["movieId"])
-        spatial.plot_chi_sqrd_surface(movieId=row["movieId"], start_date=row["critical_start"], end_date=row["critical_end"])
+     #   spatial.plot_chi_sqrd_surface(movieId=row["movieId"])
+        spatial.plot_chi_sqrd_surface(movieId=row["movieId"], start_date=row["critical_start"], end_date=row["critical_end"], critical_period=True)
 
     
     
