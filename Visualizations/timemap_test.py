@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Test script for trying out time maps
+
 Created on Sun Jul 12 17:01:01 2020
 
 @author: andy

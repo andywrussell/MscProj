@@ -839,11 +839,11 @@ def spatial_exploration():
     exploration.plot_movie_tweets_map(True)
     
     #get bar charts to back up this 
-    exploration.plot_region_tweets_bar()
-    exploration.plot_region_tweets_bar(True)
+    spatial.plot_region_tweets_bar()
+    spatial.plot_region_tweets_bar(True)
     
     #show unnormalized kde
-    exploration.plot_movie_tweets_kde()
+    spatial.plot_movie_tweets_kde()
     
     #show expectation 
     spatial.plot_chi_sqrd_surface()
@@ -853,11 +853,11 @@ def spatial_regional_best(critical_period=True):
     movies_df = movie_helper.get_movies_df()
     
     #get most tweeted movie per region
-    most_per_region = exploration.get_most_popular_movie_per_region(ignore_list=[], critical_period=critical_period)   
+    most_per_region = spatial.get_most_popular_movie_per_region(ignore_list=[], critical_period=critical_period)   
     #get most postivie tweets per region
-    most_pos_per_region = exploration.get_most_popular_movie_per_region(senti_class="positive", ignore_list=[], critical_period=critical_period)      
+    most_pos_per_region = spatial.get_most_popular_movie_per_region(senti_class="positive", ignore_list=[], critical_period=critical_period)      
     #get most negative per reigon
-    most_neg_per_region = exploration.get_most_popular_movie_per_region(senti_class="negative", ignore_list=[], critical_period=critical_period)      
+    most_neg_per_region = spatial.get_most_popular_movie_per_region(senti_class="negative", ignore_list=[], critical_period=critical_period)      
  
     exclude_values = [{"class_col" : None, "class_vals" : [], "reason" : "all movies"},
                       {"class_col" : "profit_class", "class_vals" : ["> $700m (BlockBuster)"], "reason" : "no blockbuster (profit)"},
@@ -886,7 +886,7 @@ def spatial_regional_best(critical_period=True):
         most_all["senti_class"] = "All"
         most_all["reason"] = row["reason"]
         
-        exploration.plot_favourites_map(most_all, annotate_col="tweet_count", title = "Most Tweeted ({0})".format(row["reason"]))
+        spatial.plot_favourites_map(most_all, annotate_col="tweet_count", title = "Most Tweeted ({0})".format(row["reason"]))
         results_df = results_df.append(most_all)
         
         #do positive tweets only
@@ -894,7 +894,7 @@ def spatial_regional_best(critical_period=True):
         most_pos["senti_class"] = "positive"
         most_pos["reason"] = row["reason"]
         
-        exploration.plot_favourites_map(most_pos, annotate_col="tweet_count", title = "Most Positive Tweets ({0})".format(row["reason"]))
+        spatial.plot_favourites_map(most_pos, annotate_col="tweet_count", title = "Most Positive Tweets ({0})".format(row["reason"]))
         results_df = results_df.append(most_pos)
         
         #do positive tweets percentage
@@ -903,7 +903,7 @@ def spatial_regional_best(critical_period=True):
         most_pos_percentage["percentage_string"] = most_pos_percentage.apply(lambda row: "{0}%".format(round(row["senti_percentage"], 2)), axis=1)
         most_pos_percentage["reason"] = row["reason"]
         
-        exploration.plot_favourites_map(most_pos_percentage, annotate_col="percentage_string", title = "Highest Rate of Positive Tweets ({0})".format(row["reason"]))
+        spatial.plot_favourites_map(most_pos_percentage, annotate_col="percentage_string", title = "Highest Rate of Positive Tweets ({0})".format(row["reason"]))
         results_df = results_df.append(most_pos_percentage)
                 
         #do negative tweets only
@@ -920,7 +920,7 @@ def spatial_regional_best(critical_period=True):
         most_neg_percentage["senti_class"] = "negative (Percentage)"
         most_neg_percentage["reason"] = row["reason"]
         
-        exploration.plot_favourites_map(most_neg_percentage, annotate_col="percentage_string", title = "Highest Rate of Negative Tweets ({0})".format(row["reason"]))
+        spatial.plot_favourites_map(most_neg_percentage, annotate_col="percentage_string", title = "Highest Rate of Negative Tweets ({0})".format(row["reason"]))
         results_df = results_df.append(most_neg_percentage)
         
 
@@ -937,13 +937,13 @@ def spatial_analyse_interesting_cases():
         #plot movie map and bar general and critical 
       #  exploration.plot_region_tweets_bar(movieId=row["movieId"], normalize=False)
       #  exploration.plot_region_tweets_bar(movieId=row["movieId"], normalize=True)
-        exploration.plot_region_tweets_bar(movieId=row["movieId"], normalize=False, start_date=row["critical_start"], end_date=row["critical_end"], critical_period=True)
-        exploration.plot_region_tweets_bar(movieId=row["movieId"], normalize=True, start_date=row["critical_start"], end_date=row["critical_end"], critical_period=True)
+        spatial.plot_region_tweets_bar(movieId=row["movieId"], normalize=False, start_date=row["critical_start"], end_date=row["critical_end"], critical_period=True)
+        spatial.plot_region_tweets_bar(movieId=row["movieId"], normalize=True, start_date=row["critical_start"], end_date=row["critical_end"], critical_period=True)
         
-     #   exploration.plot_movie_tweets_map(movieId=row["movieId"], normalize=False)
-     #   exploration.plot_movie_tweets_map(movieId=row["movieId"], normalize=True)
-        exploration.plot_movie_tweets_map(movieId=row["movieId"], normalize=False, start_date=row["critical_start"], end_date=row["critical_end"], critical_period=True)
-        exploration.plot_movie_tweets_map(movieId=row["movieId"], normalize=True, start_date=row["critical_start"], end_date=row["critical_end"], critical_period=True)
+     #   spatial.plot_movie_tweets_map(movieId=row["movieId"], normalize=False)
+     #   spatial.plot_movie_tweets_map(movieId=row["movieId"], normalize=True)
+        spatial.plot_movie_tweets_map(movieId=row["movieId"], normalize=False, start_date=row["critical_start"], end_date=row["critical_end"], critical_period=True)
+        spatial.plot_movie_tweets_map(movieId=row["movieId"], normalize=True, start_date=row["critical_start"], end_date=row["critical_end"], critical_period=True)
         
      #   spatial.plot_chi_sqrd_surface(movieId=row["movieId"])
         spatial.plot_chi_sqrd_surface(movieId=row["movieId"], start_date=row["critical_start"], end_date=row["critical_end"], critical_period=True)

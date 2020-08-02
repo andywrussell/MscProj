@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Script for trying out kde (not used in thesis)
+
 Created on Fri Jul 24 19:07:14 2020
 
 @author: andy

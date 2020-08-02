@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Script for trying out topic models (not used in thesis)
+
 Created on Fri Jun 19 11:01:45 2020
 
 @author: andy
