@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+This file contains the functions designed to run the experiments which are reported in my Thesis
+
 Created on Wed Jul  8 09:12:03 2020
 
 @author: andy
@@ -25,8 +27,12 @@ import seaborn as sns
 from datetime import datetime
 from datetime import timedelta
 
+
 def get_cols_to_drop():
-      return [
+    """
+    Utility function to get cols for dropping when doing data summary
+    """
+    return [
         'movieId', 
         'imdbId',
         'certificates',
@@ -56,18 +62,28 @@ def get_cols_to_drop():
         'uk_gross_class']
 
 def explore_movies():
+    """
+    Perform exlplortory analysis of base movies table
+    """
+    
     movies_df = movie_helper.get_movies_df_with_opening_weekend()
     movies_df = movie_helper.convert_financial_to_mil(movies_df)
     
     return get_exploration_plots(movies_df, "Test")
-    
-    #create table of variables t0 use 
-    #plot success measures 
+
     
 def get_exploration_plots(df, title):
+    """
+    Function to generate exploratory plots for df
+    
+    :param df: movies dataframe we want to explore
+    :param title: string title for passing to heatmap generator
+    """
+    
     #drop certain columns
     drop_cols = get_cols_to_drop()
     
+    #get summary of df cols
     describe_df = df.drop(columns=drop_cols)
     summary_df = pd.DataFrame(describe_df.describe().round(2).drop(['count']))
     
@@ -80,12 +96,7 @@ def get_exploration_plots(df, title):
     #get correlations of key feilds
     exploration.generate_heatmap_from_df(describe_df, describe_df.columns, title)
     
-  #  sns.pairplot(describe_df)
-  #  plt.show()
-    
-   # exploration.plot_boxplot_for_df(describe_df)
-#    exploration.plot_dist_for_df(describe_df)
-    
+    #create mini summary plots so we can look at pair plots
     small_describe = describe_df = describe_df[["budget_usd", "uk_gross_usd", "gross_profit_usd", "return_percentage", "uk_percentage"]]
     small_summary = pd.DataFrame(describe_df.describe().round(2).drop(['count']))
     
@@ -102,16 +113,30 @@ def get_exploration_plots(df, title):
     
    
 def explore_movies_by_class(class_col):
+    """
+    Function to explore movies by success variable
+    
+    :param class_col: string name of success variable
+    """
+    
+    #get base movies df
     movies_df = movie_helper.get_movies_df_with_opening_weekend()
     movies_df = movie_helper.convert_financial_to_mil(movies_df)
     
+    #get list of class values
     class_val_list = movies_df[class_col].unique()
     
+    #do exploratory analysis per class value
     for class_val in class_val_list:
         class_df = movies_df[movies_df[class_col] == class_val]
         get_exploration_plots(class_df)
     
 def define_success():
+    """
+    Function to generate explortory plots for success variables
+    """
+    
+    #get base movies df
     movies_df = movie_helper.get_movies_df_with_opening_weekend()
     movies_df = movie_helper.convert_financial_to_mil(movies_df)
     
@@ -136,9 +161,17 @@ def define_success():
     exploration.get_success_figure("uk_percentage_class", uk_percentage_lst, "uk_percentage", movies_df, "UK Percentage", False)
     
 def analyse_tweets(df):
+    """
+    Function to perform exploratory analysis of tweets
+    
+    :param df: movies df to explore
+    """
+    
+    #get overall and critical period tweet counts
     df["tweet_count"] = df.apply(lambda row: movie_helper.count_tweets(row.movieId)['count'], axis = 1)
     df["critical_period_tweet_count"] = df.apply(lambda row: movie_helper.count_tweets(row["movieId"], row["critical_start"], row["critical_end"])['count'], axis = 1)
 
+    #generate summary statistics
     describe_df = df[['movieId', 'tweet_count', 'critical_period_tweet_count', 'run_up_tweets', 'opening_tweets']]   
     
     #describe_df = df.drop(columns=drop_cols)
@@ -146,11 +179,13 @@ def analyse_tweets(df):
     summary_df_t = summary_df.drop(columns=['movieId']).transpose()
     describe_df = describe_df.drop(columns=['movieId'])
     
+    #create plots
     exploration.plot_df_as_table(summary_df)
     exploration.plot_df_as_table(summary_df_t)
     exploration.plot_boxplot_for_df(describe_df)
     exploration.plot_dist_for_df(describe_df)
     
+    #use subset for correlation
     correl_df = df.drop(columns=get_cols_to_drop())
     correl_df = df[['budget_usd','gross_profit_usd', 'return_percentage', 'uk_gross_usd', 'uk_percentage', 'tweet_count', 'critical_period_tweet_count', 'run_up_tweets', 'opening_tweets']]
 
@@ -165,6 +200,16 @@ def analyse_tweets(df):
     return summary_df_t
 
 def get_correlation_for_tweets(full_week = False, week_inc_weekend = False, senti_class = None, percentage = False):
+    """
+    Function to get correlation between weekend revenue and tweets
+    
+    :param full_week: bool to indicate if tweets should be counted in week prior to weekend
+    :param week_inc_weekend: bool to indicate if tweets should be counted over week including weekend
+    :param senti_class: string to filter tweets by sentiment class
+    :param percentage: bool to indicate if correlaiton should be based on tweet percentge
+    """
+    
+    #get correlations for each movie
     correl_df = movie_helper.get_weekend_tweets_takings_correltation(full_week=full_week, week_inc_weekend=week_inc_weekend, senti_class = senti_class, percentage = False)
     
     #only take perasons
@@ -173,6 +218,7 @@ def get_correlation_for_tweets(full_week = False, week_inc_weekend = False, sent
     #test for significance
     correl_df['stat_significance'] = correl_df.apply(lambda row: (row['p_val'] < 0.05) & (row["method"] == "pearson"), axis=1)
     
+    #return statistically significate correlations
     correl_df = correl_df.drop(columns="method")
     correl_df = correl_df.sort_values(by="tweet_count", ascending=False)
     correl_df = correl_df.round({"coef" : 5})
@@ -180,6 +226,12 @@ def get_correlation_for_tweets(full_week = False, week_inc_weekend = False, sent
     return correl_df
     
 def get_interesting_cases():
+    """
+    Function to build dataframe of interesting cases for further investigation
+
+    :return dataframe of interesting cases
+    """
+    
     return_df = pd.DataFrame()
     
     #get most profitable
@@ -270,14 +322,17 @@ def get_interesting_cases():
     return_df["tweet_count"] = return_df.apply(lambda row: movie_helper.count_tweets(row.movieId)['count'], axis = 1)
     return_df["critical_period_tweet_count"] = return_df.apply(lambda row: movie_helper.count_tweets(row["movieId"], row["critical_start"], row["critical_end"])['count'], axis = 1)
     
-    #it - high two week takings but still took alot in uk
-    
-    
     return return_df.reset_index(drop=True)
 
 def analyse_special_cases():
+    """
+    Function to analyse interesting cases
+    """    
+    
+    #get df of special movies
     special_cases_df = get_interesting_cases()
     
+    #make sure its unique
     unique_df = special_cases_df.drop_duplicates(subset="movieId", inplace=False, keep="first")
     
     
@@ -306,16 +361,25 @@ def analyse_special_cases():
         # movie.plot_heated_time_map(start_date = critical_start, end_date = critical_end)
         
 def twitter_weekly():
+    """
+    Function to analyse correlation between weekly/weekend tweets and weekend revenue
+    
+    :return dict of dataframes for exploration
+    """  
+    
+    #get weekend tweet revene correlation
     weekend_tweet_cor = get_correlation_for_tweets()
     weekend_tweet_cor_sig = weekend_tweet_cor[weekend_tweet_cor["stat_significance"] == True]
     weekend_tweet_cor_sig_desc = weekend_tweet_cor_sig.describe()
     weekend_tweet_cor_sig_desc_t = weekend_tweet_cor_sig_desc.drop(columns=["movieId"]).transpose()
         
+    #get weekly tweet revenue correlation
     weekly_tweet_cor = get_correlation_for_tweets(full_week=True)   
     weekly_tweet_cor_sig = weekly_tweet_cor[weekly_tweet_cor["stat_significance"] == True]
     weekly_tweet_cor_sig_desc = weekly_tweet_cor_sig.describe()
     weekly_tweet_cor_sig_desc_t = weekly_tweet_cor_sig_desc.drop(columns=["movieId"]).transpose()
     
+    #return dictionary of dfs
     results = {"weekend_tweet_cor" : weekend_tweet_cor,
                "weekend_tweet_cor_sig" : weekend_tweet_cor_sig,
                "weekend_tweet_cor_sig_desc" : weekend_tweet_cor_sig_desc,
@@ -328,12 +392,21 @@ def twitter_weekly():
     return results
 
 def event_peak_analysis():
+    """
+    Function to run the twitter event peak analysis
+    
+    :return dict of dataframes for exploration
+    """
+    
+    #get tweet peak events for all movies
     event_results = movie_helper.get_movie_tweet_events()
 
+    #expand into seperate dataframes
     all_events_df = event_results["all_events"]
     peak_events_df = event_results["peak_events"]
     trailer_peaks_df = event_results["trailer_peaks"]
     
+    #look for movies with no peaks
     no_peaks_df = all_events_df[(all_events_df["movie_release"] == False)
                                 & (all_events_df["movie_opening_weekend"] == False) 
                                 & (all_events_df["youtubeId"] == "NO")
@@ -341,9 +414,11 @@ def event_peak_analysis():
     
     no_peaks_movies = no_peaks_df["movieId"].unique()
 
+    #look for movies with release peaks
     opening_release_peaks = peak_events_df[(peak_events_df["movie_release"] == 1) | (peak_events_df["movie_opening_weekend"] == 1)]
     opening_release_peaks_movies = opening_release_peaks["movieId"].unique()
 
+    #look for movies with trailer peaks in the top 3
     trailers_top_3_peaks = trailer_peaks_df[trailer_peaks_df["rank"] <= 3]
     top_trailer_movies = trailers_top_3_peaks["movieId"].unique()
 
@@ -351,6 +426,7 @@ def event_peak_analysis():
     movies_df = movie_helper.get_movies_df_with_opening_weekend()
     movies_df = movie_helper.convert_financial_to_mil(movies_df)  
     
+    #extended movies_df to show if movie has peak
     movies_df["opening_release_peaks"] = movies_df.apply(lambda row: row["movieId"] in opening_release_peaks_movies, axis=1)
     movies_df["trailer_peaks_top_3"] = movies_df.apply(lambda row: row["movieId"] in top_trailer_movies, axis=1)
     
@@ -403,6 +479,7 @@ def event_peak_analysis():
     
     plt.show()
     
+    #return dict of dataframes
     return_vals = {"movies_df" : movies_df,
                    "films_with_release_peaks" : films_with_release_peaks,
                    "with_release_summary_df_t" : with_release_summary_df_t,
@@ -417,6 +494,12 @@ def event_peak_analysis():
     
     
 def get_class_order_df():
+    """
+    Utility function to get order lists for success classes
+    
+    :return dataframe of class names, titles and order lists
+    """
+    
     class_order_list = [{"class_name" :"profit_class",
                    "order_list" : ['< $0 (Flop)', '$0 < $90m', '$90m < $235m', '$235m < $700m', '> $700m (BlockBuster)' ],
                    "class_title" : "Profit ($mil)"},
@@ -436,6 +519,13 @@ def get_class_order_df():
     return pd.DataFrame(class_order_list)
 
 def analyse_tweet_sentiment():
+    """
+    Function to run exploratory analysis of tweet sentiment
+    
+    :return dict of dataframes for exploring different results
+    """
+    
+    #get movies df with tweet count summaries
     movies_df = movie_helper.get_movies_df_with_opening_weekend()
     movies_df = movie_helper.convert_financial_to_mil(movies_df)           
     movies_df = movie_helper.get_movies_df_with_sentiment_summaryies(movies_df)
@@ -456,6 +546,7 @@ def analyse_tweet_sentiment():
               {"count" : total_neu, "class" : "neutral"},
               {"count" : total_neg, "class" : "negative"}]
     
+    #plot distribution of tweet sentiment
     senti_df = pd.DataFrame(senti_df)
     ax = sns.barplot(x="class", y="count", data=senti_df, orient="v")
     ax.set(xlabel="Sentiment Class", ylabel='Tweet Count')
@@ -475,6 +566,7 @@ def analyse_tweet_sentiment():
     
     class_sent_df = movie_helper.get_tweet_senti_counts_by_class(movies_df, class_list=class_order_df["class_name"])
     
+    #for each success class plot stacked and grouped bars of tweet senitment
     for index, row in class_order_df.iterrows():
         class_name = row["class_name"]
         class_title = row["class_title"]
@@ -508,6 +600,7 @@ def analyse_tweet_sentiment():
         plt.show()
     
     
+    #columsn for creating summary stats
     describe_df = movies_df[['movieId', 
                              'tweet_count',
                              'positive_tweets',
@@ -546,6 +639,7 @@ def analyse_tweet_sentiment():
                              'trailer_pos_percentage']]
 
 
+    #get summary stats for total tweet count and sentiment
     summary_df = pd.DataFrame(describe_df.describe().round(2).drop(['count']))
     summary_df_t = summary_df.drop(columns=['movieId']).transpose()
     
@@ -565,7 +659,8 @@ def analyse_tweet_sentiment():
                              'neutral_tweets_percentage']]
 
     exploration.generate_heatmap_from_df(correl_df, correl_df.columns, "TEST")    
-    
+ 
+    #get summary stats for critical period tweet count and sentiment
     critical_correl_df = movies_df[['budget_usd',
                            'gross_profit_usd', 
                             'return_percentage', 
@@ -581,6 +676,7 @@ def analyse_tweet_sentiment():
 
     exploration.generate_heatmap_from_df(critical_correl_df, critical_correl_df.columns, "TEST")
     
+    #get summary stats for run up tweet count and sentiment    
     run_up_correl_df = movies_df[['budget_usd',
                            'gross_profit_usd', 
                             'return_percentage', 
@@ -596,7 +692,7 @@ def analyse_tweet_sentiment():
     
     exploration.generate_heatmap_from_df(run_up_correl_df, run_up_correl_df.columns, "TEST")    
   
-  
+    #get summary stats for opening weekend tweet count and sentiment
     opening_correl_df = movies_df[['budget_usd',
                            'gross_profit_usd', 
                             'return_percentage', 
@@ -612,6 +708,7 @@ def analyse_tweet_sentiment():
     
     exploration.generate_heatmap_from_df(opening_correl_df, opening_correl_df.columns, "TEST")
     
+    #get summary stats for trailers tweet count and sentiment
     trailer_correl_df = movies_df[['budget_usd',
                            'gross_profit_usd', 
                             'return_percentage', 
@@ -626,6 +723,8 @@ def analyse_tweet_sentiment():
                              'trailer_pos_percentage']]
     
     exploration.generate_heatmap_from_df(trailer_correl_df, trailer_correl_df.columns, "TEST")
+    
+    ##Get correlations between weekly/wekened tweets and revenue based on sentiment
     
     #positive tweet analysis
     weekend_tweet_cor_pos = get_correlation_for_tweets(senti_class = "positive")
@@ -689,6 +788,11 @@ def analyse_tweet_sentiment():
     return results
 
 def analyse_sentiment_special():
+    """
+    Function to look at tweet sentiment for special cases
+    """
+    
+    #created grouped boxen plot of sentiment distribution for avengers, cats and green book
     plot_tweets = pd.DataFrame()
     trailer_tweets = pd.DataFrame()
     run_up_tweets = pd.DataFrame()
@@ -767,7 +871,7 @@ def analyse_sentiment_special():
     green_book_week_2 = green_book_grped_tweets[green_book_grped_tweets["group"] == "Release Week 2"]
     green_book_week_2["day"] = green_book_week_2.apply(lambda row: "Day {0}".format((row["date"] - green_book_week_2["date"].min()).days + 1), axis=1)     
     
-    #do trailer tweets
+    #do trailer tweets - GREEN BOOK HAS NO TRAILER TWEETS
     # green_book_trailer_tweets = movie_helper.get_trailer_tweets(142, most_tweeted=True)
     # green_book_trailer_tweets["title"] = green_book.title
     # green_book_trailer_tweets["date"] = pd.to_datetime(green_book_trailer_tweets["created_at"].dt.date, errors="coerce")
@@ -834,6 +938,10 @@ def analyse_sentiment_special():
     
 
 def spatial_exploration():
+    """
+    Function to perform exploratory spatial analysis
+    """
+    
     #plot normalized and unormalized cholopleth of movie tweets
     exploration.plot_movie_tweets_map()
     exploration.plot_movie_tweets_map(True)
@@ -849,6 +957,12 @@ def spatial_exploration():
     spatial.plot_chi_sqrd_surface()
     
 def spatial_regional_best(critical_period=True):
+    """
+    Function to perform analysis of regional bests based on lost of different criteria
+    
+    :param critical_period: bool indicating if tweets should be filtered by the critical period 
+    """
+    
     #all moivies 
     movies_df = movie_helper.get_movies_df()
     
@@ -859,6 +973,7 @@ def spatial_regional_best(critical_period=True):
     #get most negative per reigon
     most_neg_per_region = spatial.get_most_popular_movie_per_region(senti_class="negative", ignore_list=[], critical_period=critical_period)      
  
+    #build experiemtns for success classes
     exclude_values = [{"class_col" : None, "class_vals" : [], "reason" : "all movies"},
                       {"class_col" : "profit_class", "class_vals" : ["> $700m (BlockBuster)"], "reason" : "no blockbuster (profit)"},
                       {"class_col" : "profit_class", "class_vals" : ['< $0 (Flop)', '$0 < $90m', '$90m < $235m', '$235m < $700m'], "reason" : "only blockbuster (profit)"},
@@ -875,6 +990,7 @@ def spatial_regional_best(critical_period=True):
     exclude_vals_df = pd.DataFrame(exclude_values)
     results_df = pd.DataFrame()
     
+    #run spatial analysis for each of experiments
     for index, row in exclude_vals_df.iterrows(): 
         ignore_list = [28]
         
@@ -928,24 +1044,26 @@ def spatial_regional_best(critical_period=True):
 
 
 def spatial_analyse_interesting_cases():
+    """
+    Function to perform spatial analysis of special cases
+    """
+    
     special_cases_df = get_interesting_cases()
     unique_df = special_cases_df.drop_duplicates(subset="movieId", inplace=False, keep="first")
     
-    unique_df = unique_df[(unique_df["movieId"] == 121) | (unique_df["movieId"] == 32) | (unique_df["movieId"] == 142)] 
-    
     for index, row in unique_df.iterrows():
         #plot movie map and bar general and critical 
-      #  exploration.plot_region_tweets_bar(movieId=row["movieId"], normalize=False)
-      #  exploration.plot_region_tweets_bar(movieId=row["movieId"], normalize=True)
+        spatial.plot_region_tweets_bar(movieId=row["movieId"], normalize=False)
+        spatial.plot_region_tweets_bar(movieId=row["movieId"], normalize=True)
         spatial.plot_region_tweets_bar(movieId=row["movieId"], normalize=False, start_date=row["critical_start"], end_date=row["critical_end"], critical_period=True)
         spatial.plot_region_tweets_bar(movieId=row["movieId"], normalize=True, start_date=row["critical_start"], end_date=row["critical_end"], critical_period=True)
         
-     #   spatial.plot_movie_tweets_map(movieId=row["movieId"], normalize=False)
-     #   spatial.plot_movie_tweets_map(movieId=row["movieId"], normalize=True)
+        spatial.plot_movie_tweets_map(movieId=row["movieId"], normalize=False)
+        spatial.plot_movie_tweets_map(movieId=row["movieId"], normalize=True)
         spatial.plot_movie_tweets_map(movieId=row["movieId"], normalize=False, start_date=row["critical_start"], end_date=row["critical_end"], critical_period=True)
         spatial.plot_movie_tweets_map(movieId=row["movieId"], normalize=True, start_date=row["critical_start"], end_date=row["critical_end"], critical_period=True)
         
-     #   spatial.plot_chi_sqrd_surface(movieId=row["movieId"])
+        spatial.plot_chi_sqrd_surface(movieId=row["movieId"])
         spatial.plot_chi_sqrd_surface(movieId=row["movieId"], start_date=row["critical_start"], end_date=row["critical_end"], critical_period=True)
 
     
