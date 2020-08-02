@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Utility script to manually fix cases where movie meta data was incorrect due to errors with the title
+
 Created on Tue May 12 15:23:18 2020
 
 @author: andy

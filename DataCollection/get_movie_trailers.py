@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+This file contains a set of functions used to help with data collection of movie trailers from youtube
+
 Created on Wed Apr 29 14:30:50 2020
 
 @author: andy
@@ -18,12 +20,13 @@ import youtube_helper
 
 
 yt = youtube_helper.YouTubeHelper().yt
-movies_df = database_helper.select_query("movies")
 
 def get_youtube_trailers():
     """
-    Use this to collect movie trailers from yotube (INCOMPLETE)
+    Attempt to collect movie trailers from YouTube (does not work due to API limits)
     """
+    
+    movies_df = database_helper.select_query("movies")
     with tqdm(total=len(movies_df)) as pbar:
         for index, row in movies_df.iterrows(): 
             title = re.sub(r"\s*\(.*\)\s*","", row["title"])
@@ -49,8 +52,11 @@ def load_trailers_from_csv():
     """
     Load manually collected movie trailers into datbase
     """
+    
     file_path = "../../ProjectData/trailers.csv"
     trailers_df = pd.read_csv(file_path)
+    
+    #loop through manually collected list of movie trailers and inser them into the db
     with tqdm(total=len(trailers_df)) as pbar:
         for index, row in trailers_df.iterrows():
             insert_pararms = {
@@ -65,12 +71,19 @@ def load_trailers_from_csv():
 
 def get_trailer_metadata():
     """
-    Use youtubeId to collect trailer metadata
+    Function which uses youtubeId to collect trailer metadata
     """
-    trailers_df = database_helper.select_query("trailers", {"movieId" : 254})
+    
+    #get all trailers from the database
+    trailers_df = database_helper.select_query("trailers")
+    
     with tqdm(total=len(trailers_df)) as pbar:
         for index, row in trailers_df.iterrows():
+            
+            #use the youtube id to make an api request for video meta data
             trailer_data = yt.get_video_metadata(row['youtubeId'])
+            
+            #update the db with collected meta data
             update_params = {
                 'title' : trailer_data['video_title'],
                 'channelTitle' : trailer_data['channel_title'],
@@ -89,11 +102,18 @@ def get_trailer_metadata():
             pbar.update(1)
     
 def get_trailer_release_dates():
-    trailers_df = database_helper.select_query("trailers", {"movieId" : 254})
+    """Function to specifically update the trailer release dates which could not be retreived by get_trailer_metadata()"""
+    
+    #get all trailers from the db
+    trailers_df = database_helper.select_query("trailers")
+    
     with tqdm(total=len(trailers_df)) as pbar:
         for index, row in trailers_df.iterrows():  
+            
+            #use customized api request to correctly retreive the release dates of the trailers
             trailer_date = youtube_helper.get_trailer_release(row['youtubeId'], yt)
             
+            #update the database
             update_params = { 'publishDate' : trailer_date }
             select_params = {"youtubeId" : row["youtubeId"]}
             
@@ -101,19 +121,20 @@ def get_trailer_release_dates():
             pbar.update(1)
 
 def get_hashtags_from_trailers():
+   """Function to extract the movie hashtags from trailer descriptions""" 
+    
+   #get all the trailers from the db
    trailers_df = database_helper.select_query("trailers")
+   
    with tqdm(total=len(trailers_df)) as pbar:
        for index, row in trailers_df.iterrows():
+           
+           #extract hashtags from the description and print to the console for inspection
            if ('#' in row.description):
                hashtags = re.findall(r"#(\w+)", row.description)
                print(row.title)
                print(hashtags)
            pbar.update(1)
-#test = yt.get_video_metadata('XvHSlHhh1gk')
-#get_trailer_metadata()
-#get_youtube_trailers()
-#load_trailers_from_csv()
-#get_hashtags_from_trailers()
-#get_trailer_metadata()
+
 
             

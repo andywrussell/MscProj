@@ -324,28 +324,24 @@ def plot_tweets_vs_ratio(column, title, xlabel, ylabel, movie_run=False, logx=Fa
     plt.title(title)
     plt.show()
   
-def plot_top_5_by_tweet_count(movie_run = True):
+def plot_top_by_tweet_count(max_films = 10, crtiical_period = True):
     fig = plt.figure()
     ax = fig.add_axes([0,0,1,1])
     
-    if movie_run:
-        #do a loop?
-        movies = movie_helper.gen_movies(movies_df)
-        
-        tweet_counts = []
-        for movie in movies:
-            tweet_counts.append(movie.get_geotweet_count_by_dates())
-
-        movies_df["tweet_count"] = tweet_counts            
+    column = "tweet_count"
+    if crtiical_period:
+        movies_df["critical_period_tweet_count"] = movies_df.apply(lambda row: movie_helper.count_tweets(row["movieId"], row["critical_start"], row["critical_end"])['count'], axis = 1)           
+        column = "critical_period_tweet_count"
     else:
         movies_df["tweet_count"] = movies_df["movieId"].apply(lambda x: movie_helper.count_tweets(int(x))['count'])
         
-    sorted_df = movies_df.sort_values(by="tweet_count", ascending=False).head()
-    ax.bar(sorted_df["title"], sorted_df["tweet_count"])
+    sorted_df = movies_df.sort_values(by=column, ascending=False).head(max_films)
+    ax.bar(sorted_df["title"], sorted_df[column])
     ax.set_ylabel("Tweet Count")
-    ax.set_title("Top 5 by tweet counts")
-    plt.xticks(rotation=40)
+    ax.set_title("Top {0} by tweet counts".format(max_films))
+    plt.xticks(rotation=90)
     plt.show()
+    
     
 def plot_genre_counts():
     genres_df = movie_helper.get_movie_genre_counts()

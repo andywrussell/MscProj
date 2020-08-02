@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Attempts to retrive comments from youtube, did not work due to API limits
+
 Created on Tue May 19 11:03:38 2020
 
 @author: andy
@@ -28,38 +30,7 @@ filtered_trailers = trailers_df[~trailers_df.id.isin(filter_ids)]
 
 def custom_parser(json):
     snippet = json['snippet']['topLevelComment']['snippet']
-    # replies = []
-    # if (json['snippet']['totalReplyCount'] > 0):
-    #     print (json['id'] + " - " + str(json['snippet']['totalReplyCount']) + str(len(json['replies'])))
-    #     replies = []
-    #     for reply in json['replies']['comments']: 
-    #         reply_obj = {
-    #             'commentId' : reply['id'],
-    #             'channelUrl' : reply['snippet']['authorChannelUrl'],
-    #             'channelId' : reply['snippet']['authorChannelId']['value'],
-    #             'authorName' : reply['snippet']['authorDisplayName'],
-    #             'displayText' : reply['snippet']['textDisplay'],
-    #             'originalText' : reply['snippet']['textOriginal'],
-    #             'likeCount' : reply['snippet']['likeCount'],
-    #             'publishDate' : reply['snippet']['publishedAt'],
-    #             'updateDate' : reply['snippet']['updatedAt'],
-    #             'parentId' : reply['snippet']['parentId']
-    #             }
-    #         replies.append(reply_obj)    
-    
-    # comment = {
-    #     'commentId' : json['id'],
-    #     'channelUrl' : snippet['authorChannelUrl'],
-    #     'channelId' : snippet['authorChannelId']['value'],
-    #     'channelName' : snippet['authorDisplayName'],
-    #     'displayText' : snippet['textDisplay'],
-    #     'originalText' : snippet['textOriginal'],
-    #     'likeCount' : snippet['likeCount'],
-    #     'publishDate' : snippet['publishedAt'],
-    #     'updateDate' : snippet['updatedAt'],
-    #     'replyCount' : json['snippet']['totalReplyCount'],
-    #     'parentId' : 0
-    # }
+
     
     comment = {
         'commentId' : json['id'],
@@ -147,7 +118,6 @@ def get_trailer_comments():
                 
             pbar.update(1)
 
-get_trailer_comments()
 
 def unpack_replies(comments):
     results = []
@@ -171,67 +141,6 @@ def unpack_replies(comments):
     return results
     #get info from top level comment
 
-# test = yt.get_video_comments('TTOiVivEmwo', parser = custom_parser, part=['snippet','replies'])
-# test_full = unpack_replies(test)
-
-# driver = webdriver.Chrome(ChromeDriverManager().install())
-
-# driver.get('https://www.youtube.com/watch?v=P6AaSMfXHbA')
-# time.sleep(5)
-
-
-# SCROLL_PAUSE_TIME = 4
-# CYCLES = 100
-# #window_pos = driver.get_window_position()['y']
-# html = driver.find_element_by_tag_name('html')
-# html.send_keys(Keys.PAGE_DOWN)  
-# html.send_keys(Keys.PAGE_DOWN)  
-# time.sleep(SCROLL_PAUSE_TIME * 3)
-# window_pos = driver.execute_script('return window.pageYOffset;')
-
-
-# stop_scrolling = False
-# while(not stop_scrolling):
-#     html.send_keys(Keys.END)
-#     #html.send_keys(Keys.PAGE_DOWN)  
-#     #html.send_keys(Keys.PAGE_DOWN)      
-#     time.sleep(SCROLL_PAUSE_TIME)
-#     new_pos = driver.execute_script('return window.pageYOffset;')
-#     stop_scrolling =  window_pos == new_pos
-#     print(window_pos)
-#     print(new_pos)
-#     window_pos = new_pos
-
-# driver.execute_script('window.scrollTo(1, 500);')
-
-# #now wait let load the comments
-# time.sleep(5)
-
-# driver.execute_script('window.scrollTo(1, 5000);')
-
-# time.sleep(5)
-
-# driver.execute_script('window.scrollTo(1, 5500);')
-
-# time.sleep(5)
-
-
-
-# comment_div=driver.find_element_by_xpath('//*[@id="contents"]')
-# comments=comment_div.find_elements_by_xpath('//*[@id="comment"]')
-# # for comment in comments:
-# #     author_elm = comment.find_elements_by_xpath('//*[@id="author"]')
-# #     author = author_elm.text
-    
-# #     print(comment.text)
-
-# comment = comments[22]
-# author_elm = comment.find_element_by_id('author-text')
-# author = author_elm.text
-# authorlink = author_elm.get_attribute('href')
-# comment_text = comment.text
-# like_count = comment.find_element_by_id('vote-count-middle').text
-# date = comment.find_element_by_class_name('published-time-text').text
 
 
     
