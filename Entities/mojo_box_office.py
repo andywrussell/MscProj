@@ -1,13 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Class definition for BoxOfficeMojo weekend box office object
+
 Created on Sun Jul 12 10:09:52 2020
 
 @author: andy
 """
 
 class MojoWeekendBoxOffice():
+    """
+    Class definition for BoxOfficeMojo weekend box office object
+    """
+    
     def __init__(self, db_row):
+        """
+        MojoWeekendBoxOffice class constructor
+        
+        :param db_row: pandas series object corresponding to row from which object should be built
+        """
+        
         self.id = db_row.id
         self.movieid = db_row.movieid
         self.date = db_row.date

@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+This file contains the functions written to scrape movie data from box office mojo
+
 Created on Mon Jun 22 14:27:00 2020
 
 @author: andy
@@ -16,35 +18,71 @@ from datetime import datetime
 
 
 def get_movie_page(imdbId):
+    """
+    Function to get the movie page html from BoxOfficeMojo.com
+    
+    :param imdbid: string id used to access the correct movie page
+    :return html of movie page as processed by beautifulsoup
+    """
+    
     html = 'http://www.boxofficemojo.com/title/tt{}'.format(imdbId)
     r = requests.get(html)  
     return r.content
 
 
 def get_uk_url(imdbId):
+    """
+    Function to get the url of the uk box office info page for a movie from BoxOfficeMojo.com
+    
+    :param imdbid: string id used to access the correct movie page
+    :return string url of the uk box office page
+    """
+    
+    #first get the main movie page
     html = get_movie_page(imdbId)
     soup = bs(html, 'html.parser')
+    
+    #now find the link to the uk page
     uk_a_elem_lst = soup.find_all('a', href=True, text='United Kingdom')
     if len(uk_a_elem_lst) > 0:
         uk_a_elem = uk_a_elem_lst[0]
         uk_url = "http://www.boxofficemojo.com{0}".format(uk_a_elem['href'])
         return uk_url
     
+    #if no links return empty
     return None
 
 def get_uk_page(imdbId):
+    """
+    Function to get the html of the uk page for a specific movie
+    
+    :param imdbid: string id used to access the correct movie page
+    :return html of the uk box office movie page as processed by beautiful soup
+    """
+    
+    #get uk page url
     url = get_uk_url(imdbId)
     if not url == None:
+        #make  request for page
         r = requests.get(url)  
         return r.content
     else:
+        #if we cant find the page then return empty
         return None
 
 def get_mojo_stats(imdbId):
+    """
+    Function to get the box office summary stats from BoxOfficeMojo.com
+    
+    :param imdbid: string id used to access the correct movie page
+    :return dictionary of box office stats
+    """
+    
     #get stats from main page
     main_html = get_movie_page(imdbId)
     main_soup = bs(main_html, 'html.parser')
     
+    #find summary table which is the parent for stats
     summary = main_soup.select('.mojo-summary-table')[0]
     gross_siblings = summary.select("span.a-size-small")
     
@@ -53,6 +91,7 @@ def get_mojo_stats(imdbId):
              "International" : None
              }
     
+    #get worldwide, domestic and international gross from main page
     for gross in gross_siblings:
         gross_text = gross.get_text().strip()
         if gross_text == "Worldwide":
@@ -98,7 +137,7 @@ def get_mojo_stats(imdbId):
     else:
         stats["UK"] = None
       
-    #some movies dont have budgetinfo
+    #some movies dont have budgetinfo so do it separetly
     budget_search = summary.find_all("span", text="Budget")
     if len(budget_search) > 0:
         budget_str = budget_search[0].find_next_siblings("span")[0].get_text()
@@ -110,16 +149,25 @@ def get_mojo_stats(imdbId):
     return stats
 
 def get_uk_box_office_df(imdbId):
+    """
+    Function to get the weekly box office stats from BoxOfficeMojo.com
+    
+    :param imdbid: string id used to access the correct movie page
+    :return dataframe of box office stats
+    """
+    
+    #first get uk page and find the table with weekly stats
     uk_html = get_uk_page(imdbId)
     uk_soup = bs(uk_html, 'html.parser')
     div = uk_soup.select('.imdb-scroll-table-inner')[0]
     tables = div.find_all('table')
     
+    #parse table into pandas
     box_office_df = pd.read_html(str(tables[0]))[0]
     box_office_df["start_date"] = box_office_df.apply(lambda row: get_start_date(row['Date']), axis = 1)
     box_office_df["end_date"] = box_office_df.apply(lambda row: get_end_date(row['Date']), axis = 1)
 
-    
+    #need to fix the dates as they are wonky strings without years 
     prev_start = box_office_df.iloc[0]["start_date"]
     prev_end = box_office_df.iloc[0]["end_date"]
     fix_remaining = False
@@ -141,7 +189,8 @@ def get_uk_box_office_df(imdbId):
                 
             prev_start = row["start_date"]
             prev_end = row["end_date"]
-                
+     
+    #rename columns so they are suitable for db
     box_office_df = box_office_df.rename(columns = {"Date" : "date",
                                     "Rank" : "rank",
                                     "Weekend" : "weekend_gross_usd",
@@ -152,6 +201,7 @@ def get_uk_box_office_df(imdbId):
                                     "To Date" : "gross_to_date_usd", 
                                     "Weekend.1" : "weeks_on_release" })
     
+    #convert datatypes to match db
     box_office_df["weekend_gross_usd"] = box_office_df.apply(lambda row: try_convert_money(row["weekend_gross_usd"]), axis = 1)
     box_office_df["average_per_theatre_usd"] = box_office_df.apply(lambda row: try_convert_money(row["average_per_theatre_usd"]), axis = 1)
     box_office_df["gross_to_date_usd"] = box_office_df.apply(lambda row: try_convert_money(row["gross_to_date_usd"]), axis = 1)
@@ -161,8 +211,10 @@ def get_uk_box_office_df(imdbId):
     box_office_df = box_office_df.astype({'no_of_theatres': 'int32'})
     box_office_df = box_office_df.drop(columns='Estimated')
     
+    #return results
     return box_office_df
-    
+ 
+##HELPER FUNCTIONS FOR FIXING DATA TYPES##   
 def get_start_date(date_str):
     dates = date_str.split('-')
     dates[0] = "{0} 2019".format(dates[0])

@@ -1,13 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Class definition for movie Trailers object
+
 Created on Fri May 15 16:02:55 2020
 
 @author: andy
 """
 
 class Trailer():
+    """
+    Class definition for movie Trailers object
+    """
+    
     def __init__(self, db_row):
+        """
+        Trailer box office class constructor
+        
+        :param db_row: pandas series object corresponding to row from which object should be built
+        """
         self.trailerId = db_row.id
         self.movieId = db_row.movieId
         self.youtubeId = db_row.youtubeId
