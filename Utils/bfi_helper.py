@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Helper functions to process the BFI raw data
+
 Created on Tue Apr 28 14:40:21 2020
 
 @author: andy

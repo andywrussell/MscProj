@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Was going to use for processing comments and tweets, ended up with different modules 
+
 Created on Thu May 28 10:29:54 2020
 
 @author: andy

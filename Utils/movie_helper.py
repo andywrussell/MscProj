@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Main set of utility functions used to explore and interrogate the data, this got very long but is well documented
+
 Created on Thu Jun 11 09:33:06 2020
 
 @author: andy
@@ -24,18 +26,36 @@ from datetime import timedelta
 import scipy
 
 def get_movies_df():
+    """
+    Function to retreive dataframe of movies from the db (filtered to the 85 investigate)
+    
+    :return pandas dataframe of movies
+    """
+    
     movies_df = database_helper.select_query("movies", {"investigate" : "1"})
     movies_df = movies_df.sort_values(by=['movieId'])   
     return movies_df
 
 def get_movies():
-    #movies_df = database_helper.select_query("movies", { "enabled" : "1" })
+    """
+    Function to build list of movie objects, filtered to 85 investigate movies  
+    
+    :return list of movie object
+    """
+
     movies_df = database_helper.select_query("movies", {"investigate" : "1"}) 
      
     movies_df = movies_df.sort_values(by=['movieId'])  
     return gen_movies(movies_df)
 
 def gen_movies(movies_df):
+    """
+    Function to generate a lis
+    
+    :param movies_df: dataframe from which movies list should be generated
+    :return pandas dataframe of tweet counts and region ids
+    """
+    
     movies = []
     with tqdm(total=len(movies_df)) as pbar:
         for index, row in movies_df.iterrows(): 
@@ -45,30 +65,50 @@ def gen_movies(movies_df):
     return movies
 
 def get_movie_by_id(movieId): 
+    """
+    Function to get a singular movie object using its movie id
+    
+    :param movieId: integer movie id
+    :return movie object   
+    """
+    
+    #get movie from db and build object
     movies_df = database_helper.select_query("movies", { "movieId" : int(movieId) })
     if (not movies_df.empty):
         return Movie(movies_df.iloc[0])
     
+    #if no matching movie return none
     return None
 
+
 def get_movie_by_title(title):
+    """
+    Function to get a singular movie object using its title
+    
+    :param title: string movie title
+    :return movie object   
+    """
+    
+    #get movie from db and build object
     movies_df = database_helper.select_query("movies", { "title" : title })
     if (not movies_df.empty):
         return Movie(movies_df.iloc[0])
     
+    #if no matching movie return none
     return None
     
-def set_total_revenue_for_movies():
-    movies = get_movies();
-    with tqdm(total=len(movies)) as pbar:
-        for movie in movies:
-            total_rev = movie.box_office_df.iloc[movie.box_office_df['weeksOnRelease'].idxmax()]['grossToDate']
-            update_params = { "totalRevenue" : total_rev }
-            select_params = { "movieId" : movie.movieId }
-            database_helper.update_data("movies", update_params = update_params, select_params = select_params)
-            pbar.update(1)
-            
+
 def get_top_by_column(column, max_movies = 20, where_clause = ""):
+    """
+    Function to get the top movies in a certain column from the db
+    
+    :param column: string column name to use for ranking
+    :param max_movies: limit on the number of movies to return
+    :param where_clause: string peice of sql to use for additonal filtering
+    :return dataframe of movies   
+    """
+    
+    
     sql = """SELECT * FROM public.movies 
              WHERE "investigate" = '1'"""
              
@@ -84,6 +124,15 @@ def get_top_movies_by_column(column, max_movies = 20):
     return gen_movies(top_df) 
 
 def get_lowest_by_column(column, max_movies = 20, where_clause = ""):
+    """
+    Function to get the bottom movies in a certain column from the db
+    
+    :param column: string column name to use for ranking
+    :param max_movies: limit on the number of movies to return
+    :param where_clause: string peice of sql to use for additonal filtering
+    :return dataframe of movies   
+    """
+    
     sql = """SELECT * FROM public.movies 
              WHERE "investigate" = '1'"""
              
@@ -100,11 +149,22 @@ def get_lowest_movies_by_column(column, max_movies = 20):
 
 
 def count_tweets(movieId, start_date = None, end_date = None, senti_class = None):
+    """
+    Function to count movie related tweets
+    
+    :param movieId: integer movieId used to filter tweets to specific movie
+    :param start_date: datetime of the start date to filter tweets
+    :param end_date: datetime of the end date to filter tweets
+    :param senti_class: string used to filter tweets to specific sentiment class
+    :return pandas dataframe of movieId and tweet count
+    """  
+    
     sql = """
           SELECT "movieid", COUNT(*) 
           FROM movie_tweets2019 
           WHERE "movieid" = {0}""".format(movieId)   
-          
+        
+    #apply filters if specified
     if not start_date == None:
         sql += """ AND "created_at" >= '{0}'""".format(start_date)
         
@@ -121,6 +181,13 @@ def count_tweets(movieId, start_date = None, end_date = None, senti_class = None
     return tweet_count
 
 def categorize_by_gross_profit():
+    """
+    Function to assign movies to ordinal classes based on their gross profit
+    
+    :return pandas dataframe of movies
+    """      
+    
+    #get movies from db
     movies_df = get_movies_df()
     
     #calculate gross profit based on budget and worldwide gross
@@ -129,11 +196,14 @@ def categorize_by_gross_profit():
     movies_df["gross_profit_usd_norm"] = movies_df["worldwide_gross_usd_norm"] - movies_df["budget_usd_norm"]
     movies_df["gross_profit_usd"] = movies_df["worldwide_gross_usd"].replace('[\£,]', '', regex=True).astype(float) - movies_df["budget_usd"].replace('[\£,]', '', regex=True).astype(float)
     
+    #create buckets to group movies
     custom_bucket_array =[-100, 0, 90, 235, 700, 99999]
     bucket_labels = ['< $0 (Flop)', '$0 < $90m', '$90m < $235m', '$235m < $700m', '> $700m (BlockBuster)' ]
     
+    #assign movies to buckets
     movies_df['class'] = pd.cut(movies_df['gross_profit_usd_norm'], custom_bucket_array,labels= bucket_labels)
     
+    #update the profit class in the database
     for index, row in movies_df.iterrows(): 
             updates = { "gross_profit_usd" : row["gross_profit_usd"],
                     "profit_class" : row["class"]
@@ -141,113 +211,206 @@ def categorize_by_gross_profit():
             selects = {"movieId" : row["movieId"]}
             database_helper.update_data("movies", update_params = updates, select_params = selects)
     
+    #return dataframe of movies
     return movies_df
 
 def categorize_by_budget():
+    """
+    Function to assign movies to ordinal classes based on their budget
+    
+    :return pandas dataframe of movies
+    """          
+    
+    #get movies from db
     movies_df = get_movies_df()
+    
+    #normalize budget to millions of usd
     movies_df["budget_norm"] = movies_df["budget_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
     
+    #create buckets to group movies
     custom_bucket_array =[0, 10, 40, 100, 185, 1000]
     bucket_labels = ['< $10m (Small)', '$10m < $40m', '$40m < $100m', '$100m < $185m', '> 185m (Big)' ]
     
+    #assign movies to buckets
     movies_df['class'] = pd.cut(movies_df['budget_norm'], custom_bucket_array,labels= bucket_labels)
     
+    #update the profit class in the database
     for index, row in movies_df.iterrows(): 
             updates = { "budget_class" : row["class"] }
             selects = {"movieId" : row["movieId"]}
             database_helper.update_data("movies", update_params = updates, select_params = selects)
     
+    #return dataframe of movies
     return movies_df    
 
 def categorize_by_uk_gross():
+    """
+    Function to assign movies to ordinal classes based on their uk gross
+    
+    :return pandas dataframe of movies
+    """  
+    
+    #get movies from db
     movies_df = get_movies_df()
+    
+    #normalise uk gross to millions of usd
     movies_df["uk_gross_usd"] = movies_df["uk_gross_usd"].replace('[\£,]', '', regex=True).astype(float) / 1000000
     
+    #create buckets to group movies
     custom_bucket_array =[0, 1, 8, 20, 50, 1000]
     bucket_labels = ['< $1m (Small)', '$1m < $8m', '$8m < $20m', '$20m < $50m', '> $50m (Big)' ]
     
+    #assign movies to buckets
     movies_df['class'] = pd.cut(movies_df['uk_gross_usd'], custom_bucket_array,labels= bucket_labels)
     
+    #update the budget class in the df
     for index, row in movies_df.iterrows(): 
             updates = { "uk_gross_class" : row["class"] }
             selects = {"movieId" : row["movieId"]}
             database_helper.update_data("movies", update_params = updates, select_params = selects)
     
+    #return dataframe of movies
     return movies_df       
 
 def calculate_percentage_profit():
+    """
+    Function to calculate the return percentage for each film
+    
+    :return pandas dataframe of movies
+    """  
+    
+    #get movies from db
     movies_df = get_movies_df()
+    
+    #calculate the return based on worldwide gross and budget
     movies_df["gross_profit_norm"] = movies_df["gross_profit_usd"].replace('[\£,]', '', regex=True).astype(float)
     movies_df["budget_norm"] = movies_df["budget_usd"].replace('[\£,]', '', regex=True).astype(float)
     movies_df["return_percentage"] = (movies_df["gross_profit_norm"] / movies_df["budget_norm"]) * 100
     
+    #update the return percentage in the db
     for index, row in movies_df.iterrows(): 
         updates = { "return_percentage" : row["return_percentage"] }
         selects = {"movieId" : row["movieId"]}
         database_helper.update_data("movies", update_params = updates, select_params = selects)
     
+    #return dataframe of movies
     return movies_df
 
 
 def categorize_by_return_percentage():
+    """
+    Function to assign movies to ordinal classes based on their return percentage
+    
+    :return pandas dataframe of movies
+    """  
+    
+    #get movies from db
     movies_df = get_movies_df()
     
+    #create buckets to group movies 
     custom_bucket_array = [-100, 0, 290, 540, 1000, 2000]
     bucket_labels = ['< %0 (Flop)', '0% - 290%', '100% - 540%', '540% - 1000%', '> 1000% (BlockBuster)']
-    movies_df['class'] = pd.cut(movies_df['return_percentage'], custom_bucket_array,labels= bucket_labels)
     
+    #assign movies to classes
+    movies_df['class'] = pd.cut(movies_df['return_percentage'], custom_bucket_array,labels= bucket_labels)
+  
+    #update the return class in the db
     for index, row in movies_df.iterrows(): 
             updates = { "return_class" : row["class"] }
             selects = {"movieId" : row["movieId"]}
             database_helper.update_data("movies", update_params = updates, select_params = selects)
     
+    #return dataframe of movies
     return movies_df
 
 def categorize_by_uk_percentage():
+    """
+    Function to assign movies to ordinal classes based on their percentage of takings in the UK
+    
+    :return pandas dataframe of movies
+    """  
+    
+    #get movies from the db
     movies_df = get_movies_df()
     
+    #create buckets to group movies 
     custom_bucket_array =[0, 1, 4, 6, 12, 20]
     bucket_labels = ['0% - 1%', '1% - 4%', '4% - 6%', '6% - 12%', '> 12%']
+    
+    #assign movies to classes
     movies_df['class'] = pd.cut(movies_df['uk_percentage'], custom_bucket_array,labels= bucket_labels)
     
+    #update the return class in the db
     for index, row in movies_df.iterrows(): 
             updates = { "uk_percentage_class" : row["class"] }
             selects = {"movieId" : row["movieId"]}
             database_helper.update_data("movies", update_params = updates, select_params = selects)
     
+    #return dataframe of movies
     return movies_df
 
   
 def calculate_uk_percentage_gross():
+    """
+    Function to calculate the uk percentage takings for each film
+    
+    :return pandas dataframe of movies
+    """  
+    
+    #get movies from db
     movies_df = get_movies_df()
+    
+    #calculate return percentage based on worldwide gross and uk gross
     movies_df["worldwide_norm"] = movies_df["worldwide_gross_usd"].replace('[\£,]', '', regex=True).astype(float)
     movies_df["uk_takings_norm"] = movies_df["uk_gross_usd"].replace('[\£,]', '', regex=True).astype(float)
     movies_df["uk_percentage"] = (movies_df["uk_takings_norm"] / movies_df["worldwide_norm"]) * 100
     
+    #update the db
     for index, row in movies_df.iterrows(): 
         updates = { "uk_percentage" : row["uk_percentage"] }
         selects = {"movieId" : row["movieId"]}
         database_helper.update_data("movies", update_params = updates, select_params = selects)
     
+    #return list of movies
     return movies_df
     
 
 def get_movie_genres():
+    """
+    Function to return a list of unqiue movie genres
+    
+    :return string list of movie genres
+    """
+    
+    #get movies from df
     movies_df = get_movies_df()
+    
+    #get list of genres
     movies_df["genres_list"] = movies_df["genres"].apply(lambda x: x.split(',') if x != None else [])
     genre_list = movies_df["genres_list"].to_list()
     
+    #extract unqiue list of genres
     genre_list = list(set([item for sublist in genre_list for item in sublist]))
     
     return genre_list
 
 
 def get_movie_genre_counts():
+    """
+    Function to count the number of movies per genre
+    
+    :return pandas dataframe of genres and movie counts
+    """
+    
+    #get movies from df
     movies_df = get_movies_df()
+    
+    #get unique list of genres
     genre_list = get_movie_genres()
     
     genre_df = pd.DataFrame(columns=["genre", "count"])
     
+    #count the number of movies per genre
     counts = []
     for genre in genre_list:
         row_s = movies_df.apply(lambda x: True if genre in x["genres"] else False, axis=1)
@@ -256,12 +419,21 @@ def get_movie_genre_counts():
     genre_df["genre"] = genre_list
     genre_df["count"] = counts
     
+    #return results
     return genre_df
 
 def get_genre_tweet_counts():
+    """
+    Function to count the number of tweets per genre
+    
+    :return pandas dataframe of genres and tweet counts
+    """
+    
+    #get unique list of movies and genres
     genre_list = get_movie_genres()
     counts = []
     
+    #count the tweets for each movie in every genre
     for genre in genre_list:
         #get all movies in this genre
         genre_movies = database_helper.select_movies_by_genre(genre)
@@ -269,20 +441,29 @@ def get_genre_tweet_counts():
         tweet_count = 0
         for index, row in genre_movies.iterrows():
             tweet_count += int(count_tweets(row["movieId"])['count'])
-
-            
+   
         counts.append(tweet_count)
         
     genre_df = pd.DataFrame(columns=["genre", "count"])
     genre_df["genre"] = genre_list
     genre_df["count"] = counts
     
+    #return results
     return genre_df
 
 def get_genre_tweet_sentiments():
+    """
+    Function to get senti the number of tweets per sentiment and genre
+    
+    :return pandas dataframe of genre, sentiment classes and tweet counts
+    """    
+    
+    #gt unique list of genres
     genre_list = get_movie_genres()
     
     output_df = pd.DataFrame(columns=['senti_class', 'counts', 'genre'])
+    
+    #for each genre get all the movies in that genre
     for genre in genre_list:
         genre_movies = database_helper.select_movies_by_genre(genre)
         
@@ -290,6 +471,7 @@ def get_genre_tweet_sentiments():
         first_tweets = database_helper.select_geo_tweets(genre_movies.iloc[0]['movieId'])
         class_freq = first_tweets.groupby('senti_class').size().reset_index(name='counts')
         
+        #get sentiment grouped tweet counts
         for index, row in genre_movies.iterrows():
             if index > 0:
                 tweets = database_helper.select_geo_tweets(row["movieId"])
@@ -298,12 +480,21 @@ def get_genre_tweet_sentiments():
     
         class_freq['genre'] = genre
         output_df = output_df.append(class_freq)
-        
+      
+    #return results
     return output_df
 
 def get_genre_revenues():
+    """
+    Function to get the total profit per genre
+    
+    :return pandas dataframe of genre and profits
+    """    
+    
+    #get unique list of genres
     genre_list = get_movie_genres()
                 
+    #get the profit for each movie in each genre
     genre_revenues = []
     for genre in genre_list:
         genre_movies = database_helper.select_movies_by_genre(genre)  
@@ -316,25 +507,14 @@ def get_genre_revenues():
     output_df["genre"] = genre_list
     output_df["profit_mil"] = genre_revenues
     
-    return output_df
-        
-        
-def get_genre_movie_class_counts():
-    genre_list = get_movie_genres()
-      
-    output_df = pd.DataFrame(columns=["profit_class", "genre", "counts"])
-      
-    for genre in genre_list: 
-        genre_movies = database_helper.select_movies_by_genre(genre) 
-        class_freq = genre_movies.groupby('profit_class').size().reset_index(name="counts")
-        class_freq["genre"] = genre
-        
-        output_df = output_df.append(class_freq)
-        
+    #return results
     return output_df
 
 
 def get_correlation_matrix():
+    """
+    Function to generate correlation matrix for movie variables
+    """    
     #based on https://seaborn.pydata.org/examples/many_pairwise_correlations.html
     movies_df = get_movies_df()
     
@@ -381,20 +561,38 @@ def get_correlation_matrix():
     
     
 def get_movies_with_run_gaps():
+    """
+    Function to get movies where there is a gap in the cinema run
+    
+    :return pandas dataframe of movies 
+    """    
+    
+    #get movies from db
     movies_df = get_movies_df()
     
+    #check each movie to see if there is a gap in the box office data
     gap_movies_df = pd.DataFrame()
     for index, row in movies_df.iterrows():
         mojo_box_office_df = database_helper.select_query("weekend_box_office_mojo", {"movieid" : row['movieId']})
         
         if (check_mojo_for_gaps(mojo_box_office_df)):
             gap_movies_df = gap_movies_df.append(row)
-            
+        
+    #return results
     return gap_movies_df
         
 def check_mojo_for_gaps(df):
+    """
+    Function to check df of box office data for gaps in consecutive weekends
+    
+    :param df dataframe of weekend box office info
+    :return True if gap exists otherwise False
+    """   
+    
+    #order by the weeks on release incrementor
     df = df.sort_values(by='weeks_on_release', ascending=True)
     
+    #if gap between previous week and next week is one then a gap exists
     prev_weeks = df.iloc[0]['weeks_on_release']
     for index, row in df.iterrows():
         if index > 0:
@@ -407,6 +605,14 @@ def check_mojo_for_gaps(df):
     return False
 
 def get_end_weekend_for_first_run(df):
+    """
+    Function to get the last weekend from the first run of consecutive box office data
+    
+    :param df: dataframe of weekend box office info
+    :return date of the end weekend
+    """       
+    
+    #order by the weeks on release incrementor
     df = df.sort_values(by='weeks_on_release', ascending=True)
     
     prev_weeks = df.iloc[0]['weeks_on_release']
@@ -414,6 +620,7 @@ def get_end_weekend_for_first_run(df):
     
     end_weekend = df.iloc[df['weeks_on_release'].idxmax()].end_date
     
+    #for each week, check if gap is greater than one week
     for index, row in df.iterrows():
         if index > 0:
             cur_weeks = row['weeks_on_release']
@@ -427,13 +634,25 @@ def get_end_weekend_for_first_run(df):
     return end_weekend
 
 def get_trailer_tweets(movieId, most_tweeted = False, senti_class=None, time_period=1):
+    """
+    Function to return tweets around the release of movie trailers
+    
+    :param movieId: integer id of the movie whose trailer tweets we are looking for
+    :param most_tweeted: boolean flag to indicate if only the most tweeted trailer should be used
+    :param time_period: integer indicating the number of days after trailer release date to take into account
+    :return geopandas dataframe of trailer tweets
+    """ 
+    
+    #get movie trailers from the db
     trailers_df = database_helper.select_query("trailers", { "movieId" : int(movieId) })
     
+    #set the start and end dates to widen the search field
     trailers_df["start_date"] = trailers_df.apply(lambda row: datetime.combine(row["publishDate"], datetime.min.time()), axis=1)
     trailers_df["end_date"] = trailers_df.apply(lambda row: datetime.combine((row["publishDate"] + timedelta(days=time_period)), datetime.max.time()), axis=1)
     
     tweets = pd.DataFrame()
     
+    #using the date range get the tweets for each trailer
     for index, row in trailers_df.iterrows():
         trailer_tweets = database_helper.select_geo_tweets(movieId, start_date = row["start_date"], end_date = row["end_date"], senti_class = senti_class)
         trailer_tweets["trailerId"] = row["id"]
@@ -442,22 +661,41 @@ def get_trailer_tweets(movieId, most_tweeted = False, senti_class=None, time_per
         tweets = tweets.append(trailer_tweets)
         
         
-    #if most tweeted only return the tweets for the most tweeted film
+    #if most tweeted only return the tweets for the most tweeted trailer
     if most_tweeted:
         trailer_counts = tweets.groupby(by="trailerId").size().reset_index(name="tweet_count")
         most_tweeted_id = trailer_counts.loc[trailer_counts["tweet_count"].idxmax()]["trailerId"]
         
         tweets = tweets[tweets["trailerId"] == most_tweeted_id]
 
+    #return dataframe of trailer tweets
     return tweets.reset_index()
 
 def get_trailer_tweet_count(movieId, most_tweeted = False, senti_class=None):
+    """
+    Function to return count tweets around the release of movie trailers
+    
+    :param movieId: integer id of the movie whose trailer tweets we are looking for
+    :param most_tweeted: boolean flag to indicate if only the most tweeted trailer should be used
+    :param time_period: integer indicating the number of days after trailer release date to take into account
+    :return integer count of movie trailer tweets
+    """ 
+    
+    #get tweets and count
     trailer_tweets = get_trailer_tweets(movieId, most_tweeted, senti_class)
 
     return trailer_tweets.shape[0]
 
 def get_movies_df_with_sentiment_summaryies(movies_df, most_tweeted_trailer=False):
+    """
+    Function to get summaries of the count and sentiment of tweets for each movie at different time periods
     
+    :param movies_df: dataframe of movies collected from the db
+    :param most_tweeted_trailer: boolean flag to indicate if only the most tweeted trailer should be used
+    :return pandas dataframe with counts and percentages of movie tweets and sentiment
+    """ 
+    
+    #get the total tweets, negative, positive and neutral rates
     movies_df["tweet_count"] = movies_df.apply(lambda row: count_tweets(row.movieId)['count'], axis = 1)
     movies_df["positive_tweets"] = movies_df.apply(lambda row: count_tweets(row.movieId, senti_class = 'positive')['count'], axis = 1)
     movies_df["positive_tweets_percentage"] = (movies_df["positive_tweets"] / movies_df["tweet_count"]) * 100   
@@ -466,6 +704,7 @@ def get_movies_df_with_sentiment_summaryies(movies_df, most_tweeted_trailer=Fals
     movies_df["negative_tweets"] = movies_df.apply(lambda row: count_tweets(row.movieId, senti_class = 'negative')['count'], axis = 1)  
     movies_df["negative_tweets_percentage"] = (movies_df["negative_tweets"] / movies_df["tweet_count"]) * 100
 
+    #get the critical period tweets, negative, positive and neutral rates
     movies_df["critical_period_tweet_count"] = movies_df.apply(lambda row: count_tweets(row["movieId"], row["critical_start"], row["critical_end"])['count'], axis = 1)
     movies_df["critical_period_tweet_pos"] = movies_df.apply(lambda row: count_tweets(row["movieId"], row["critical_start"], row["critical_end"], senti_class = 'positive')['count'], axis = 1)
     movies_df["critical_period_pos_percentage"] = (movies_df["critical_period_tweet_pos"] / movies_df["critical_period_tweet_count"]) * 100
@@ -474,6 +713,7 @@ def get_movies_df_with_sentiment_summaryies(movies_df, most_tweeted_trailer=Fals
     movies_df["critical_period_tweet_neg"] = movies_df.apply(lambda row: count_tweets(row["movieId"], row["critical_start"], row["critical_end"], senti_class = 'negative')['count'], axis = 1)
     movies_df["critical_period_neg_percentage"] = (movies_df["critical_period_tweet_neg"] / movies_df["critical_period_tweet_count"]) * 100
     
+    #get the trailer tweets, negative, positive and neutral rates
     movies_df["trailer_tweet_count"] = movies_df.apply(lambda row: get_trailer_tweet_count(row["movieId"], most_tweeted=most_tweeted_trailer), axis = 1)
     movies_df["trailer_tweet_pos"] = movies_df.apply(lambda row: get_trailer_tweet_count(row["movieId"], most_tweeted=most_tweeted_trailer, senti_class = 'positive'), axis = 1)
     movies_df["trailer_pos_percentage"] = (movies_df["trailer_tweet_pos"] / movies_df["trailer_tweet_count"]) * 100
@@ -482,11 +722,20 @@ def get_movies_df_with_sentiment_summaryies(movies_df, most_tweeted_trailer=Fals
     movies_df["trailer_tweet_neg"] = movies_df.apply(lambda row: get_trailer_tweet_count(row["movieId"], most_tweeted=most_tweeted_trailer, senti_class = 'negative'), axis = 1)
     movies_df["trailer_neg_percentage"] = (movies_df["trailer_tweet_neg"] / movies_df["trailer_tweet_count"]) * 100
     
+    #return the extended movies dataframe
     return movies_df
 
 def get_movie_run_info():
+    """
+    Function to get extended dataframe of movies with informaion about their first uninterrupted cinema run
+
+    :return pandas dataframe of movies with first run info
+    """    
+    
+    #get movies from db
     movies_df = get_movies_df()
     
+    #use box office mojo data to get first run stats for each movie
     dict_lst = []
     for index, row in movies_df.iterrows():
         mojo_box_office_df = database_helper.select_query("weekend_box_office_mojo", {"movieid" : row['movieId']})
@@ -514,20 +763,32 @@ def get_movie_run_info():
         
         dict_lst.append(my_dict)
     
+    #return results
     return pd.DataFrame(dict_lst)
 
 def check_run_dates_tweets():
+    """
+    Function to check for films where the cinema run extends beyond the coverage of the twitter data
+    
+    :return pandas dataframe of movies
+    """ 
+    
+    #get movies from db
     movies_df = get_movies_df()
+    
+    #get max tweet date
     max_tweet_date = tweet_helper.get_max_date().date()
     
-    
+    #check max film weekend against max tweet date for each film
     problem_films = pd.DataFrame()
     for index, row in movies_df.iterrows():
         if row['first_run_end'] >= max_tweet_date:
             problem_films = problem_films.append(row)
-            
+       
+    #return results
     return problem_films
 
+##DEPRICATED##
 def get_trailer_tweet_counts():
     movies = get_movies()
     
@@ -537,39 +798,64 @@ def get_trailer_tweet_counts():
         
         
     return pd.DataFrame(results)
+###
+
 
 def get_run_positive_increase():
+    """
+    Function to check for movies where the percentage of revenue increases instead of decrease across a weekend
+    
+    :return pandas dataframe of movies
+    """ 
+    
+    #get movies from db
     movies_df = get_movies_df()
     
+    #check the weekly box office data from each movie for a positive percentage change
     positive_changes = pd.DataFrame()
     for index, row in movies_df.iterrows():
+        #if ppstive change exists add movie to return list
         mojo_box_office_df = database_helper.select_query("weekend_box_office_mojo", {"movieid" : row['movieId']})
         if (mojo_box_office_df['percentage_change'] > 0).any() :
             positive_changes = positive_changes.append(row)
-            
+     
+    #return results
     return positive_changes
 
 def get_highest_mojo_rank():
+    """
+    Function to get rank information based on box office data
+    
+    :return pandas dataframe of movies
+    """ 
+    
+    #get movies from db
     movies_df = get_movies_df()
     
     rank_list = []
     for index, row in movies_df.iterrows():
         mojo_box_office_df = database_helper.select_query("weekend_box_office_mojo", {"movieid" : row['movieId']})
         
+        #get top rank
         best_rank = mojo_box_office_df["rank"].min()
         
+        #get weekends at best
         best_rows = mojo_box_office_df[mojo_box_office_df['rank'] == best_rank]
         weekends_at_rank = best_rows.shape[0]
         
+        #get weekends in top 3
         top_3_rows = mojo_box_office_df[mojo_box_office_df['rank'] <= 3]
         top_3_weekends = top_3_rows.shape[0]
         
+        #get weekends in top 5
         top_5_rows = mojo_box_office_df[mojo_box_office_df['rank'] <= 5]
         top_5_weekends = top_5_rows.shape[0]
         
+        #get weekends in top 10
         top_10_rows = mojo_box_office_df[mojo_box_office_df['rank'] <= 10]
         top_10_weekends = top_10_rows.shape[0]
         
+        #get weekends in top 15
         top_15_rows = mojo_box_office_df[mojo_box_office_df['rank'] <= 15]
         top_15_weekends = top_15_rows.shape[0]
         
@@ -582,16 +868,24 @@ def get_highest_mojo_rank():
                           'weekends_in_top_15' : top_15_weekends})
         
         
-        
+    #return extended dataframe of movies  
     return pd.DataFrame(rank_list)
 
 def get_movie_tweet_events():
+    """
+    Function to get daily peak events for each movie
+    
+    :return dictionary of pandas dataframes of events
+    """ 
+    
+    #get movies from db
     movies = get_movies()
     
     events_df = pd.DataFrame()
     all_peaks = pd.DataFrame()
     trailer_peaks = pd.DataFrame()
     
+    #for each film get top event and any trailer events
     for movie in movies:
         tweet_peaks = movie.get_tweet_peak_events()
         
@@ -609,6 +903,13 @@ def get_movie_tweet_events():
 
 
 def get_movies_df_with_opening_weekend():
+    """
+    Function to get extended list of movies with opening weekend data
+    
+    :return pandas dataframe of movies
+    """ 
+    
+    #get all movies and calculate opening weekend takigns
     movies_df = get_movies_df()
     movies_df["opening_weekend_takings"] = movies_df.apply(lambda row: database_helper.select_query("weekend_box_office_mojo", {"movieid" : row['movieId']}).iloc[0]['weekend_gross_usd'], axis=1)
     
@@ -626,6 +927,7 @@ def get_movies_df_with_opening_weekend():
     neu_opening_weekend_tweets = []
     neg_opening_weekend_tweets = []
     
+    #get opening weekend and run up week tweets and percentages
     for index, row in movies_df.iterrows():
         mojo_df = database_helper.select_query("weekend_box_office_mojo", {"movieid" : row['movieId']})
         
@@ -671,7 +973,8 @@ def get_movies_df_with_opening_weekend():
         pos_opening_weekend_tweets.append(pos_opening_count)
         neu_opening_weekend_tweets.append(neu_opening_count)
         neg_opening_weekend_tweets.append(neg_opening_count)
-        
+      
+    #extend movies df to contain info about run up tweets
     movies_df['run_up_tweets'] = tweets_prior_to_opening
     movies_df['run_up_tweets_pos'] = pos_tweets_prior_to_opening
     movies_df['run_up_pos_percentage'] = (movies_df["run_up_tweets_pos"] / movies_df["run_up_tweets"]) * 100
@@ -680,6 +983,7 @@ def get_movies_df_with_opening_weekend():
     movies_df['run_up_tweets_neg'] = neg_tweets_prior_to_opening
     movies_df['run_up_neg_percentage'] = (movies_df["run_up_tweets_neg"] / movies_df["run_up_tweets"]) * 100
     
+    #extend movies df to contain info about opening weekend tweets
     movies_df['opening_tweets'] = opening_weekend_tweets
     movies_df['opening_tweets_pos'] = pos_opening_weekend_tweets
     movies_df['opening_pos_percentage'] = (movies_df["opening_tweets_pos"] / movies_df["opening_tweets"]) * 100
@@ -688,10 +992,17 @@ def get_movies_df_with_opening_weekend():
     movies_df['opening_tweets_neg'] = neg_opening_weekend_tweets
     movies_df['opening_neg_percentage'] = (movies_df["opening_tweets_neg"] / movies_df["opening_tweets"]) * 100
     
+    #return extended movies dataframe
     return movies_df
 
 
 def get_df_and_col_list_for_correlation():
+    """
+    Function to get extended dataframe of movies with variables needed for correlaiton
+    
+    :return movies dataframe and list of columns to use in correlations
+    """ 
+    
     movies_df = get_movies_df_with_opening_weekend()
     movies_df["tweet_count"] = movies_df.apply(lambda row: count_tweets(row.movieId)['count'], axis = 1)
     movies_df["critical_period_tweet_count"] = movies_df.apply(lambda row: count_tweets(row["movieId"], row["critical_start"], row["critical_end"])['count'], axis = 1)

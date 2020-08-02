@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Data Layer, set of utility functions which are used to query the database
+
 Created on Wed Apr 29 12:20:34 2020
 
 @author: andy
@@ -66,6 +68,14 @@ def get_data(sql, q_params = None):
                 #print("PostgreSQL connection is closed")
                 
 def get_geo_data(sql, geom ='geom'):
+    """
+    Fetch data from the database and return as geopandas dataframe
+    
+    :param sql: string contating sql query
+    :param geom: name of geometry column in db
+    :return geopandas dataframe of query results
+    """    
+    
     try: 
         connection = psycopg2.connect(user="postgres",
                                       password="4ndr3wP0ST!",
@@ -173,11 +183,21 @@ def update_data(table, update_params, select_params, select_operator = "AND"):
     
     
 def bulk_insert_df(table, df, cols):
+    """
+    Method to bulk insert a pandas dataframe into the database
+    
+    :param table: string name of table
+    :param df: pandas dataframe of data to be inserted
+    :param cols: list of column names to use for the insert
+    """
+    
+    #create the databse connection
     address = 'postgresql://postgres:4ndr3wP0ST!@127.0.0.1:5432/geotweets'
     engine = create_engine(address)
     connection = engine.raw_connection()
     cursor = connection.cursor()
     
+    #make sure column names are correctly escaped
     escaped = {'\\': '\\\\', '\n': r'\n', '\r': r'\r', '\t': r'\t'}
     for col in df.columns:
         if df.dtypes[col] == 'object':
@@ -200,16 +220,36 @@ def bulk_insert_df(table, df, cols):
     
 
 def select_base_tweets():
+    """
+    Method to select all tweet ids and location info from tweets2019
+    
+    Only use if really needed as huge table can cause memory issues
+    """
+    
     sql = """SELECT id, wgslat, wgslng, geombng FROM tweets2019 """
     df = get_geo_data(sql, "geombng")
     return df
 
 def select_uk_fishnet():
+    """
+    Method to select the entire uk_fishnet table from the db, for use in generating expectation maps
+    
+    :return pandas geodataframe of uk fishnet
+    """
+    
     sql = """SELECT * FROM uk_fishnet"""
     df = get_geo_data(sql, 'geombng')
     return df
     
 def select_fishnet_count(start_date = None, end_date = None):
+    """
+    Method to select the total number of tweets per fishnet cell
+    
+    :param start_date: datetime of the start date to filter tweets
+    :param end_date: datetime of the end date to filter tweets
+    :return pandas dataframe of tweet counts and cell ids
+    """
+    
     if (not start_date == None) and (not end_date == None):
         #need to count on the fly
         sql = """SELECT count(*) as tweet_count, cellid
@@ -220,15 +260,28 @@ def select_fishnet_count(start_date = None, end_date = None):
         return get_data(sql)
         
     else:
+        #if no start date, select from tweets_fishnet_count which is pre counted for whole dataset
         return select_query("tweets_fishnet_count")
 
 def select_geo_tweets(movieId = 0, start_date = None, end_date = None, senti_class = None):
+    """
+    Method to select tagged movie tweets from movie_tweets2019 table
+    
+    :param movieId: integer movieId used to filter tweets to specific movie
+    :param start_date: datetime of the start date to filter tweets
+    :param end_date: datetime of the end date to filter tweets
+    :param senti_class: string used to filter tweets to specific sentiment class
+    :return pandas geodataframe of movie tweets
+    """    
+    
+    
     sql = """
         SELECT geombng, movieid, msg, wgslat, wgslng, created_at, id, senti_class, compound_scr
         FROM movie_tweets2019
         WHERE 1 = 1
     """.format(movieId)
     
+    #Add filters if they have been specified
     if movieId > 0:
         sql += """ AND movieid = {0}""".format(movieId)    
     
@@ -245,11 +298,23 @@ def select_geo_tweets(movieId = 0, start_date = None, end_date = None, senti_cla
     return df
 
 def select_movie_fishnet_tweets(movieId = 0, start_date = None, end_date = None, senti_class = None):
+    """
+    Method to select movieids with uk_fishnet cell ids (used for generated expectation maps)
+    
+    :param movieId: integer movieId used to filter tweets to specific movie
+    :param start_date: datetime of the start date to filter tweets
+    :param end_date: datetime of the end date to filter tweets
+    :param senti_class: string used to filter tweets to specific sentiment class
+    :return pandas dataframe of movieIds, cellIds and tweet ids
+    """  
+    
+    
     sql = """select f.*, t.movieid from tweets_fishnet f 
             inner join movie_tweets2019 t 
             on t.id = f.id
             where 1 = 1"""
-            
+       
+    #Add filters if they have been specified       
     if movieId > 0:
         sql += """ AND t.movieid = {0}""".format(movieId)
         
@@ -264,12 +329,24 @@ def select_movie_fishnet_tweets(movieId = 0, start_date = None, end_date = None,
         
     return get_data(sql)
 
+
 def select_movie_region_tweets(movieId = 0, start_date = None, end_date = None, senti_class = None):
+    """
+    Method to select movieids with tweet_region cell ids (used for generating regional heatmaps)
+    
+    :param movieId: integer movieId used to filter tweets to specific movie
+    :param start_date: datetime of the start date to filter tweets
+    :param end_date: datetime of the end date to filter tweets
+    :param senti_class: string used to filter tweets to specific sentiment class
+    :return pandas dataframe of movieIds, cellIds and tweet ids
+    """  
+    
     sql = """select f.*, t.movieid from tweets_region f 
             inner join movie_tweets2019 t 
             on t.id = f.id
             where 1 = 1"""
-            
+   
+    #Add filters if they have been specified   
     if movieId > 0:
         sql += """ AND t.movieid = {0}""".format(movieId)
         
@@ -285,11 +362,22 @@ def select_movie_region_tweets(movieId = 0, start_date = None, end_date = None, 
     return get_data(sql)
 
 def select_movie_region_tweets_with_geo(movieId = 0, start_date = None, end_date = None, senti_class = None):
+    """
+    Method to select movieids with tweet_region cell ids and geometry (used for generating regional heatmaps)
+    
+    :param movieId: integer movieId used to filter tweets to specific movie
+    :param start_date: datetime of the start date to filter tweets
+    :param end_date: datetime of the end date to filter tweets
+    :param senti_class: string used to filter tweets to specific sentiment class
+    :return geopandas dataframe of movieIds, cellIds, tweet ids and geometries
+    """  
+    
     sql = """select f.*, t.movieid, t.geombng from tweets_region f 
             inner join movie_tweets2019 t 
             on t.id = f.id
             where 1 = 1"""
             
+    #Add filters if they have been specified  
     if movieId > 0:
         sql += """ AND t.movieid = {0}""".format(movieId)
         
@@ -306,9 +394,18 @@ def select_movie_region_tweets_with_geo(movieId = 0, start_date = None, end_date
     return df
 
 def select_region_tweets(start_date = None, end_date = None):
+    """
+    Method to select the total number of tweets per uk region
+    
+    :param start_date: datetime of the start date to filter tweets
+    :param end_date: datetime of the end date to filter tweets
+    :return pandas dataframe of tweet counts and region ids
+    """
+    
     sql = """ select count(*) as tweet_count, unit_id
               from tweets_region WHERE 1 = 1"""
-              
+       
+    #add date filters if they have been specified
     if not start_date == None:
         sql += """ AND "created_at" >= '{0}'""".format(start_date)
         
@@ -320,12 +417,20 @@ def select_region_tweets(start_date = None, end_date = None):
     return get_data(sql)
 
 def select_movies_by_genre(genre, investigate_only=True):
+    """
+    Method to select movies belonging to a certain genre
+   
+    :param investigate_only: boolean indicating wether or not to use the filtered set of 'investigate' movies
+    :return pandas dataframe of movies
+    """   
+    
     sql = """
         SELECT *
         FROM movies
         WHERE genres ilike '%{0}%'
     """.format(genre)
     
+    #use investigate filter if specified
     if investigate_only:
         sql += " AND investigate = '1'"
         
